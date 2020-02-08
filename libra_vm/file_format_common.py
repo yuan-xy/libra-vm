@@ -224,10 +224,10 @@ def write_Uint32_as_uleb128(binary: BinaryData, value: Uint32) -> None:
     while True:
         v: Uint8 = (val & 0x7f)
         if v != val:
-            binary.append(v | 0x80)
+            binary.push(v | 0x80)
             val >>= 7
         else:
-            binary.append(v)
+            binary.push(v)
             break
 
 
@@ -265,6 +265,7 @@ def read_uleb128_as_Uintx(cursor: List[Uint8], bits: int) -> Uint16:
     idx = 0
     while idx < length:
         byte = cursor[idx]
+        idx += 1
         val = byte & 0x7f
         value |= (val << shift)
         if val == byte:
