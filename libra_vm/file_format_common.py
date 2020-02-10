@@ -160,14 +160,14 @@ BINARY_SIZE_LIMIT: usize = usize.max_value
 # A wrapper for the binary vector
 @dataclass
 class BinaryData:
-    _binary: List[Uint8] = field(default_factory=list)
+    _binary: bytearray = field(default_factory=bytearray)
 
 
-    def as_inner(self) -> List[Uint8]:
+    def as_inner(self) -> bytearray:
         return self._binary
 
 
-    def into_inner(self) -> List[Uint8]:
+    def into_inner(self) -> bytearray:
         return self._binary
 
 
@@ -182,11 +182,9 @@ class BinaryData:
             )
 
 
-    def extend(self, vec: List[Uint8]) -> None:
+    def extend(self, vec: bytearray) -> None:
         vec_len: usize = vec.__len__()
         if self.__len__() + vec_len <= usize.max_value:
-            if isinstance(vec, bytes):
-                vec = bytes_to_int_list(vec)
             self._binary.extend(vec)
         else:
             bail(
@@ -210,13 +208,13 @@ class BinaryData:
 
 
 
-# Take a `List[Uint8]` and a value to write to that vector and applies LEB128 logic to
+# Take a `bytearray` and a value to write to that vector and applies LEB128 logic to
 # compress the Uint16.
 def write_Uint16_as_uleb128(binary: BinaryData, value: Uint16) -> None:
     write_Uint32_as_uleb128(binary, value)
 
 
-# Take a `List[Uint8]` and a value to write to that vector and applies LEB128 logic to
+# Take a `bytearray` and a value to write to that vector and applies LEB128 logic to
 # compress the Uint32.
 def write_Uint32_as_uleb128(binary: BinaryData, value: Uint32) -> None:
     Uint32.check_value(value)
@@ -252,7 +250,7 @@ def write_Uint128(binary: BinaryData, value: Uint128) -> None:
     binary.extend(value.to_bytes(16, byteorder="little", signed=False))
 
 
-def read_uleb128_as_Uintx(cursor: List[Uint8], bits: int) -> Uint16:
+def read_uleb128_as_Uintx(cursor: bytearray, bits: int) -> Uint16:
     if bits == 16:
         max_shift = 14
     elif bits == 32:
@@ -277,7 +275,7 @@ def read_uleb128_as_Uintx(cursor: List[Uint8], bits: int) -> Uint16:
 
 
 # Reads a `Uint16` in ULEB128 format from a `binary`.
-def read_uleb128_as_Uint16(cursor: List[Uint8]) -> Uint16:
+def read_uleb128_as_Uint16(cursor: bytearray) -> Uint16:
     return read_uleb128_as_Uintx(cursor, 16)
 
 
@@ -288,5 +286,5 @@ def read_uleb128_as_Uint16(cursor: List[Uint8]) -> Uint16:
 # Uint32 - value read
 #
 # Return an error on an invalid representation.
-def read_uleb128_as_Uint32(cursor: List[Uint8]) -> Uint32:
+def read_uleb128_as_Uint32(cursor: bytearray) -> Uint32:
     return read_uleb128_as_Uintx(cursor, 32)

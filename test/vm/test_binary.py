@@ -6,7 +6,7 @@ def test_binary_len():
     for _ in range(100):
         binary_data.push(1)
     assert_equal(binary_data.__len__(), 100)
-    assert binary_data._binary == [1]*100
+    assert binary_data._binary == bytearray(b'\x01'*100)
 
 
 
