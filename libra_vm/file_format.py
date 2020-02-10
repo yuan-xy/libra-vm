@@ -1155,6 +1155,11 @@ class CompiledScript:
     # Returns the index of `main` in case a script is converted to a module.
     MAIN_INDEX: FunctionDefinitionIndex = FunctionDefinitionIndex(0)
 
+    #impl ScriptAccess for CompiledScript:
+    def as_script(self) -> CompiledScript:
+        return self
+
+
     # Returns a reference to the inner `CompiledScriptMut`.
     def as_inner(self) -> CompiledScriptMut:
         return self.v0
@@ -1247,6 +1252,10 @@ class CompiledModule:
 
     # By convention, the index of the module being implemented is 0.
     IMPLEMENTED_MODULE_INDEX: Uint16 = 0
+
+    #impl ModuleAccess for CompiledModule:
+    def as_module(self) -> CompiledModule:
+        return self
 
     # Returns a reference to the inner `CompiledModuleMut`.
     def as_inner(self) -> CompiledModuleMut:
@@ -1370,6 +1379,30 @@ class CompiledModuleMut:
             return CompiledModule(self)
         else:
             raise VMException(errors)
+
+    def check_field_range(
+        self,
+        field_count: MemberCount,
+        first_field: FieldDefinitionIndex,
+    ) -> None:
+        first_field = first_field.into_index()
+        field_count = int(field_count)
+        # Both first_field and field_count are Uint16 so this is guaranteed to not overflow.
+        # Note that last_field is exclusive, i.e. fields are in the range
+        # [first_field, last_field).
+        last_field = first_field + field_count
+        if last_field > self.field_defs.__len__():
+            msg = "Field definition range [{},{}) out of range for {}".format(
+                first_field,
+                last_field,
+                self.field_defs.__len__()
+            )
+            status = VMStatus(StatusCode.RANGE_OUT_OF_BOUNDS)
+            status.message = msg
+            raise VMException([status])
+        else:
+            return None
+
 
 
 
