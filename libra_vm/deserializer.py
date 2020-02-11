@@ -54,13 +54,12 @@ def check_binary(cursor: Cursor) -> Uint8:
 
         major_ver = 1
         minor_ver = 0
-        ver = cursor.read_u8()
         if major_ver != cursor.read_u8():
             raise VMException(VMStatus(StatusCode.UNKNOWN_VERSION))
         if minor_ver != cursor.read_u8():
             raise VMException(VMStatus(StatusCode.UNKNOWN_VERSION))
 
-        cursor.read_u8()
+        return cursor.read_u8()
     except IOError as err:
         raise VMException(VMStatus(StatusCode.MALFORMED))
 
@@ -85,7 +84,7 @@ def read_table(cursor: Cursor) -> Table:
         kind = cursor.read_u8()
         table_offset = read_Uint32_internal(cursor)
         count = read_Uint32_internal(cursor)
-        return Table(TableType(kind), table_offset, count)
+        return Table(TableType.from_u8(kind), table_offset, count)
     except IOError:
         raise VMException(VMStatus(StatusCode.MALFORMED))
 
@@ -95,7 +94,7 @@ def read_table(cursor: Cursor) -> Table:
 # Tables cannot have duplicates, must cover the entire blob and must be disjoint.
 def check_tables(tables: List[Table], end_tables: Uint64, length: Uint64):
     # there is no real reason to pass a mutable reference but we are sorting next line
-    tables.sort(key=offset)
+    tables.sort(key = lambda x: x.offset)
 
     current_offset = end_tables
     table_types = set()
@@ -108,7 +107,7 @@ def check_tables(tables: List[Table], end_tables: Uint64, length: Uint64):
             raise VMException(VMStatus(StatusCode.BAD_HEADER_TABLE))
 
         count = table.count
-        checked_offset = current_offset.checked_add(count)
+        checked_offset = Uint64.checked_add(current_offset, count)
         if checked_offset is not None:
             current_offset = checked_offset
         else:
@@ -126,86 +125,9 @@ def check_tables(tables: List[Table], end_tables: Uint64, length: Uint64):
 
 
 
-class CommonTables(abc.ABC):
-
-    @abc.abstractmethod
-    def get_module_handles(self) -> List[ModuleHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_struct_handles(self) -> List[StructHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_function_handles(self) -> List[FunctionHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_type_signatures(self) -> TypeSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_function_signatures(self) -> FunctionSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_locals_signatures(self) -> LocalsSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_identifiers(self) -> IdentifierPool:
-        pass
-
-    @abc.abstractmethod
-    def get_byte_array_pool(self) -> bytearrayPool:
-        pass
-
-    @abc.abstractmethod
-    def get_address_pool(self) -> AddressPool:
-        pass
-
-
-class CommonTablesMixin(CommonTables):
-
-    def get_module_handles(self) -> List[ModuleHandle]:
-        return self.module_handles
-
-
-    def get_struct_handles(self) -> List[StructHandle]:
-        return self.struct_handles
-
-
-    def get_function_handles(self) -> List[FunctionHandle]:
-        return self.function_handles
-
-
-    def get_type_signatures(self) -> TypeSignaturePool:
-        return self.type_signatures
-
-
-    def get_function_signatures(self) -> FunctionSignaturePool:
-        return self.function_signatures
-
-
-    def get_locals_signatures(self) -> LocalsSignaturePool:
-        return self.locals_signatures
-
-
-    def get_identifiers(self) -> IdentifierPool:
-        return self.identifiers
-
-
-    def get_byte_array_pool(self) -> bytearrayPool:
-        return self.byte_array_pool
-
-
-    def get_address_pool(self) -> AddressPool:
-        return self.address_pool
-
-
 # Builds and returns a `CompiledScriptMut`.
 def build_compiled_script(binary: bytes, tables: List[Table]) -> CompiledScriptMut:
-    script = CompiledScriptMut()
+    script = CompiledScriptMut.default()
     build_common_tables(binary, tables, script)
     build_script_tables(binary, tables, script)
     return script
@@ -213,7 +135,7 @@ def build_compiled_script(binary: bytes, tables: List[Table]) -> CompiledScriptM
 
 # Builds and returns a `CompiledModuleMut`.
 def build_compiled_module(binary: bytes, tables: List[Table]) -> CompiledModuleMut:
-    module = CompiledModuleMut()
+    module = CompiledModuleMut.default()
     build_common_tables(binary, tables, module)
     build_module_tables(binary, tables, module)
     return module
@@ -292,7 +214,7 @@ def build_script_tables(
         if table.kind == TableType.MAIN:
             start: usize = table.offset
             # `check_tables()` ensures that the table indices are in bounds
-            assume (start <= usize.max_value - table.count)
+            assert (start <= usize.max_value - table.count)
             end: usize = start + table.count
             cursor = Cursor(binary[start:end])
             main = load_function_def(cursor)
@@ -324,7 +246,7 @@ def load_module_handles(
 
         address = read_uleb_Uint16_internal(cursor)
         name = read_uleb_Uint16_internal(cursor)
-        module_handles.push(ModuleHandle(
+        module_handles.append(ModuleHandle(
             address = AddressPoolIndex(address),
             name = IdentifierIndex(name),
         ))
@@ -347,7 +269,7 @@ def load_struct_handles(
         name = read_uleb_Uint16_internal(cursor)
         is_nominal_resource = load_nominal_resource_flag(cursor)
         type_formals = load_kinds(cursor)
-        struct_handles.push(StructHandle(
+        struct_handles.append(StructHandle(
             ModuleHandleIndex(module_handle),
             IdentifierIndex(name),
             is_nominal_resource,
@@ -370,7 +292,7 @@ def load_function_handles(
         module_handle = read_uleb_Uint16_internal(cursor)
         name = read_uleb_Uint16_internal(cursor)
         signature = read_uleb_Uint16_internal(cursor)
-        function_handles.push(FunctionHandle(
+        function_handles.append(FunctionHandle(
             module = ModuleHandleIndex(module_handle),
             name = IdentifierIndex(name),
             signature = FunctionSignatureIndex(signature),
@@ -393,7 +315,7 @@ def load_address_pool(
             raise VMException(VMStatus(StatusCode.MALFORMED))
         address = binary[start:end_addr]
         start = end_addr
-        addresses.push(address)
+        addresses.append(address)
 
 
 # Builds the `IdentifierPool`.
@@ -412,7 +334,7 @@ def load_identifiers(
 
         try:
             buffer = cursor.read_bytes(size)
-            identifiers.push(buffer.decode("utf-8") )
+            identifiers.append(buffer.decode("utf-8") )
         except:
             raise VMException(VMStatus(StatusCode.MALFORMED))
 
@@ -433,7 +355,7 @@ def load_byte_array_pool(
 
         try:
             buffer = cursor.read_bytes(size)
-            byte_arrays.push(bytearray(buffer))
+            byte_arrays.append(bytearray(buffer))
         except:
             raise VMException(VMStatus(StatusCode.MALFORMED))
 
@@ -453,7 +375,7 @@ def load_type_signatures(
             raise VMException(VMStatus(StatusCode.UNEXPECTED_SIGNATURE_TYPE))
 
         token = load_signature_token(cursor)
-        type_signatures.push(TypeSignature(token))
+        type_signatures.append(TypeSignature(token))
 
 
 # Builds the `FunctionSignaturePool`.
@@ -475,17 +397,17 @@ def load_function_signatures(
         returns_signature: List[SignatureToken] = []
         for _i in range(token_count):
             token = load_signature_token(cursor)
-            returns_signature.push(token)
+            returns_signature.append(token)
 
         # Arguments signature
-        token_count = cursor.read_Uint8()
+        token_count = cursor.read_u8()
         args_signature: List[SignatureToken] = []
         for _i in range(token_count):
             token = load_signature_token(cursor)
-            args_signature.push(token)
+            args_signature.append(token)
 
         type_formals = load_kinds(cursor)
-        function_signatures.push(FunctionSignature(
+        function_signatures.append(FunctionSignature(
             returns_signature,
             args_signature,
             type_formals,
@@ -506,19 +428,19 @@ def load_locals_signatures(
         if byte != SignatureType.LOCAL_SIGNATURE:
             raise VMException(VMStatus(StatusCode.UNEXPECTED_SIGNATURE_TYPE))
 
-        token_count = cursor.read_Uint8()
+        token_count = cursor.read_u8()
         local_signature: List[SignatureToken] = []
         for _i in range(token_count):
             token = load_signature_token(cursor)
-            local_signature.push(token)
+            local_signature.append(token)
 
-        locals_signatures.push(LocalsSignature(local_signature))
+        locals_signatures.append(LocalsSignature(local_signature))
 
 
 # Deserializes a `SignatureToken`.
 def load_signature_token(cursor: Cursor) -> SignatureToken:
     byte = cursor.read_u8()
-    stype = SerializedType(byte)
+    stype = SerializedType.from_u8(byte)
     if stype == SerializedType.BOOL:
         return SignatureToken.Bool
     elif stype == SerializedType.U8:
@@ -552,13 +474,13 @@ def load_signature_tokens(cursor: Cursor) -> List[SignatureToken]:
     length = read_uleb_Uint16_internal(cursor)
     tokens = []
     for _ in range(length):
-        tokens.push(load_signature_token(cursor))
+        tokens.append(load_signature_token(cursor))
     return tokens
 
 
 def load_nominal_resource_flag(cursor: Cursor) -> bool:
     byte = cursor.read_u8()
-    flag = SerializedNominalResourceFlag(byte)
+    flag = SerializedNominalResourceFlag.from_u8(byte)
     if flag == SerializedNominalResourceFlag.NOMINAL_RESOURCE:
         return True
     elif flag == SerializedNominalResourceFlag.NORMAL_STRUCT:
@@ -569,7 +491,7 @@ def load_nominal_resource_flag(cursor: Cursor) -> bool:
 
 def load_kind(cursor: Cursor) -> Kind:
     byte = cursor.read_u8()
-    kind = SerializedKind(byte)
+    kind = SerializedKind.from_u8(byte)
     if kind == SerializedKind.ALL:
         return Kind.All
     elif kind == SerializedKind.UNRESTRICTED:
@@ -584,7 +506,7 @@ def load_kinds(cursor: Cursor) -> List[Kind]:
     length = read_uleb_Uint16_internal(cursor)
     kinds = []
     for _ in range(length):
-        kinds.push(load_kind(cursor))
+        kinds.append(load_kind(cursor))
     return kinds
 
 
@@ -600,7 +522,7 @@ def load_struct_defs(
     while cursor.position() < table.count:
         struct_handle = read_uleb_Uint16_internal(cursor)
         byte = cursor.read_u8()
-        field_information_flag = SerializedNativeStructFlag.from_Uint8(byte)
+        field_information_flag = SerializedNativeStructFlag.from_u8(byte)
         if field_information_flag == SerializedNativeStructFlag.NATIVE:
             field_count = read_uleb_Uint16_internal(cursor)
             if field_count != 0:
@@ -621,7 +543,7 @@ def load_struct_defs(
             )
         else:
             bail("unreachable!")
-        struct_defs.push(StructDefinition(
+        struct_defs.append(StructDefinition(
             StructHandleIndex(struct_handle),
             field_information,
         ))
@@ -640,7 +562,7 @@ def load_field_defs(
         struct_ = read_uleb_Uint16_internal(cursor)
         name = read_uleb_Uint16_internal(cursor)
         signature = read_uleb_Uint16_internal(cursor)
-        field_defs.push(FieldDefinition(
+        field_defs.append(FieldDefinition(
             StructHandleIndex(struct_),
             IdentifierIndex(name),
             TypeSignatureIndex(signature),
@@ -658,13 +580,13 @@ def load_function_defs(
     cursor = Cursor(binary[start:end])
     while cursor.position() < table.count:
         func_def = load_function_def(cursor)
-        func_defs.push(func_def)
+        func_defs.append(func_def)
 
 
 # Deserializes a `FunctionDefinition`.
 def load_function_def(cursor: Cursor) -> FunctionDefinition:
     function = read_uleb_Uint16_internal(cursor)
-    flags = cursor.read_Uint8()
+    flags = cursor.read_u8()
     acquires_global_resources = load_struct_definition_indices(cursor)
     code_unit = load_code_unit(cursor)
     return FunctionDefinition(
@@ -678,10 +600,10 @@ def load_function_def(cursor: Cursor) -> FunctionDefinition:
 def load_struct_definition_indices(
     cursor: Cursor,
 ) -> List[StructDefinitionIndex]:
-    length = cursor.read_Uint8()
+    length = cursor.read_u8()
     indices = []
     for _ in range(length):
-        indices.push(StructDefinitionIndex(read_uleb_Uint16_internal(cursor)))
+        indices.append(StructDefinitionIndex(read_uleb_Uint16_internal(cursor)))
     return indices
 
 
@@ -703,7 +625,7 @@ def load_code_unit(cursor: Cursor) -> CodeUnit:
 def load_code(cursor: Cursor, code: List[Bytecode]):
     bytecode_count = read_Uint16_internal(cursor)
     while code.__len__() < bytecode_count:
-        byte = cursor.read_Uint8()
+        byte = cursor.read_u8()
         opcode = Opcodes.from_u8(byte)
         bytecode = Bytecode(opcode)
         if opcode == Opcodes.POP:
@@ -734,7 +656,7 @@ def load_code(cursor: Cursor, code: List[Bytecode]):
              opcode == Opcodes.ST_LOC or\
              opcode == Opcodes.MUT_BORROW_LOC or\
              opcode == Opcodes.IMM_BORROW_LOC:
-            idx = cursor.read_Uint8()
+            idx = cursor.read_u8()
             bytecode.value = value
         elif opcode == Opcodes.MUT_BORROW_FIELD or\
              opcode == Opcodes.IMM_BORROW_FIELD:
@@ -820,7 +742,7 @@ def load_code(cursor: Cursor, code: List[Bytecode]):
             pass
         else:
             bail("unreachable!")
-        code.push(bytecode)
+        code.append(bytecode)
 
 
 
@@ -833,17 +755,17 @@ def read_uleb_Uint32_internal(cursor: Cursor) -> Uint32:
 
 
 def read_Uint16_internal(cursor: Cursor) -> Uint16:
-    return int.from_bytes(cursor.read_bytes(2), byteorder='big', signed=False)
+    return int.from_bytes(cursor.read_bytes(2), byteorder='little', signed=False)
 
 
 def read_Uint32_internal(cursor: Cursor) -> Uint32:
-    return int.from_bytes(cursor.read_bytes(4), byteorder='big', signed=False)
+    return int.from_bytes(cursor.read_bytes(4), byteorder='little', signed=False)
 
 
 def read_Uint64_internal(cursor: Cursor) -> Uint64:
-    return int.from_bytes(cursor.read_bytes(8), byteorder='big', signed=False)
+    return int.from_bytes(cursor.read_bytes(8), byteorder='little', signed=False)
 
 
 def read_u128_internal(cursor: Cursor) -> Uint128:
-    return int.from_bytes(cursor.read_bytes(16), byteorder='big', signed=False)
+    return int.from_bytes(cursor.read_bytes(16), byteorder='little', signed=False)
 

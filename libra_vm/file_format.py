@@ -1,11 +1,10 @@
 from __future__ import annotations
-import libra_vm
 from libra_vm.lib import IndexKind, SignatureTokenKind
 from libra_vm.file_format_common import Opcodes
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
 # use crate.{
-#     access.ModuleAccess, check_bounds.BoundsChecker
+#     access.ModuleAccess
 # }
 from libra.account_address import Address
 from libra.identifier import IdentStr, Identifier
@@ -16,7 +15,8 @@ from canoser import Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
-
+import traceback
+import abc
 
 # Binary format for transactions and modules.
 #
@@ -286,6 +286,8 @@ class FieldDefinition:
     # The type of the field.
     signature: TypeSignatureIndex
 
+def codeuint_factory():
+    return CodeUnit()
 
 # A `FunctionDefinition` is the implementation of a function. It defines
 # the *prototype* of the function and the function body.
@@ -306,7 +308,7 @@ class FunctionDefinition:
     # resources cannot currently take type arguments
     acquires_global_resources: List[StructDefinitionIndex] = field(default_factory=list)
     # Code for this function.
-    code: CodeUnit = field(default_factory='CodeUnit')
+    code: CodeUnit = field(default_factory=codeuint_factory)
 
 
     # Returns whether the FunctionDefinition is public.
@@ -1150,6 +1152,83 @@ class CompiledProgram:
     script: CompiledScript
 
 
+#Moved from deserialize.py file
+class CommonTables(abc.ABC):
+
+    @abc.abstractmethod
+    def get_module_handles(self) -> List[ModuleHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_struct_handles(self) -> List[StructHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_function_handles(self) -> List[FunctionHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_type_signatures(self) -> TypeSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_function_signatures(self) -> FunctionSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_locals_signatures(self) -> LocalsSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_identifiers(self) -> IdentifierPool:
+        pass
+
+    @abc.abstractmethod
+    def get_byte_array_pool(self) -> bytearrayPool:
+        pass
+
+    @abc.abstractmethod
+    def get_address_pool(self) -> AddressPool:
+        pass
+
+
+class CommonTablesMixin(CommonTables):
+
+    def get_module_handles(self) -> List[ModuleHandle]:
+        return self.module_handles
+
+
+    def get_struct_handles(self) -> List[StructHandle]:
+        return self.struct_handles
+
+
+    def get_function_handles(self) -> List[FunctionHandle]:
+        return self.function_handles
+
+
+    def get_type_signatures(self) -> TypeSignaturePool:
+        return self.type_signatures
+
+
+    def get_function_signatures(self) -> FunctionSignaturePool:
+        return self.function_signatures
+
+
+    def get_locals_signatures(self) -> LocalsSignaturePool:
+        return self.locals_signatures
+
+
+    def get_identifiers(self) -> IdentifierPool:
+        return self.identifiers
+
+
+    def get_byte_array_pool(self) -> bytearrayPool:
+        return self.byte_array_pool
+
+
+    def get_address_pool(self) -> AddressPool:
+        return self.address_pool
+
 
 # Note that this doesn't derive either `Arbitrary` or `Default` while `CompiledScriptMut` does.
 # That's because a CompiledScript is guaranteed to be valid while a CompiledScriptMut isn't.
@@ -1158,6 +1237,7 @@ class CompiledProgram:
 # A CompiledScript does not have definition tables because it can only have a `main(args)`.
 # A CompiledScript defines the constant pools (string, address, signatures, etc.), the handle
 # tables (external code references) and it has a `main` definition.
+@dataclass
 class CompiledScript:
     v0: CompiledScriptMut
 
@@ -1173,8 +1253,10 @@ class CompiledScript:
             return deserialized.freeze()
         except VMException:
             raise
-        except:
-            raise VMException([VMStatus(StatusCode.MALFORMED)])
+        except Exception as err:
+            traceback.print_exc()
+            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+            raise VMException(status)
 
     #impl ScriptAccess for CompiledScript:
     def as_script(self) -> CompiledScript:
@@ -1204,11 +1286,11 @@ class CompiledScript:
 # A mutable version of `CompiledScript`. Converting to a `CompiledScript` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledScriptMut:#(libra_vm.deserializer.CommonTablesMixin):
+class CompiledScriptMut(CommonTablesMixin):
     # Handles to all modules referenced.
     module_handles: List[ModuleHandle]
     # Handles to external/imported types.
-    class_handles: List[StructHandle]
+    struct_handles: List[StructHandle]
     # Handles to external/imported functions.
     function_handles: List[FunctionHandle]
 
@@ -1229,6 +1311,10 @@ class CompiledScriptMut:#(libra_vm.deserializer.CommonTablesMixin):
 
     # The main (script) to execute.
     main: FunctionDefinition
+
+    @classmethod
+    def default(cls):
+        return cls([],[],[], [],[],[], [],[],[], FunctionDefinition())
 
     # exposed as a public function to enable testing the deserializer
     @classmethod
@@ -1288,8 +1374,10 @@ class CompiledModule:
             return deserialized.freeze()
         except VMException:
             raise
-        except:
-            raise VMException([VMStatus(StatusCode.MALFORMED)])
+        except Exception as err:
+            traceback.print_exc()
+            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+            raise VMException(status)
 
 
     #impl ModuleAccess for CompiledModule:
@@ -1348,11 +1436,11 @@ class CompiledModule:
 # A mutable version of `CompiledModule`. Converting to a `CompiledModule` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledModuleMut:#(libra_vm.deserializer.CommonTablesMixin):
+class CompiledModuleMut(CommonTablesMixin):
     # Handles to external modules and self at position 0.
     module_handles: List[ModuleHandle]
     # Handles to external and internal types.
-    class_handles: List[StructHandle]
+    struct_handles: List[StructHandle]
     # Handles to external and internal functions.
     function_handles: List[FunctionHandle]
 
@@ -1374,11 +1462,16 @@ class CompiledModuleMut:#(libra_vm.deserializer.CommonTablesMixin):
     address_pool: AddressPool
 
     # Types defined in this module.
-    class_defs: List[StructDefinition]
+    struct_defs: List[StructDefinition]
     # Fields defined on types in this module.
     field_defs: List[FieldDefinition]
     # Function defined in this module.
     function_defs: List[FunctionDefinition]
+
+    @classmethod
+    def default(cls):
+        return cls([],[],[], [],[],[], [],[],[], [],[],[])
+
 
     # exposed as a public function to enable testing the deserializer
     @classmethod
@@ -1419,6 +1512,7 @@ class CompiledModuleMut:#(libra_vm.deserializer.CommonTablesMixin):
     # Converts this instance into `CompiledModule` after verifying it for basic internal
     # consistency. This includes bounds checks but no others.
     def freeze(self) -> CompiledModule:
+        from libra_vm.check_bounds import BoundsChecker
         errors = BoundsChecker(self).verify()
         if not errors:
             return CompiledModule(self)
