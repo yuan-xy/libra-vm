@@ -1,8 +1,9 @@
 from libra.rustlib import bail, usize
-from canoser import Uint8, Uint32, Uint16, Uint64, Uint128, bytes_to_int_list
-from enum import IntEnum
+from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128
+from enum import IntEnum, unique
 from dataclasses import dataclass, field
 from typing import List, Optional
+from libra_vm.vm_exception import VMException
 
 # Constants for the binary format.
 #
@@ -22,7 +23,7 @@ class BinaryConstants:
 
     # The blob that must start a binary.
     LIBRA_MAGIC_SIZE: usize = 4
-    LIBRA_MAGIC: [Uint8] = [0xA1, 0x1C, 0xEB, 0x0B]
+    LIBRA_MAGIC = bytes([0xA1, 0x1C, 0xEB, 0x0B])
     # The `LIBRA_MAGIC` size, 1 byte for major version, 1 byte for minor version and 1 byte
     # for table count.
     HEADER_SIZE: usize = LIBRA_MAGIC_SIZE + 3
@@ -51,12 +52,24 @@ class TableType(IntEnum):
     FUNCTION_SIGNATURES     = 0xC
     LOCALS_SIGNATURES       = 0xD
 
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_TABLE_TYPE))
+        return cls(u8)
+
 
 # Constants for signature kinds (type, function, locals). Those values start a signature blob.
 class SignatureType(IntEnum):
     TYPE_SIGNATURE          = 0x1
     FUNCTION_SIGNATURE      = 0x2
     LOCAL_SIGNATURE         = 0x3
+
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_SIGNATURE_TYPE))
+        return cls(u8)
 
 
 # Constants for signature blob values.
@@ -72,10 +85,23 @@ class SerializedType(IntEnum):
     BYTEARRAY               = 0x9
     TYPE_PARAMETER          = 0xA
 
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_SERIALIZED_TYPE))
+        return cls(u8)
+
+
 
 class SerializedNominalResourceFlag(IntEnum):
     NOMINAL_RESOURCE        = 0x1,
     NORMAL_STRUCT           = 0x2,
+
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_SERIALIZED_TYPE))
+        return cls(u8)
 
 
 
@@ -84,13 +110,28 @@ class SerializedKind(IntEnum):
     UNRESTRICTED            = 0x2,
     RESOURCE                = 0x3,
 
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_SERIALIZED_TYPE))
+        return cls(u8)
+
+
 
 class SerializedNativeStructFlag(IntEnum):
     NATIVE                  = 0x1,
     DECLARED                = 0x2,
 
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_SERIALIZED_TYPE))
+        return cls(u8)
+
+
 
 # List of opcodes constants.
+@unique
 class Opcodes(IntEnum):
     POP                     = 0x01,
     RET                     = 0x02,
@@ -152,6 +193,12 @@ class Opcodes(IntEnum):
     CAST_U8                 = 0x39,
     CAST_U64                = 0x3A,
     CAST_U128               = 0x3B,
+
+    @classmethod
+    def from_u8(cls, u8):
+        if u8 <=0 or u8 > len(cls):
+            raise VMException(VMStatus(StatusCode.UNKNOWN_OPCODE))
+        return cls(u8)
 
 
 # Upper limit on the binary size
@@ -250,7 +297,7 @@ def write_Uint128(binary: BinaryData, value: Uint128) -> None:
     binary.extend(value.to_bytes(16, byteorder="little", signed=False))
 
 
-def read_uleb128_as_Uintx(cursor: bytearray, bits: int) -> Uint16:
+def read_uleb128_as_Uintx(cursor: Cursor, bits: int) -> Uint16:
     if bits == 16:
         max_shift = 14
     elif bits == 32:
@@ -259,11 +306,8 @@ def read_uleb128_as_Uintx(cursor: bytearray, bits: int) -> Uint16:
         bail("unsupport bits{bits} for read_uleb128_as_Uintx")
     value = 0
     shift: Uint8 = 0
-    length = len(cursor)
-    idx = 0
-    while idx < length:
-        byte = cursor[idx]
-        idx += 1
+    while not cursor.is_finished():
+        byte = cursor.read_u8()
         val = byte & 0x7f
         value |= (val << shift)
         if val == byte:
@@ -275,7 +319,7 @@ def read_uleb128_as_Uintx(cursor: bytearray, bits: int) -> Uint16:
 
 
 # Reads a `Uint16` in ULEB128 format from a `binary`.
-def read_uleb128_as_Uint16(cursor: bytearray) -> Uint16:
+def read_uleb128_as_Uint16(cursor: Cursor) -> Uint16:
     return read_uleb128_as_Uintx(cursor, 16)
 
 
@@ -286,5 +330,5 @@ def read_uleb128_as_Uint16(cursor: bytearray) -> Uint16:
 # Uint32 - value read
 #
 # Return an error on an invalid representation.
-def read_uleb128_as_Uint32(cursor: bytearray) -> Uint32:
+def read_uleb128_as_Uint32(cursor: Cursor) -> Uint32:
     return read_uleb128_as_Uintx(cursor, 32)

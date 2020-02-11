@@ -1,5 +1,7 @@
 from __future__ import annotations
+import libra_vm
 from libra_vm.lib import IndexKind, SignatureTokenKind
+from libra_vm.file_format_common import Opcodes
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
 # use crate.{
@@ -238,6 +240,15 @@ class StructFieldInformation:
     # The starting index for the fields of this type. `FieldDefinition`s for each type must
     # be consecutively stored in the `FieldDefinition` table.
     fields: Optional[FieldDefinitionIndex]
+
+    @classmethod
+    def Native(cls):
+        return cls(StructFieldInformationTag.Native)
+
+    @classmethod
+    def Declared(cls, field_count, fields):
+        return cls(StructFieldInformationTag.Declared, field_count, fields)
+
 
 
 
@@ -647,444 +658,442 @@ class CodeUnit:
 #
 # Bytecodes operate on a stack machine and each bytecode has side effect on the stack and the
 # instruction stream.
-@unique
-class BytecodeTag(IntEnum):
-    # Pop and discard the value at the top of the stack.
-    # The value on the stack must be an unrestricted type.
-    #
-    # Stack transition:
-    #
-    # ```..., value -> ...```
-    Pop=1
-    # Return from function, possibly with values according to the return types in the
-    # function signature. The returned values are pushed on the stack.
-    # The function signature of the function being executed defines the semantic of
-    # the Ret opcode.
-    #
-    # Stack transition:
-    #
-    # ```..., arg_val(1), ..., arg_val(n) -> ..., return_val(1), ..., return_val(n)```
-    Ret=2
-    # Branch to the instruction at position `CodeOffset` if the value at the top of the stack
-    # is True. Code offsets are relative to the start of the instruction stream.
-    #
-    # Stack transition:
-    #
-    # ```..., bool_value -> ...```
-    BrTrue=3
-    # Branch to the instruction at position `CodeOffset` if the value at the top of the stack
-    # is False. Code offsets are relative to the start of the instruction stream.
-    #
-    # Stack transition:
-    #
-    # ```..., bool_value -> ...```
-    BrFalse=4
-    # Branch unconditionally to the instruction at position `CodeOffset`. Code offsets are
-    # relative to the start of the instruction stream.
-    #
-    # Stack transition: none
-    Branch=5
-    # Push a U8 constant onto the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint8_value```
-    LdU8=6
-    # Push a U64 constant onto the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint64_value```
-    LdU64=7
-    # Push a U128 constant onto the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., u128_value```
-    LdU128=8
-    # Convert the value at the top of the stack into Uint8.
-    #
-    # Stack transition:
-    #
-    # ```..., integer_value -> ..., Uint8_value```
-    CastU8=9
-    # Convert the value at the top of the stack into Uint64.
-    #
-    # Stack transition:
-    #
-    # ```..., integer_value -> ..., Uint8_value```
-    CastU64=10
-    # Convert the value at the top of the stack into u128.
-    #
-    # Stack transition:
-    #
-    # ```..., integer_value -> ..., u128_value```
-    CastU128=11
-    # Push a `ByteArray` literal onto the stack. The `ByteArray` is loaded from the
-    # `ByteArrayPool` via `ByteArrayPoolIndex`.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., bytearray_value```
-    LdByteArray=12
-    # Push an 'Address' literal onto the stack. The address is loaded from the
-    # `AddressPool` via `AddressPoolIndex`.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., address_value```
-    LdAddr=13
-    # Push `true` onto the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., True```
-    LdTrue=14
-    # Push `false` onto the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., False```
-    LdFalse=15
-    # Push the local identified by `LocalIndex` onto the stack. The value is copied and the
-    # local is still safe to use.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., value```
-    CopyLoc=16
-    # Push the local identified by `LocalIndex` onto the stack. The local is moved and it is
-    # invalid to use from that point on, unless a store operation writes to the local before
-    # any read to that local.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., value```
-    MoveLoc=17
-    # Pop value from the top of the stack and store it into the function locals at
-    # position `LocalIndex`.
-    #
-    # Stack transition:
-    #
-    # ```..., value -> ...```
-    StLoc=18
-    # Call a function. The stack has the arguments pushed first to last.
-    # The arguments are consumed and pushed to the locals of the function.
-    # Return values are pushed on the stack and available to the caller.
-    #
-    # Stack transition:
-    #
-    # ```..., arg(1), arg(2), ...,  arg(n) -> ..., return_value(1), return_value(2), ...,
-    # return_value(k)```
-    Call=19
-    # Create an instance of the type specified via `StructHandleIndex` and push it on the stack.
-    # The values of the fields of the struct, in the order they appear in the class declaration,
-    # must be pushed on the stack. All fields must be provided.
-    #
-    # A Pack instruction must fully initialize an instance.
-    #
-    # Stack transition:
-    #
-    # ```..., field(1)_value, field(2)_value, ..., field(n)_value -> ..., instance_value```
-    Pack=20
-    # Destroy an instance of a type and push the values bound to each field on the
-    # stack.
-    #
-    # The values of the fields of the instance appear on the stack in the order defined
-    # in the class definition.
-    #
-    # This order makes Unpack<T> the inverse of Pack<T>. So `Unpack<T>; Pack<T>` is the identity
-    # for class T.
-    #
-    # Stack transition:
-    #
-    # ```..., instance_value -> ..., field(1)_value, field(2)_value, ..., field(n)_value```
-    Unpack=21
-    # Read a reference. The reference is on the stack, it is consumed and the value read is
-    # pushed on the stack.
-    #
-    # Reading a reference performs a copy of the value referenced. As such
-    # ReadRef cannot be used on a reference to a Resource.
-    #
-    # Stack transition:
-    #
-    # ```..., reference_value -> ..., value```
-    ReadRef=22
-    # Write to a reference. The reference and the value are on the stack and are consumed.
-    #
-    #
-    # The reference must be to an unrestricted type because Resources cannot be overwritten.
-    #
-    # Stack transition:
-    #
-    # ```..., value, reference_value -> ...```
-    WriteRef=23
-    # Convert a mutable reference to an immutable reference.
-    #
-    # Stack transition:
-    #
-    # ```..., reference_value -> ..., reference_value```
-    FreezeRef=24
-    # Load a mutable reference to a local identified by LocalIndex.
-    #
-    # The local must not be a reference.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., reference```
-    MutBorrowLoc=25
-    # Load an immutable reference to a local identified by LocalIndex.
-    #
-    # The local must not be a reference.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., reference```
-    ImmBorrowLoc=26
-    # Load a mutable reference to a field identified by `FieldDefinitionIndex`.
-    # The top of the stack must be a mutable reference to a type that contains the field
-    # definition.
-    #
-    # Stack transition:
-    #
-    # ```..., reference -> ..., field_reference```
-    MutBorrowField=27
-    # Load an immutable reference to a field identified by `FieldDefinitionIndex`.
-    # The top of the stack must be a reference to a type that contains the field definition.
-    #
-    # Stack transition:
-    #
-    # ```..., reference -> ..., field_reference```
-    ImmBorrowField=28
-    # Return a mutable reference to an instance of type `StructDefinitionIndex` published at the
-    # address passed as argument. Abort execution if such an object does not exist or if a
-    # reference has already been handed out.
-    #
-    # Stack transition:
-    #
-    # ```..., address_value -> ..., reference_value```
-    MutBorrowGlobal=29
-    # Return an immutable reference to an instance of type `StructDefinitionIndex` published at
-    # the address passed as argument. Abort execution if such an object does not exist or if a
-    # reference has already been handed out.
-    #
-    # Stack transition:
-    #
-    # ```..., address_value -> ..., reference_value```
-    ImmBorrowGlobal=30
-    # Add the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    # The operation aborts the transaction in case of overflow.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Add=31
-    # Subtract the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    # The operation aborts the transaction in case of underflow.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Sub=32
-    # Multiply the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    # The operation aborts the transaction in case of overflow.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Mul=33
-    # Perform a modulo operation on the 2 Uint64 at the top of the stack and pushes the
-    # result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Mod=34
-    # Divide the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    # The operation aborts the transaction in case of "divide by 0".
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Div=35
-    # Bitwise OR the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    BitOr=36
-    # Bitwise AND the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    BitAnd=37
-    # Bitwise XOR the 2 Uint64 at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Xor=38
-    # Logical OR the 2 bool at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., bool_value(1), bool_value(2) -> ..., bool_value```
-    Or=39
-    # Logical AND the 2 bool at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., bool_value(1), bool_value(2) -> ..., bool_value```
-    And=40
-    # Logical NOT the bool at the top of the stack and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., bool_value -> ..., bool_value```
-    Not=41
-    # Compare for equality the 2 value at the top of the stack and pushes the
-    # result on the stack.
-    # The values on the stack cannot be resources or they will be consumed and so destroyed.
-    #
-    # Stack transition:
-    #
-    # ```..., value(1), value(2) -> ..., bool_value```
-    Eq=42
-    # Compare for inequality the 2 value at the top of the stack and pushes the
-    # result on the stack.
-    # The values on the stack cannot be resources or they will be consumed and so destroyed.
-    #
-    # Stack transition:
-    #
-    # ```..., value(1), value(2) -> ..., bool_value```
-    Neq=43
-    # Perform a "less than" operation of the 2 Uint64 at the top of the stack and pushes the
-    # result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
-    Lt=44
-    # Perform a "greater than" operation of the 2 Uint64 at the top of the stack and pushes the
-    # result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
-    Gt=45
-    # Perform a "less than or equal" operation of the 2 Uint64 at the top of the stack and pushes
-    # the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
-    Le=46
-    # Perform a "greater than or equal" than operation of the 2 Uint64 at the top of the stack
-    # and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
-    Ge=47
-    # Abort execution with errorcode
-    #
-    #
-    # Stack transition:
-    #
-    # ```..., errorcode -> ...```
-    Abort=48
-    # Get gas unit price from the transaction and pushes it on the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint64_value```
-    GetTxnGasUnitPrice=49
-    # Get max gas units set in the transaction and pushes it on the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint64_value```
-    GetTxnMaxGasUnits=50
-    # Get remaining gas for the given transaction at the point of execution of this bytecode.
-    # The result is pushed on the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint64_value```
-    GetGasRemaining=51
-    # Get the sender address from the transaction and pushes it on the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., address_value```
-    GetTxnSenderAddress=52
-    # Returns whether or not a given address has an object of type StructDefinitionIndex
-    # published already
-    #
-    # Stack transition:
-    #
-    # ```..., address_value -> ..., bool_value```
-    Exists=53
-    # Move the instance of type StructDefinitionIndex, at the address at the top of the stack.
-    # Abort execution if such an object does not exist.
-    #
-    # Stack transition:
-    #
-    # ```..., address_value -> ..., value```
-    MoveFrom=54
-    # Move the instance at the top of the stack to the address of the sender.
-    # Abort execution if an object of type StructDefinitionIndex already exists in address.
-    #
-    # Stack transition:
-    #
-    # ```..., value -> ...```
-    MoveToSender=55
-    # Get the sequence number submitted with the transaction and pushes it on the stack.
-    #
-    # Stack transition:
-    #
-    # ```... -> ..., Uint64_value```
-    GetTxnSequenceNumber=56
-    # Get the public key of the sender from the transaction and pushes it on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., -> ..., bytearray_value```
-    GetTxnPublicKey=57
-    # Shift the (second top value) left (top value) bits and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Shl=58
-    # Shift the (second top value) right (top value) bits and pushes the result on the stack.
-    #
-    # Stack transition:
-    #
-    # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
-    Shr=59
 
-    @classmethod
-    def NUM_INSTRUCTIONS(cls):
-        return len(cls)
-
+#     # Pop and discard the value at the top of the stack.
+#     # The value on the stack must be an unrestricted type.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value -> ...```
+#     Pop=1
+#     # Return from function, possibly with values according to the return types in the
+#     # function signature. The returned values are pushed on the stack.
+#     # The function signature of the function being executed defines the semantic of
+#     # the Ret opcode.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., arg_val(1), ..., arg_val(n) -> ..., return_val(1), ..., return_val(n)```
+#     Ret=2
+#     # Branch to the instruction at position `CodeOffset` if the value at the top of the stack
+#     # is True. Code offsets are relative to the start of the instruction stream.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., bool_value -> ...```
+#     BrTrue=3
+#     # Branch to the instruction at position `CodeOffset` if the value at the top of the stack
+#     # is False. Code offsets are relative to the start of the instruction stream.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., bool_value -> ...```
+#     BrFalse=4
+#     # Branch unconditionally to the instruction at position `CodeOffset`. Code offsets are
+#     # relative to the start of the instruction stream.
+#     #
+#     # Stack transition: none
+#     Branch=5
+#     # Push a U8 constant onto the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint8_value```
+#     LdU8=6
+#     # Push a U64 constant onto the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint64_value```
+#     LdU64=7
+#     # Push a U128 constant onto the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., u128_value```
+#     LdU128=8
+#     # Convert the value at the top of the stack into Uint8.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., integer_value -> ..., Uint8_value```
+#     CastU8=9
+#     # Convert the value at the top of the stack into Uint64.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., integer_value -> ..., Uint8_value```
+#     CastU64=10
+#     # Convert the value at the top of the stack into u128.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., integer_value -> ..., u128_value```
+#     CastU128=11
+#     # Push a `ByteArray` literal onto the stack. The `ByteArray` is loaded from the
+#     # `ByteArrayPool` via `ByteArrayPoolIndex`.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., bytearray_value```
+#     LdByteArray=12
+#     # Push an 'Address' literal onto the stack. The address is loaded from the
+#     # `AddressPool` via `AddressPoolIndex`.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., address_value```
+#     LdAddr=13
+#     # Push `true` onto the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., True```
+#     LdTrue=14
+#     # Push `false` onto the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., False```
+#     LdFalse=15
+#     # Push the local identified by `LocalIndex` onto the stack. The value is copied and the
+#     # local is still safe to use.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., value```
+#     CopyLoc=16
+#     # Push the local identified by `LocalIndex` onto the stack. The local is moved and it is
+#     # invalid to use from that point on, unless a store operation writes to the local before
+#     # any read to that local.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., value```
+#     MoveLoc=17
+#     # Pop value from the top of the stack and store it into the function locals at
+#     # position `LocalIndex`.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value -> ...```
+#     StLoc=18
+#     # Call a function. The stack has the arguments pushed first to last.
+#     # The arguments are consumed and pushed to the locals of the function.
+#     # Return values are pushed on the stack and available to the caller.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., arg(1), arg(2), ...,  arg(n) -> ..., return_value(1), return_value(2), ...,
+#     # return_value(k)```
+#     Call=19
+#     # Create an instance of the type specified via `StructHandleIndex` and push it on the stack.
+#     # The values of the fields of the struct, in the order they appear in the class declaration,
+#     # must be pushed on the stack. All fields must be provided.
+#     #
+#     # A Pack instruction must fully initialize an instance.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., field(1)_value, field(2)_value, ..., field(n)_value -> ..., instance_value```
+#     Pack=20
+#     # Destroy an instance of a type and push the values bound to each field on the
+#     # stack.
+#     #
+#     # The values of the fields of the instance appear on the stack in the order defined
+#     # in the class definition.
+#     #
+#     # This order makes Unpack<T> the inverse of Pack<T>. So `Unpack<T>; Pack<T>` is the identity
+#     # for class T.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., instance_value -> ..., field(1)_value, field(2)_value, ..., field(n)_value```
+#     Unpack=21
+#     # Read a reference. The reference is on the stack, it is consumed and the value read is
+#     # pushed on the stack.
+#     #
+#     # Reading a reference performs a copy of the value referenced. As such
+#     # ReadRef cannot be used on a reference to a Resource.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., reference_value -> ..., value```
+#     ReadRef=22
+#     # Write to a reference. The reference and the value are on the stack and are consumed.
+#     #
+#     #
+#     # The reference must be to an unrestricted type because Resources cannot be overwritten.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value, reference_value -> ...```
+#     WriteRef=23
+#     # Convert a mutable reference to an immutable reference.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., reference_value -> ..., reference_value```
+#     FreezeRef=24
+#     # Load a mutable reference to a local identified by LocalIndex.
+#     #
+#     # The local must not be a reference.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., reference```
+#     MutBorrowLoc=25
+#     # Load an immutable reference to a local identified by LocalIndex.
+#     #
+#     # The local must not be a reference.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., reference```
+#     ImmBorrowLoc=26
+#     # Load a mutable reference to a field identified by `FieldDefinitionIndex`.
+#     # The top of the stack must be a mutable reference to a type that contains the field
+#     # definition.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., reference -> ..., field_reference```
+#     MutBorrowField=27
+#     # Load an immutable reference to a field identified by `FieldDefinitionIndex`.
+#     # The top of the stack must be a reference to a type that contains the field definition.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., reference -> ..., field_reference```
+#     ImmBorrowField=28
+#     # Return a mutable reference to an instance of type `StructDefinitionIndex` published at the
+#     # address passed as argument. Abort execution if such an object does not exist or if a
+#     # reference has already been handed out.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., address_value -> ..., reference_value```
+#     MutBorrowGlobal=29
+#     # Return an immutable reference to an instance of type `StructDefinitionIndex` published at
+#     # the address passed as argument. Abort execution if such an object does not exist or if a
+#     # reference has already been handed out.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., address_value -> ..., reference_value```
+#     ImmBorrowGlobal=30
+#     # Add the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     # The operation aborts the transaction in case of overflow.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Add=31
+#     # Subtract the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     # The operation aborts the transaction in case of underflow.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Sub=32
+#     # Multiply the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     # The operation aborts the transaction in case of overflow.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Mul=33
+#     # Perform a modulo operation on the 2 Uint64 at the top of the stack and pushes the
+#     # result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Mod=34
+#     # Divide the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     # The operation aborts the transaction in case of "divide by 0".
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Div=35
+#     # Bitwise OR the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     BitOr=36
+#     # Bitwise AND the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     BitAnd=37
+#     # Bitwise XOR the 2 Uint64 at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Xor=38
+#     # Logical OR the 2 bool at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., bool_value(1), bool_value(2) -> ..., bool_value```
+#     Or=39
+#     # Logical AND the 2 bool at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., bool_value(1), bool_value(2) -> ..., bool_value```
+#     And=40
+#     # Logical NOT the bool at the top of the stack and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., bool_value -> ..., bool_value```
+#     Not=41
+#     # Compare for equality the 2 value at the top of the stack and pushes the
+#     # result on the stack.
+#     # The values on the stack cannot be resources or they will be consumed and so destroyed.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value(1), value(2) -> ..., bool_value```
+#     Eq=42
+#     # Compare for inequality the 2 value at the top of the stack and pushes the
+#     # result on the stack.
+#     # The values on the stack cannot be resources or they will be consumed and so destroyed.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value(1), value(2) -> ..., bool_value```
+#     Neq=43
+#     # Perform a "less than" operation of the 2 Uint64 at the top of the stack and pushes the
+#     # result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
+#     Lt=44
+#     # Perform a "greater than" operation of the 2 Uint64 at the top of the stack and pushes the
+#     # result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
+#     Gt=45
+#     # Perform a "less than or equal" operation of the 2 Uint64 at the top of the stack and pushes
+#     # the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
+#     Le=46
+#     # Perform a "greater than or equal" than operation of the 2 Uint64 at the top of the stack
+#     # and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., bool_value```
+#     Ge=47
+#     # Abort execution with errorcode
+#     #
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., errorcode -> ...```
+#     Abort=48
+#     # Get gas unit price from the transaction and pushes it on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint64_value```
+#     GetTxnGasUnitPrice=49
+#     # Get max gas units set in the transaction and pushes it on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint64_value```
+#     GetTxnMaxGasUnits=50
+#     # Get remaining gas for the given transaction at the point of execution of this bytecode.
+#     # The result is pushed on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint64_value```
+#     GetGasRemaining=51
+#     # Get the sender address from the transaction and pushes it on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., address_value```
+#     GetTxnSenderAddress=52
+#     # Returns whether or not a given address has an object of type StructDefinitionIndex
+#     # published already
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., address_value -> ..., bool_value```
+#     Exists=53
+#     # Move the instance of type StructDefinitionIndex, at the address at the top of the stack.
+#     # Abort execution if such an object does not exist.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., address_value -> ..., value```
+#     MoveFrom=54
+#     # Move the instance at the top of the stack to the address of the sender.
+#     # Abort execution if an object of type StructDefinitionIndex already exists in address.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., value -> ...```
+#     MoveToSender=55
+#     # Get the sequence number submitted with the transaction and pushes it on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```... -> ..., Uint64_value```
+#     GetTxnSequenceNumber=56
+#     # Get the public key of the sender from the transaction and pushes it on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., -> ..., bytearray_value```
+#     GetTxnPublicKey=57
+#     # Shift the (second top value) left (top value) bits and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Shl=58
+#     # Shift the (second top value) right (top value) bits and pushes the result on the stack.
+#     #
+#     # Stack transition:
+#     #
+#     # ```..., Uint64_value(1), Uint64_value(2) -> ..., Uint64_value```
+#     Shr=59
 
 NUMBER_OF_NATIVE_FUNCTIONS: usize = 17
 
 @dataclass
 class Bytecode:
-    tag: BytecodeTag
+    tag: Opcodes
     value: Any = None
+
+    @classmethod
+    def NUM_INSTRUCTIONS(cls):
+        return len(Opcodes)
 
     # Return True if this bytecode instruction always branches
     def is_unconditional_branch(self) -> bool:
-        return self.tag in [BytecodeTag.Ret, BytecodeTag.Abort, BytecodeTag.Branch]
+        return self.tag in [Opcodes.Ret, Opcodes.Abort, Opcodes.Branch]
 
     # Return True if the branching behavior of this bytecode instruction depends on a runtime
     # value
     def is_conditional_branch(self) -> bool:
-        return self.tag in [BytecodeTag.BrFalse, BytecodeTag.BrTrue]
+        return self.tag in [Opcodes.BrFalse, Opcodes.BrTrue]
 
     # Returns True if this bytecode instruction is either a conditional or an unconditional branch
     def is_branch(self) -> bool:
@@ -1094,7 +1103,7 @@ class Bytecode:
     # Returns the offset that this bytecode instruction branches to, if any.
     # Note that return and abort are branch instructions, but have no offset.
     def offset(self) -> Optional[CodeOffset]:
-        if self.tag in [BytecodeTag.BrFalse, BytecodeTag.BrTrue, BytecodeTag.Branch]:
+        if self.tag in [Opcodes.BrFalse, Opcodes.BrTrue, Opcodes.Branch]:
             return self.value
         else:
             return None
@@ -1155,6 +1164,18 @@ class CompiledScript:
     # Returns the index of `main` in case a script is converted to a module.
     MAIN_INDEX: FunctionDefinitionIndex = FunctionDefinitionIndex(0)
 
+    # Deserializes a bytes slice into a `CompiledScript` instance.
+    @classmethod
+    def deserialize(cls, binary: bytes) -> CompiledScript:
+        binary = bytes(binary)
+        try:
+            deserialized = CompiledScriptMut.deserialize_no_check_bounds(binary)
+            return deserialized.freeze()
+        except VMException:
+            raise
+        except:
+            raise VMException([VMStatus(StatusCode.MALFORMED)])
+
     #impl ScriptAccess for CompiledScript:
     def as_script(self) -> CompiledScript:
         return self
@@ -1183,7 +1204,7 @@ class CompiledScript:
 # A mutable version of `CompiledScript`. Converting to a `CompiledScript` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledScriptMut:
+class CompiledScriptMut:#(libra_vm.deserializer.CommonTablesMixin):
     # Handles to all modules referenced.
     module_handles: List[ModuleHandle]
     # Handles to external/imported types.
@@ -1209,6 +1230,11 @@ class CompiledScriptMut:
     # The main (script) to execute.
     main: FunctionDefinition
 
+    # exposed as a public function to enable testing the deserializer
+    @classmethod
+    def deserialize_no_check_bounds(cls, binary: bytes) -> CompiledScriptMut:
+        from libra_vm.deserializer import deserialize_compiled_script
+        return deserialize_compiled_script(binary)
 
     # Converts this instance into `CompiledScript` after verifying it for basic internal
     # consistency. This includes bounds checks but no others.
@@ -1252,6 +1278,19 @@ class CompiledModule:
 
     # By convention, the index of the module being implemented is 0.
     IMPLEMENTED_MODULE_INDEX: Uint16 = 0
+
+    # Deserialize a bytes slice into a `CompiledModule` instance.
+    @classmethod
+    def deserialize(cls, binary: bytes) -> CompiledModule:
+        binary = bytes(binary)
+        try:
+            deserialized = CompiledModuleMut.deserialize_no_check_bounds(binary)
+            return deserialized.freeze()
+        except VMException:
+            raise
+        except:
+            raise VMException([VMStatus(StatusCode.MALFORMED)])
+
 
     #impl ModuleAccess for CompiledModule:
     def as_module(self) -> CompiledModule:
@@ -1309,7 +1348,7 @@ class CompiledModule:
 # A mutable version of `CompiledModule`. Converting to a `CompiledModule` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledModuleMut:
+class CompiledModuleMut:#(libra_vm.deserializer.CommonTablesMixin):
     # Handles to external modules and self at position 0.
     module_handles: List[ModuleHandle]
     # Handles to external and internal types.
@@ -1340,6 +1379,12 @@ class CompiledModuleMut:
     field_defs: List[FieldDefinition]
     # Function defined in this module.
     function_defs: List[FunctionDefinition]
+
+    # exposed as a public function to enable testing the deserializer
+    @classmethod
+    def deserialize_no_check_bounds(cls, binary: bytes) -> CompiledModuleMut:
+        from libra_vm.deserializer import deserialize_compiled_module
+        return deserialize_compiled_module(binary)
 
 
     # Returns the count of a specific `IndexKind`

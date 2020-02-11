@@ -1,5 +1,14 @@
 from libra_vm.file_format_common import *
 from libra.rustlib import *
+import pytest
+
+def test_from_u8():
+    assert Opcodes.from_u8(3) == Opcodes.BR_TRUE
+    assert Opcodes.from_u8(59) == Opcodes.CAST_U128
+    with pytest.raises(Exception):
+        Opcodes.from_u8(60)
+    with pytest.raises(Exception):
+        Opcodes.from_u8(0)
 
 def test_binary_len():
     binary_data = BinaryData()

@@ -1,6 +1,6 @@
 from libra_vm.file_format_common import *
 from libra.rustlib import *
-from canoser import Uint8, Uint32, Uint16, Uint64, Uint128, bytes_to_int_list
+from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128, bytes_to_int_list
 from typing import List, Optional
 import pytest
 
@@ -28,7 +28,7 @@ def tst_Uint16(value: Uint16, expected_bytes: usize):
     assert_equal(buf.__len__(), expected_bytes)
     buf = buf.into_inner()
     check_vector(buf)
-    val = read_uleb128_as_Uint16(buf)
+    val = read_uleb128_as_Uint16(Cursor(buf))
     assert_equal(value, val)
 
 
@@ -38,7 +38,7 @@ def tst_Uint32(value: Uint32, expected_bytes: usize):
     assert_equal(buf.__len__(), expected_bytes)
     buf = buf.into_inner()
     check_vector(buf)
-    val = read_uleb128_as_Uint32(buf)
+    val = read_uleb128_as_Uint32(Cursor(buf))
     assert_equal(value, val)
 
 
@@ -83,12 +83,12 @@ def test_lab128_malformed_test():
     vecs = [[], [0x80], [0x80, 0x80], [0x80]*4, [0x80, 0x80, 0x80, 0x2]]
     for vec in vecs:
         with pytest.raises(Exception):
-            read_uleb128_as_Uint16(vec)
+            read_uleb128_as_Uint16(Cursor(vec))
 
     vecs = [[], [0x80], [0x80, 0x80], [0x80]*4, [0x80, 0x80, 0x80, 0x80, 0x80, 0x2]]
     for vec in vecs:
         with pytest.raises(Exception):
-            read_uleb128_as_Uint32(vec)
+            read_uleb128_as_Uint32(Cursor(vec))
 
 
 def uint_roundtrip(value, bytes_len):
