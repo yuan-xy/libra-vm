@@ -125,6 +125,87 @@ def check_tables(tables: List[Table], end_tables: Uint64, length: Uint64):
 
 
 
+#Moved from deserialize.py file
+class CommonTables(abc.ABC):
+
+    @abc.abstractmethod
+    def get_module_handles(self) -> List[ModuleHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_struct_handles(self) -> List[StructHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_function_handles(self) -> List[FunctionHandle]:
+        pass
+
+    @abc.abstractmethod
+    def get_type_signatures(self) -> TypeSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_function_signatures(self) -> FunctionSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_locals_signatures(self) -> LocalsSignaturePool:
+        pass
+
+    @abc.abstractmethod
+    def get_identifiers(self) -> IdentifierPool:
+        pass
+
+    @abc.abstractmethod
+    def get_byte_array_pool(self) -> bytearrayPool:
+        pass
+
+    @abc.abstractmethod
+    def get_address_pool(self) -> AddressPool:
+        pass
+
+
+@dataclass
+class CommonTablesProxy(CommonTables):
+    obj: Any
+
+    def get_module_handles(self) -> List[ModuleHandle]:
+        return self.obj.module_handles
+
+
+    def get_struct_handles(self) -> List[StructHandle]:
+        return self.obj.struct_handles
+
+
+    def get_function_handles(self) -> List[FunctionHandle]:
+        return self.obj.function_handles
+
+
+    def get_type_signatures(self) -> TypeSignaturePool:
+        return self.obj.type_signatures
+
+
+    def get_function_signatures(self) -> FunctionSignaturePool:
+        return self.obj.function_signatures
+
+
+    def get_locals_signatures(self) -> LocalsSignaturePool:
+        return self.obj.locals_signatures
+
+
+    def get_identifiers(self) -> IdentifierPool:
+        return self.obj.identifiers
+
+
+    def get_byte_array_pool(self) -> bytearrayPool:
+        return self.obj.byte_array_pool
+
+
+    def get_address_pool(self) -> AddressPool:
+        return self.obj.address_pool
+
+
+
 # Builds and returns a `CompiledScriptMut`.
 def build_compiled_script(binary: bytes, tables: List[Table]) -> CompiledScriptMut:
     script = CompiledScriptMut.default()
@@ -145,8 +226,9 @@ def build_compiled_module(binary: bytes, tables: List[Table]) -> CompiledModuleM
 def build_common_tables(
     binary: bytes,
     tables: List[Table],
-    common: CommonTables,
+    common: Any,
 ):
+    common = CommonTablesProxy(common)
     for table in tables:
         if table.kind == TableType.MODULE_HANDLES:
             load_module_handles(binary, table, common.get_module_handles())
@@ -441,31 +523,18 @@ def load_locals_signatures(
 def load_signature_token(cursor: Cursor) -> SignatureToken:
     byte = cursor.read_u8()
     stype = SerializedType.from_u8(byte)
-    if stype == SerializedType.BOOL:
-        return SignatureToken.Bool
-    elif stype == SerializedType.U8:
-        return SignatureToken.U8
-    elif stype == SerializedType.U64:
-        return SignatureToken.U64
-    elif stype == SerializedType.U128:
-        return SignatureToken.U128
-    elif stype == SerializedType.BYTEARRAY:
-        return SignatureToken.ByteArray
-    elif stype == SerializedType.ADDRESS:
-        return SignatureToken.Address
-    elif stype == SerializedType.REFERENCE:
+    if stype.is_primitive():
+        return SignatureToken(stype)
+    elif stype == SerializedType.REFERENCE or stype == SerializedType.MUTABLE_REFERENCE:
         ref_token = load_signature_token(cursor)
-        return SignatureToken.Reference(ref_token)
-    elif stype == SerializedType.MUTABLE_REFERENCE:
-        ref_token = load_signature_token(cursor)
-        return SignatureToken.MutableReference(ref_token)
+        return SignatureToken(stype, ref_token)
     elif stype == SerializedType.STRUCT:
         sh_idx = read_uleb_Uint16_internal(cursor)
         types = load_signature_tokens(cursor)
-        return SignatureToken.Struct(StructHandleIndex(sh_idx, types))
+        return SignatureToken(stype, StructHandleIndex(sh_idx, types))
     elif stype == SerializedType.TYPE_PARAMETER:
         idx = read_uleb_Uint16_internal(cursor)
-        return SignatureToken.TypeParameter(idx)
+        return SignatureToken(stype, idx)
     else:
         raise VMException(VMStatus(StatusCode.MALFORMED))
 

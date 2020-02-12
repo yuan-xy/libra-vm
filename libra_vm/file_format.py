@@ -1,6 +1,6 @@
 from __future__ import annotations
 from libra_vm.lib import IndexKind, SignatureTokenKind
-from libra_vm.file_format_common import Opcodes
+from libra_vm.file_format_common import Opcodes, SerializedType
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
 # use crate.{
@@ -442,61 +442,25 @@ class Kind(IntEnum):
 #
 # A SignatureToken can express more types than the VM can handle safely, and correctness is
 # enforced by the verifier.
-class SignatureTokenTag(IntEnum):
-    # Boolean, `true` or `false`.
-    Bool=0,
-    # Unsigned integers, 8 bits length.
-    U8=1,
-    # Unsigned integers, 64 bits length.
-    U64=2,
-    # Unsigned integers, 128 bits length.
-    U128=3,
-    # ByteArray, variable size, immutable byte array.
-    ByteArray=4,
-    # Address, a 32 bytes immutable type.
-    Address=5,
-    # MOVE user type, resource or unrestricted
-    Struct=6
-    # Reference to a type.
-    Reference=7
-    # Mutable reference to a type.
-    MutableReference=8
-    # Type parameter.
-    TypeParameter=9
-
-    def is_primitive(self) -> bool:
-        breakpoint()
-        if self in [Bool ,  U8 ,  U64 ,  U128 ,  ByteArray ,  Address]:
-            return True
-        else:
-            return False
-
-    def is_integer(self) -> bool:
-        if self in [U8 ,  U64 ,  U128]:
-            return True
-        else:
-            return False
-
-
 @dataclass
 class SignatureToken:
-    tag: SignatureTokenTag
+    tag: SerializedType
     # MOVE user type, resource or unrestricted
-    struct : Tuple[StructHandleIndex, List[SignatureToken]]
+    struct : Tuple[StructHandleIndex, List[SignatureToken]] = None
     # (Mutable) Reference to a type.
-    reference : SignatureToken
+    reference : SignatureToken = None
     # Type parameter.
-    typeParameter : TypeParameterIndex
+    typeParameter : TypeParameterIndex = None
 
     def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
-        if self.tag == SignatureTokenTag.Struct:
+        if self.tag == SerializedType.STRUCT:
             (_, type_actuals) = self.struct
             arr = [ty.check_type_parameters(type_formals_len) for ty in type_actuals]
             return flatten(arr)
-        elif self.tag == SignatureTokenTag.Reference or\
-            self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or\
+            self.tag == SerializedType.MUTABLE_REFERENCE:
             return self.reference.check_type_parameters(type_formals_len)
-        elif self.tag == SignatureTokenTag.TypeParameter:
+        elif self.tag == SerializedType.TYPE_PARAMETER:
             idx = self.typeParameter
             if idx >= type_formals_len:
                 return [bounds_error(
@@ -509,13 +473,13 @@ class SignatureToken:
 
 
     def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
-        if self.tag == SignatureTokenTag.Struct:
+        if self.tag == SerializedType.STRUCT:
             (idx, type_actuals) = self.struct
             errors = [ty.check_struct_handles(struct_handles) for ty in type_actuals]
             errors.append(check_bounds_impl(struct_handles, idx))
             return errors
-        elif self.tag == SignatureTokenTag.Reference or\
-            self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or\
+            self.tag == SerializedType.MUTABLE_REFERENCE:
             return self.reference.check_struct_handles(struct_handles)
         return []
 
@@ -526,10 +490,10 @@ class SignatureToken:
     def get_struct_handle_from_reference(cls,
         reference_signature: SignatureToken,
     ) -> Optional[StructHandleIndex]:
-        if reference_signature.tag == SignatureTokenTag.Reference or\
-            reference_signature.tag == SignatureTokenTag.MutableReference:
+        if reference_signature.tag == SerializedType.REFERENCE or\
+            reference_signature.tag == SerializedType.MUTABLE_REFERENCE:
             signature = reference_signature.reference
-            if signature.tag == SignatureTokenTag.Struct:
+            if signature.tag == SerializedType.STRUCT:
                 (idx, _) = signature.struct
                 return idx
             else:
@@ -539,9 +503,9 @@ class SignatureToken:
 
     # Returns the type actuals if the signature token is a reference to a class instance.
     def get_type_actuals_from_reference(self) -> Optional[List[SignatureToken]]:
-        if self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        if self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             box_ = self.reference
-            if box_.tag == SignatureTokenTag.Struct:
+            if box_.tag == SerializedType.STRUCT:
                 (_, tys) = box_.struct
                 return tys
         return None
@@ -551,9 +515,9 @@ class SignatureToken:
     def signature_token_kind(self) -> SignatureTokenKind:
         # TODO: SignatureTokenKind is out-dated. fix/update/remove SignatureTokenKind and see if
         # this function needs to be cleaned up
-        if self.tag == SignatureTokenTag.Reference:
+        if self.tag == SerializedType.REFERENCE:
             return SignatureTokenKind.Reference
-        elif self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.MUTABLE_REFERENCE:
             return SignatureTokenKind.MutableReference
         else:
             return SignatureTokenKind.Value
@@ -562,10 +526,10 @@ class SignatureToken:
     # Returns the `StructHandleIndex` for a `SignatureToken` that contains a reference to a user
     # defined type (a resource or unrestricted type).
     def struct_index(self) -> Optional[StructHandleIndex]:
-        if self.tag == SignatureTokenTag.Struct:
+        if self.tag == SerializedType.STRUCT:
             (sh_idx, _) = self.struct
             return sh_idx
-        elif self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             token = self.reference
             return token.struct_index()
         else:
@@ -590,9 +554,9 @@ class SignatureToken:
     # - Address
     # - Reference or Mutable reference to these types
     def allows_equality(self) -> bool:
-        if self.tag == SignatureTokenTag.Struct:
+        if self.tag == SerializedType.STRUCT:
             return False
-        elif self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             token = self.reference
             return token.is_primitive()
         else:
@@ -601,7 +565,7 @@ class SignatureToken:
 
     # Returns True if the `SignatureToken` is any kind of reference (mutable and immutable).
     def is_reference(self) -> bool:
-        if self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        if self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             return True
         else:
             return False
@@ -609,17 +573,17 @@ class SignatureToken:
 
     # Returns True if the `SignatureToken` is a mutable reference.
     def is_mutable_reference(self) -> bool:
-        return self.tag == SignatureTokenTag.MutableReferenc
+        return self.tag == SerializedType.MUTABLE_REFERENCE
 
 
     # Set the index to this one. Useful for random testing.
     #
     # Panics if this token doesn't contain a class handle.
     def debug_set_sh_idx(self, sh_idx: StructHandleIndex):
-        if self.tag == SignatureTokenTag.Struct:
+        if self.tag == SerializedType.STRUCT:
             _wrapped, _x = self.struct
             self.struct = (sh_idx, _x)
-        elif self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             token = self.reference
             token.debug_set_sh_idx(sh_idx)
         else:
@@ -633,17 +597,17 @@ class SignatureToken:
     def substitute(self, tys: List[SignatureToken]) -> SignatureToken:
         if self.is_primitive():
             return deepcopy(self)
-        elif self.tag == SignatureTokenTag.Struct:
+        elif self.tag == SerializedType.STRUCT:
             (idx, actuals) = self.struct
             ret = SignatureToken(self.tag)
             ret.struct = (idx, [ty.substitute(tys) for ty in actuals])
             return ret
-        elif self.tag == SignatureTokenTag.Reference or self.tag == SignatureTokenTag.MutableReference:
+        elif self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             ty = self.reference
             ret = SignatureToken(self.tag)
             ret.reference = ty.substitute(tys)
             return ret
-        elif self.tag == SignatureTokenTag.TypeParameter:
+        elif self.tag == SerializedType.TYPE_PARAMETER:
             idx = self.typeParameter
             return deepcopy(tys[int(idx)])
         else:
@@ -659,10 +623,10 @@ class SignatureToken:
         (struct_handles, type_formals) = atuple
         if ty.is_primitive() or ty.is_reference():
             return Kind.Unrestricted
-        elif ty.tag == SignatureTokenTag.TypeParameter:
+        elif ty.tag == SerializedType.TYPE_PARAMETER:
             idx = ty.typeParameter
             return type_formals[idx]
-        elif ty.tag == SignatureTokenTag.Struct:
+        elif ty.tag == SerializedType.STRUCT:
             (idx, tys) = ty.struct
             # Get the class handle at idx. Note the index could be out of bounds.
             sh = struct_handles[idx.v0]
@@ -1200,84 +1164,6 @@ class CompiledProgram:
     script: CompiledScript
 
 
-#Moved from deserialize.py file
-class CommonTables(abc.ABC):
-
-    @abc.abstractmethod
-    def get_module_handles(self) -> List[ModuleHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_struct_handles(self) -> List[StructHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_function_handles(self) -> List[FunctionHandle]:
-        pass
-
-    @abc.abstractmethod
-    def get_type_signatures(self) -> TypeSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_function_signatures(self) -> FunctionSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_locals_signatures(self) -> LocalsSignaturePool:
-        pass
-
-    @abc.abstractmethod
-    def get_identifiers(self) -> IdentifierPool:
-        pass
-
-    @abc.abstractmethod
-    def get_byte_array_pool(self) -> bytearrayPool:
-        pass
-
-    @abc.abstractmethod
-    def get_address_pool(self) -> AddressPool:
-        pass
-
-
-class CommonTablesMixin(CommonTables):
-
-    def get_module_handles(self) -> List[ModuleHandle]:
-        return self.module_handles
-
-
-    def get_struct_handles(self) -> List[StructHandle]:
-        return self.struct_handles
-
-
-    def get_function_handles(self) -> List[FunctionHandle]:
-        return self.function_handles
-
-
-    def get_type_signatures(self) -> TypeSignaturePool:
-        return self.type_signatures
-
-
-    def get_function_signatures(self) -> FunctionSignaturePool:
-        return self.function_signatures
-
-
-    def get_locals_signatures(self) -> LocalsSignaturePool:
-        return self.locals_signatures
-
-
-    def get_identifiers(self) -> IdentifierPool:
-        return self.identifiers
-
-
-    def get_byte_array_pool(self) -> bytearrayPool:
-        return self.byte_array_pool
-
-
-    def get_address_pool(self) -> AddressPool:
-        return self.address_pool
-
-
 # Note that this doesn't derive either `Arbitrary` or `Default` while `CompiledScriptMut` does.
 # That's because a CompiledScript is guaranteed to be valid while a CompiledScriptMut isn't.
 # Contains the main function to execute and its dependencies.
@@ -1291,6 +1177,9 @@ class CompiledScript:
 
     # Returns the index of `main` in case a script is converted to a module.
     MAIN_INDEX: FunctionDefinitionIndex = FunctionDefinitionIndex(0)
+
+    def serialize(self) -> bytes:
+        return self.as_inner().serialize()
 
     # Deserializes a bytes slice into a `CompiledScript` instance.
     @classmethod
@@ -1334,7 +1223,7 @@ class CompiledScript:
 # A mutable version of `CompiledScript`. Converting to a `CompiledScript` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledScriptMut(CommonTablesMixin):
+class CompiledScriptMut:
     # Handles to all modules referenced.
     module_handles: List[ModuleHandle]
     # Handles to external/imported types.
@@ -1363,6 +1252,15 @@ class CompiledScriptMut(CommonTablesMixin):
     @classmethod
     def default(cls):
         return cls([],[],[], [],[],[], [],[],[], FunctionDefinition())
+
+    def serialize(self) -> bytes:
+        binary_data = BinaryData()
+        ser = ScriptSerializer.new(1, 0)
+        temp = BinaryData()
+        ser.serialize(temp, self)
+        ser.serialize_header(binary_data)
+        binary_data.extend(temp.as_inner())
+        return binary_data.into_inner()
 
     # exposed as a public function to enable testing the deserializer
     @classmethod
@@ -1412,6 +1310,10 @@ class CompiledModule:
 
     # By convention, the index of the module being implemented is 0.
     IMPLEMENTED_MODULE_INDEX: Uint16 = 0
+
+    def serialize(self) -> bytes:
+        return self.as_inner().serialize()
+
 
     # Deserialize a bytes slice into a `CompiledModule` instance.
     @classmethod
@@ -1484,7 +1386,7 @@ class CompiledModule:
 # A mutable version of `CompiledModule`. Converting to a `CompiledModule` requires this to pass
 # the bounds checker.
 @dataclass
-class CompiledModuleMut(CommonTablesMixin):
+class CompiledModuleMut:
     # Handles to external modules and self at position 0.
     module_handles: List[ModuleHandle]
     # Handles to external and internal types.
@@ -1519,6 +1421,15 @@ class CompiledModuleMut(CommonTablesMixin):
     @classmethod
     def default(cls):
         return cls([],[],[], [],[],[], [],[],[], [],[],[])
+
+    def serialize(self) -> bytes:
+        binary_data = BinaryData()
+        ser = ModuleSerializer.new(1, 0)
+        temp = BinaryData()
+        ser.serialize(temp, self)
+        ser.serialize_header(binary_data)
+        binary_data.extend(temp.as_inner())
+        return binary_data.into_inner()
 
 
     # exposed as a public function to enable testing the deserializer

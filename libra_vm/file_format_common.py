@@ -85,6 +85,19 @@ class SerializedType(IntEnum):
     BYTEARRAY               = 0x9
     TYPE_PARAMETER          = 0xA
 
+    def is_primitive(self) -> bool:
+        if self in [Bool ,  U8 ,  U64 ,  U128 ,  BYTEARRAY ,  ADDRESS]:
+            return True
+        else:
+            return False
+
+    def is_integer(self) -> bool:
+        if self in [U8 ,  U64 ,  U128]:
+            return True
+        else:
+            return False
+
+
     @classmethod
     def from_u8(cls, u8):
         if u8 <=0 or u8 > len(cls):
