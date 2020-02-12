@@ -183,7 +183,7 @@ FunctionHandle.check_bounds = check_bounds_FunctionHandle
 
 def check_bounds_StructDefinition(self, module: CompiledModuleMut) -> List[VMStatus]:
     arr = [check_bounds_impl(module.struct_handles, self.struct_handle)]
-    if self.field_information.tag == StructFieldInformationTag.Declared:
+    if self.field_information.tag == SerializedNativeStructFlag.DECLARED:
         arr.extend(module.check_field_range(
             self.field_information.field_count,
             self.field_information.fields,

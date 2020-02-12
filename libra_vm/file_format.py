@@ -1,6 +1,6 @@
 from __future__ import annotations
 from libra_vm.lib import IndexKind, SignatureTokenKind
-from libra_vm.file_format_common import Opcodes, SerializedType
+from libra_vm.file_format_common import Opcodes, SerializedType, BinaryData
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
 # use crate.{
@@ -227,14 +227,9 @@ class FunctionHandle:
 # Definitions are the module code. So the set of types and functions in the module.
 
 # `StructFieldInformation` indicates whether a class is native or has user-specified fields
-class StructFieldInformationTag(IntEnum):
-    Native = 0
-    Declared = 1
-
-
 @dataclass
 class StructFieldInformation:
-    tag: StructFieldInformationTag
+    tag: SerializedNativeStructFlag
     # The number of fields in this type.
     field_count: Optional[MemberCount]
     # The starting index for the fields of this type. `FieldDefinition`s for each type must
@@ -243,11 +238,11 @@ class StructFieldInformation:
 
     @classmethod
     def Native(cls):
-        return cls(StructFieldInformationTag.Native)
+        return cls(SerializedNativeStructFlag.NATIVE)
 
     @classmethod
     def Declared(cls, field_count, fields):
-        return cls(StructFieldInformationTag.Declared, field_count, fields)
+        return cls(SerializedNativeStructFlag.DECLARED, field_count, fields)
 
 
 
@@ -266,10 +261,10 @@ class StructDefinition:
 
 
     def declared_field_count(self) -> MemberCount:
-        if self.field_information.tag == StructFieldInformationTag.Native:
+        if self.field_information.tag == SerializedNativeStructFlag.NATIVE:
             # TODO we might want a more informative error here
             raise VMException([VMStatus(StatusCode.LINKER_ERROR)])
-        elif self.field_information.tag == StructFieldInformationTag.Native:
+        elif self.field_information.tag == SerializedNativeStructFlag.DECLARED:
             return field_count
         else:
             bail("unreachable!")
@@ -402,11 +397,11 @@ class Kind(IntEnum):
     # `Unrestricted` A type might be in this set if it is not known to be a `Resource` or
     # `Unrestricted`
     #   - This occurs when there is a type parameter with this kind as a constraint
-    All = 0
+    All = 1
     # `Resource` types must follow move semantics and various resource safety rules, namely:
     # - `Resource` values cannot be copied
     # - `Resource` values cannot be popped, i.e. they must be used
-    Resource = 1
+    Resource = 3
     # `Unrestricted` types do not need to follow the `Resource` rules.
     # - `Unrestricted` values can be copied
     # - `Unrestricted` values can be popped
@@ -1255,6 +1250,7 @@ class CompiledScriptMut:
 
     def serialize(self) -> bytes:
         binary_data = BinaryData()
+        from libra_vm.serializer import ScriptSerializer
         ser = ScriptSerializer.new(1, 0)
         temp = BinaryData()
         ser.serialize(temp, self)
@@ -1424,6 +1420,7 @@ class CompiledModuleMut:
 
     def serialize(self) -> bytes:
         binary_data = BinaryData()
+        from libra_vm.serializer import ModuleSerializer
         ser = ModuleSerializer.new(1, 0)
         temp = BinaryData()
         ser.serialize(temp, self)

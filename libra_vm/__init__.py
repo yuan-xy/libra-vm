@@ -5,3 +5,4 @@ from libra_vm.file_format import TableIndex
 from libra_vm.access import ModuleAccess, ScriptAccess
 from libra_vm.errors import Location
 from libra_vm.deserializer import Table
+from libra_vm.serializer import ModuleSerializer

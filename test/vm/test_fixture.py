@@ -11,4 +11,7 @@ def test_placeholder_script_deserialize():
         placeholder_program = Script(code, [])
         obj = CompiledScript.deserialize(placeholder_program.code)
         print(obj)
+        bstr = obj.serialize()
+        print(bstr)
+        assert code == bstr
 
