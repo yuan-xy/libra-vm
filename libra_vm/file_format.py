@@ -10,7 +10,7 @@ from libra.account_address import Address
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
-from libra.rustlib import ensure, bail, usize
+from libra.rustlib import ensure, bail, usize, flatten
 from canoser import Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field
@@ -331,6 +331,14 @@ class FunctionDefinition:
 class TypeSignature:
     v0: SignatureToken
 
+    def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
+        return self.v0.check_struct_handles(struct_handles)
+
+
+    def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
+        return self.v0.check_type_parameters(type_formals_len)
+
+
 # A `FunctionSignature` describes the types of a function.
 #
 # The `FunctionSignature` is polymorphic: it can have type parameters in the argument and return
@@ -357,11 +365,19 @@ class LocalsSignature:
     def __len__(self) -> usize:
         return self.v0.__len__()
 
-
     # Whether the function has no locals (both arguments or locals).
     #[inline]
     def is_empty(self) -> bool:
         return bool(self.v0)
+
+    def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
+        arr = [ty.check_type_parameters(type_formals_len) for ty in self.v0]
+        return flatten(arr)
+
+
+    def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
+        arr = [ty.check_struct_handles(struct_handles) for ty in self.v0]
+        return flatten(arr)
 
 
 # The pool of `TypeSignature` instances. Those are system and user types used and
@@ -449,6 +465,7 @@ class SignatureTokenTag(IntEnum):
     TypeParameter=9
 
     def is_primitive(self) -> bool:
+        breakpoint()
         if self in [Bool ,  U8 ,  U64 ,  U128 ,  ByteArray ,  Address]:
             return True
         else:
@@ -470,6 +487,37 @@ class SignatureToken:
     reference : SignatureToken
     # Type parameter.
     typeParameter : TypeParameterIndex
+
+    def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
+        if self.tag == SignatureTokenTag.Struct:
+            (_, type_actuals) = self.struct
+            arr = [ty.check_type_parameters(type_formals_len) for ty in type_actuals]
+            return flatten(arr)
+        elif self.tag == SignatureTokenTag.Reference or\
+            self.tag == SignatureTokenTag.MutableReference:
+            return self.reference.check_type_parameters(type_formals_len)
+        elif self.tag == SignatureTokenTag.TypeParameter:
+            idx = self.typeParameter
+            if idx >= type_formals_len:
+                return [bounds_error(
+                    IndexKind.TypeParameter,
+                    idx,
+                    type_formals_len,
+                    StatusCode.INDEX_OUT_OF_BOUNDS,
+                )]
+        return []
+
+
+    def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
+        if self.tag == SignatureTokenTag.Struct:
+            (idx, type_actuals) = self.struct
+            errors = [ty.check_struct_handles(struct_handles) for ty in type_actuals]
+            errors.append(check_bounds_impl(struct_handles, idx))
+            return errors
+        elif self.tag == SignatureTokenTag.Reference or\
+            self.tag == SignatureTokenTag.MutableReference:
+            return self.reference.check_struct_handles(struct_handles)
+        return []
 
 
     # If a `SignatureToken` is a reference it returns the underlying type of the reference (e.g.
