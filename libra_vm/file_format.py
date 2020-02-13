@@ -1096,6 +1096,41 @@ class Bytecode:
     value: Any = None
 
     @classmethod
+    def get_defaults(cls) -> Mapping[Opcodes, Any]:
+        return {
+            Opcodes.BR_TRUE: 0,
+            Opcodes.BR_FALSE: 0,
+            Opcodes.BRANCH: 0,
+            Opcodes.LD_U8: 0,
+            Opcodes.LD_U64: 0,
+            Opcodes.LD_U128: 0,
+            Opcodes.LD_BYTEARRAY: ByteArrayPoolIndex(0),
+            Opcodes.LD_ADDR: AddressPoolIndex(0),
+            Opcodes.COPY_LOC: 0,
+            Opcodes.MOVE_LOC: 0,
+            Opcodes.ST_LOC: 0,
+            Opcodes.CALL: (FunctionHandleIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.PACK: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.UNPACK: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.MUT_BORROW_LOC: 0,
+            Opcodes.IMM_BORROW_LOC: 0,
+            Opcodes.MUT_BORROW_FIELD: FieldDefinitionIndex(0),
+            Opcodes.IMM_BORROW_FIELD: FieldDefinitionIndex(0),
+            Opcodes.MUT_BORROW_GLOBAL: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.IMM_BORROW_GLOBAL: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.EXISTS: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.MOVE_FROM: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+            Opcodes.MOVE_TO: (StructDefinitionIndex(0), NO_TYPE_ACTUALS),
+        }
+
+    @classmethod
+    def default(cls, opcode: Opcodes) -> Bytecode:
+        if opcode in cls.get_defaults():
+            return cls(opcode, cls.get_defaults()[opcode])
+        else:
+            return cls(opcode)
+
+    @classmethod
     def NUM_INSTRUCTIONS(cls):
         return len(Opcodes)
 
