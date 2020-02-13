@@ -7,3 +7,4 @@ from libra_vm.errors import Location
 from libra_vm.deserializer import Table
 from libra_vm.serializer import ModuleSerializer
 from libra_vm.gas_schedule import NativeCostIndex
+from libra_vm.views import ModuleView, ViewInternals
