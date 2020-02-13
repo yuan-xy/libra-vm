@@ -6,6 +6,7 @@ from libra_vm.file_format_common import *
 from libra.account_address import Address
 from libra.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
+from libra.rustlib import ensure
 from canoser import Cursor, Uint8, Uint16, Uint32, Uint64, Uint128
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
@@ -369,7 +370,7 @@ def serialize_code(binary: BinaryData, code: List[Bytecode]):
 # Compute the table size with a check for underflow
 def checked_calculate_table_size(binary: BinaryData, start: Uint32) -> Uint32:
     offset = check_index_in_binary(binary.__len__())
-    assert (offset >= start, "table start must be before end")
+    ensure(offset >= start, "table start must be before end")
     return offset - start
 
 
