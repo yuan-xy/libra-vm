@@ -1224,10 +1224,10 @@ class CompiledScript:
             return deserialized.freeze()
         except VMException:
             raise
-        # except Exception as err:
-        #     traceback.print_exc()
-        #     status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
-        #     raise VMException(status)
+        except Exception as err:
+            traceback.print_exc()
+            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+            raise VMException(status)
 
     #impl ScriptAccess for CompiledScript:
     def as_script(self) -> CompiledScript:
@@ -1359,10 +1359,10 @@ class CompiledModule:
             return deserialized.freeze()
         except VMException:
             raise
-        # except Exception as err:
-        #     traceback.print_exc()
-        #     status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
-        #     raise VMException(status)
+        except Exception as err:
+            traceback.print_exc()
+            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+            raise VMException(status)
 
 
     #impl ModuleAccess for CompiledModule:
