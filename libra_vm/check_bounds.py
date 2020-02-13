@@ -245,7 +245,7 @@ def check_bounds_SignatureToken(self, context: Any) -> List[VMStatus]:
             return check_bounds3(self, context)
         if isinstance(v0, CompiledModuleMut) and isinstance(v1, StructHandle):
             return check_bounds4(self, context)
-    print(f"unsupport context:{context}")
+    bail(f"unsupport context:{context}")
 
 def check_bounds1(self, context: Tuple[List[StructHandle], usize]) -> List[VMStatus]:
     errors = self.check_type_parameters(context[1])
@@ -263,6 +263,8 @@ def check_bounds3(self, context: Tuple[CompiledModuleMut, FunctionSignature]) ->
     ))
 
 def check_bounds4(self, context: Tuple[CompiledModuleMut, StructHandle]) -> List[VMStatus]:
+    breakpoint()
+    #TODO: this branch is never executed.
     self.check_bounds((
         context[0].struct_handles,
         context[1].type_formals,

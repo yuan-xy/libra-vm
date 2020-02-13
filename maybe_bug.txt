@@ -1,0 +1,29 @@
+acquires_global_resources被声明为数组：
+    language/vm/src/file_format.rs
+    350:    pub acquires_global_resources: Vec<StructDefinitionIndex>,
+但是在view中被作为集合返回：
+    language/vm/src/views.rs
+    172:            .acquires_global_resources
+
+
+
+table_count是Uint8类型，那么table_count_op也是Uint8，超过255就溢出
+libra_vm/serializer.py
+425:        table_count_op = self.table_count * 9 #TODO: 9 means what?
+
+
+
+checked_add没检查溢出的情况，比如：
+language/vm/src/deserializer.rs
+175:        if let Some(checked_offset) = current_offset.checked_add(count) {
+176-            current_offset = checked_offset;
+177-        }
+
+
+
+408行的函数从未执行到
+language/vm/src/check_bounds.rs
+337:impl BoundsCheck<(&[StructHandle], usize)> for SignatureToken {
+393:impl BoundsCheck<(&[StructHandle], &[Kind])> for SignatureToken {
+399:impl BoundsCheck<(&CompiledModuleMut, &FunctionSignature)> for SignatureToken {
+408:impl BoundsCheck<(&CompiledModuleMut, &StructHandle)> for SignatureToken {
