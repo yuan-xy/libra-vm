@@ -527,14 +527,14 @@ def load_signature_token(cursor: Cursor) -> SignatureToken:
         return SignatureToken(stype)
     elif stype == SerializedType.REFERENCE or stype == SerializedType.MUTABLE_REFERENCE:
         ref_token = load_signature_token(cursor)
-        return SignatureToken(stype, ref_token)
+        return SignatureToken(stype, reference=ref_token)
     elif stype == SerializedType.STRUCT:
         sh_idx = read_uleb_Uint16_internal(cursor)
         types = load_signature_tokens(cursor)
-        return SignatureToken(stype, StructHandleIndex(sh_idx, types))
+        return SignatureToken(stype, struct=(StructHandleIndex(sh_idx), types))
     elif stype == SerializedType.TYPE_PARAMETER:
         idx = read_uleb_Uint16_internal(cursor)
-        return SignatureToken(stype, idx)
+        return SignatureToken(stype, typeParameter=idx)
     else:
         raise VMException(VMStatus(StatusCode.MALFORMED))
 
@@ -713,11 +713,11 @@ def load_code(cursor: Cursor, code: List[Bytecode]):
         elif opcode == Opcodes.LD_U128:
             value = read_u128_internal(cursor)
             bytecode.value = value
-        elif opcode == Opcodes.CastU8 or opcode == Opcodes.CastU64 or opcode == Opcodes.CastU128:
+        elif opcode == Opcodes.CAST_U8 or opcode == Opcodes.CAST_U64 or opcode == Opcodes.CAST_U128:
             pass
         elif opcode == Opcodes.LD_ADDR:
             idx = read_uleb_Uint16_internal(cursor)
-            bytecode.value = value
+            bytecode.value = AddressPoolIndex(idx)
         elif opcode == Opcodes.LD_TRUE or opcode == Opcodes.LD_FALSE:
             pass
         elif opcode == Opcodes.COPY_LOC or\
@@ -726,7 +726,7 @@ def load_code(cursor: Cursor, code: List[Bytecode]):
              opcode == Opcodes.MUT_BORROW_LOC or\
              opcode == Opcodes.IMM_BORROW_LOC:
             idx = cursor.read_u8()
-            bytecode.value = value
+            bytecode.value = idx
         elif opcode == Opcodes.MUT_BORROW_FIELD or\
              opcode == Opcodes.IMM_BORROW_FIELD:
             idx = read_uleb_Uint16_internal(cursor)

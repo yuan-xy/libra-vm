@@ -1,6 +1,6 @@
 from __future__ import annotations
 from libra_vm.lib import IndexKind, SignatureTokenKind
-from libra_vm.file_format_common import Opcodes, SerializedType, BinaryData
+from libra_vm.file_format_common import Opcodes, SerializedType, BinaryData, SerializedNativeStructFlag
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
 # use crate.{
@@ -231,10 +231,10 @@ class FunctionHandle:
 class StructFieldInformation:
     tag: SerializedNativeStructFlag
     # The number of fields in this type.
-    field_count: Optional[MemberCount]
+    field_count: Optional[MemberCount] = None
     # The starting index for the fields of this type. `FieldDefinition`s for each type must
     # be consecutively stored in the `FieldDefinition` table.
-    fields: Optional[FieldDefinitionIndex]
+    fields: Optional[FieldDefinitionIndex] = None
 
     @classmethod
     def Native(cls):
@@ -253,7 +253,7 @@ class StructFieldInformation:
 class StructDefinition:
     # The `StructHandle` for this `StructDefinition`. This has the name and the resource flag
     # for the type.
-    class_handle: StructHandleIndex
+    struct_handle: StructHandleIndex
     # Contains either
     # - Information indicating the class is native and has no accessible fields
     # - Information indicating the number of fields and the start `FieldDefinitionIndex`
@@ -275,7 +275,7 @@ class StructDefinition:
 @dataclass
 class FieldDefinition:
     # The type (resource or unrestricted) the field is defined on.
-    class_: StructHandleIndex
+    struct_: StructHandleIndex
     # The name of the field.
     name: IdentifierIndex
     # The type of the field.
@@ -447,6 +447,7 @@ class SignatureToken:
     # Type parameter.
     typeParameter : TypeParameterIndex = None
 
+
     def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
         if self.tag == SerializedType.STRUCT:
             (_, type_actuals) = self.struct
@@ -469,10 +470,13 @@ class SignatureToken:
 
     def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
         if self.tag == SerializedType.STRUCT:
+            from libra_vm.check_bounds import check_bounds_impl
             (idx, type_actuals) = self.struct
             errors = [ty.check_struct_handles(struct_handles) for ty in type_actuals]
-            errors.append(check_bounds_impl(struct_handles, idx))
-            return errors
+            opte = check_bounds_impl(struct_handles, idx)
+            if opte:
+                errors.append(opte)
+            return flatten(errors)
         elif self.tag == SerializedType.REFERENCE or\
             self.tag == SerializedType.MUTABLE_REFERENCE:
             return self.reference.check_struct_handles(struct_handles)
@@ -1185,10 +1189,10 @@ class CompiledScript:
             return deserialized.freeze()
         except VMException:
             raise
-        except Exception as err:
-            traceback.print_exc()
-            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
-            raise VMException(status)
+        # except Exception as err:
+        #     traceback.print_exc()
+        #     status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+        #     raise VMException(status)
 
     #impl ScriptAccess for CompiledScript:
     def as_script(self) -> CompiledScript:
@@ -1320,10 +1324,10 @@ class CompiledModule:
             return deserialized.freeze()
         except VMException:
             raise
-        except Exception as err:
-            traceback.print_exc()
-            status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
-            raise VMException(status)
+        # except Exception as err:
+        #     traceback.print_exc()
+        #     status = VMStatus(StatusCode.MALFORMED).with_message(err.__str__())
+        #     raise VMException(status)
 
 
     #impl ModuleAccess for CompiledModule:
@@ -1479,7 +1483,7 @@ class CompiledModuleMut:
         self,
         field_count: MemberCount,
         first_field: FieldDefinitionIndex,
-    ) -> None:
+    ) -> Optional[VMStatus]:
         first_field = first_field.into_index()
         field_count = int(field_count)
         # Both first_field and field_count are Uint16 so this is guaranteed to not overflow.
@@ -1492,9 +1496,7 @@ class CompiledModuleMut:
                 last_field,
                 self.field_defs.__len__()
             )
-            status = VMStatus(StatusCode.RANGE_OUT_OF_BOUNDS)
-            status.message = msg
-            raise VMException([status])
+            return VMStatus(StatusCode.RANGE_OUT_OF_BOUNDS).with_message(msg)
         else:
             return None
 

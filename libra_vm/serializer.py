@@ -152,8 +152,8 @@ def serialize_struct_definition(
         write_Uint16_as_uleb128(binary, 0)
     elif struct_definition.field_information.tag == SerializedNativeStructFlag.DECLARED:
         binary.push(SerializedNativeStructFlag.DECLARED)
-        write_Uint16_as_uleb128(binary, field_count)
-        write_Uint16_as_uleb128(binary, fields.v0)
+        write_Uint16_as_uleb128(binary, struct_definition.field_information.field_count)
+        write_Uint16_as_uleb128(binary, struct_definition.field_information.fields.v0)
     else:
         bail("unreachable!")
 
@@ -293,7 +293,7 @@ def serialize_nominal_resource_flag(
 
 def serialize_kind(binary: BinaryData, kind: Kind):
     if kind == Kind.All:
-        binary.puah(SerializedKind.ALL)
+        binary.push(SerializedKind.ALL)
     elif kind == Kind.Resource:
         binary.push(SerializedKind.RESOURCE)
     elif kind == Kind.Unrestricted:
@@ -332,7 +332,7 @@ def serialize_instruction_inner(binary: BinaryData, opcode: Bytecode):
     elif tag == Opcodes.LD_U64:
         write_Uint64(binary, opcode.value)
     elif tag == Opcodes.LD_U128:
-        write_u128(binary, opcode.value)
+        write_Uint128(binary, opcode.value)
     elif tag == Opcodes.LD_ADDR:
         write_Uint16_as_uleb128(binary, opcode.value.v0)
     elif tag == Opcodes.LD_BYTEARRAY:

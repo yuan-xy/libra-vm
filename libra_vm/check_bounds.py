@@ -4,7 +4,7 @@ from libra_vm.file_format import (
     FunctionSignature, Kind, LocalsSignature, LocalsSignatureIndex, ModuleHandle,
     SignatureToken, StructDefinition, StructFieldInformation, StructHandle, TypeSignature
 )
-from libra_vm.file_format_common import Opcodes
+from libra_vm.file_format_common import *
 from libra_vm.internals import ModuleIndex
 from libra_vm.lib import IndexKind
 from libra.vm_error import StatusCode, VMStatus
@@ -184,7 +184,7 @@ FunctionHandle.check_bounds = check_bounds_FunctionHandle
 def check_bounds_StructDefinition(self, module: CompiledModuleMut) -> List[VMStatus]:
     arr = [check_bounds_impl(module.struct_handles, self.struct_handle)]
     if self.field_information.tag == SerializedNativeStructFlag.DECLARED:
-        arr.extend(module.check_field_range(
+        arr.append(module.check_field_range(
             self.field_information.field_count,
             self.field_information.fields,
         ))

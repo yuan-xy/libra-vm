@@ -86,13 +86,13 @@ class SerializedType(IntEnum):
     TYPE_PARAMETER          = 0xA
 
     def is_primitive(self) -> bool:
-        if self in [Bool ,  U8 ,  U64 ,  U128 ,  BYTEARRAY ,  ADDRESS]:
+        if self in [SerializedType.BOOL, SerializedType.U8, SerializedType.U64, SerializedType.U128, SerializedType.BYTEARRAY, SerializedType.ADDRESS]:
             return True
         else:
             return False
 
     def is_integer(self) -> bool:
-        if self in [U8 ,  U64 ,  U128]:
+        if self in [SerializedType.U8, SerializedType.U64, SerializedType.U128]:
             return True
         else:
             return False
