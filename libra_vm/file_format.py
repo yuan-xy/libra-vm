@@ -1596,7 +1596,7 @@ def basic_test_module() -> CompiledModuleMut:
 
     m.struct_handles.append(StructHandle(
         module=ModuleHandleIndex(0),
-        name=IdentifierIndex.new(m.identifiers.__len__()),
+        name=IdentifierIndex(m.identifiers.__len__()),
         is_nominal_resource=False,
         type_formals=[],
     ))
@@ -1616,7 +1616,7 @@ def basic_test_module() -> CompiledModuleMut:
         signature=TypeSignatureIndex(0),
     ))
     m.identifiers.append("x")
-    m.type_signatures.append(TypeSignature(SignatureToken.U64))
+    m.type_signatures.append(TypeSignature(SignatureToken(SerializedType.U64)))
     return m
 
 
@@ -1647,7 +1647,7 @@ def dummy_procedure_module(code: List[Bytecode]) -> CompiledModule:
 # Return a simple script that contains only a return in the main()
 def empty_script() -> CompiledScriptMut:
     default_address = b'\x03'*32
-    self_module_name = self_module_name()
+    self_module_name = SELF_MODULE_NAME
     main_name = "main"
     void_void_sig = FunctionSignature(
         arg_types=[],
@@ -1667,7 +1667,7 @@ def empty_script() -> CompiledScriptMut:
     code = CodeUnit(
         max_stack_size=1,
         locals=LocalsSignatureIndex(0),
-        code=[Bytecode.Ret],
+        code=[Bytecode(Opcodes.RET)],
     )
     main_def = FunctionDefinition(
         function=FunctionHandleIndex(0),

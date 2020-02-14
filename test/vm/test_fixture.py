@@ -1,4 +1,5 @@
-from libra_vm.file_format import CompiledScript
+from libra_vm.file_format import *
+from libra_vm.file_format_common import Opcodes
 from libra.transaction import Script
 import os
 
@@ -14,4 +15,23 @@ def test_placeholder_script_deserialize():
         bstr = obj.serialize()
         print(bstr)
         assert code == bstr
+
+
+def test_basic_test_module():
+    module = basic_test_module()
+    bstr = module.serialize()
+    obj = CompiledModule.deserialize(bstr)
+    assert obj.v0 == module
+
+def test_dummy_procedure_module():
+    module = dummy_procedure_module([Bytecode(Opcodes.RET)])
+    bstr = module.serialize()
+    obj = CompiledModule.deserialize(bstr)
+    assert obj == module
+
+def test_empty_script():
+    script = empty_script()
+    bstr = script.serialize()
+    obj = CompiledScript.deserialize(bstr)
+    assert obj.v0 == script
 
