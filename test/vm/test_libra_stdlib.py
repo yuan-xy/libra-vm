@@ -37,9 +37,7 @@ def ser_deser_module(filename):
         amap = json.load(file)
         code = bytes(amap['code'])
         obj = CompiledModule.deserialize(code)
-        print(obj)
         bstr = obj.serialize()
-        print(bstr)
         assert code == bstr
 
 

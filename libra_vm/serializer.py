@@ -422,8 +422,9 @@ class CommonSerializer:
         binary.push(self.minor_version)
         binary.push(self.table_count)
 
-        table_count_op = self.table_count * 9 #TODO: 9 means what?
+        table_count_op = self.table_count * BinaryConstants.TABLE_HEADER_SIZE
         Uint8.check_value(table_count_op)
+        assert binary.__len__() == BinaryConstants.HEADER_SIZE
         checked_start_offset = check_index_in_binary(binary.__len__())
         checked_start_offset += table_count_op
         Uint32.check_value(checked_start_offset)
@@ -675,6 +676,8 @@ class ModuleSerializer:
         self.serialize_struct_definitions(binary, module.struct_defs)
         self.serialize_field_definitions(binary, module.field_defs)
         self.serialize_function_definitions(binary, module.function_defs)
+        assert self.common.table_count <= 12
+
 
 
     def serialize_header(self, binary: BinaryData):
@@ -764,6 +767,7 @@ class ScriptSerializer:
     def serialize(self, binary: BinaryData, script: CompiledScriptMut):
         self.common.serialize_common(binary, script)
         self.serialize_main(binary, script.main)
+        assert self.common.table_count <= 10
 
 
     def serialize_header(self, binary: BinaryData):
