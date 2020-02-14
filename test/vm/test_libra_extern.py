@@ -15,11 +15,11 @@ def run_extern_script(extern_dir):
     for root, dirs, files in os.walk(path):
         for file in files:
             if(file.endswith(".mv")):
-                #print(join(root, file))
                 ser_deser_script(join(root, file))
 
 
 def ser_deser_script(filename):
+    print(filename)
     with open(filename, 'r') as file:
         amap = json.load(file)
         code = bytes(amap['code'])
