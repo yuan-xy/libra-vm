@@ -6,7 +6,7 @@ from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure, bail, usize
 from canoser import Uint8, Uint32, Uint16, Uint64, Uint128
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union, Any
 
 def format_str(astr, *args):
     return astr.format(*args)
@@ -46,8 +46,8 @@ EINSUFFICIENT_PRIVILEGES: Uint64 = 11 # user lacks the credentials to do somethi
 
 EASSERT_ERROR: Uint64 = 42 # catch-all error code for assert failures
 
-# pub type VMResult<T> = ::std::result::Result<T, VMStatus>;
-# pub type BinaryLoaderResult<T> = ::std::result::Result<T, VMStatus>;
+VMResult = Union[Any, VMStatus]
+BinaryLoaderResult = Union[Any, VMStatus]
 
 
 #########################/

@@ -1,3 +1,11 @@
+language/vm/vm-runtime/vm-runtime-types/src/native_functions/signature.rs
+53:            "wrong number of arguments for ed25519_signature_verification expected 3 found {}",
+97:            "wrong number of arguments for ed25519_signature_verification expected 4 found {}",
+
+
+
+
+
 acquires_global_resources被声明为数组：
     language/vm/src/file_format.rs
     350:    pub acquires_global_resources: Vec<StructDefinitionIndex>,
