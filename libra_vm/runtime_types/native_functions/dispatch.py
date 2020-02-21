@@ -1,7 +1,8 @@
 from __future__ import annotations
 from libra_vm.runtime_types.native_functions import hashf, primitive_helpers, signature
 from libra_vm.runtime_types.native_functions import pop_arg, native_gas, NativeResult, NativeFunction
-from libra_vm.runtime_types.values import vector, Value
+from libra_vm.runtime_types.values import Value
+import libra_vm.runtime_types.vector as vector
 from libra_vm.runtime_types.native_structs import resolve_native_struct
 from libra.account_address import Address
 from libra.account_config import AccountConfig
