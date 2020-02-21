@@ -79,7 +79,7 @@ class RefCellCanoser(RefCell, Base):
         cls.dtype().check_value(value.v0)
 
     def to_json_serializable(self):
-        return cls.dtype().to_json_serializable(self.v0)
+        return self.__class__.dtype().to_json_serializable(self.v0)
 
     def __eq__(self, other):
         if type(self) != type(other):
