@@ -20,7 +20,7 @@ from libra_vm.vm_exception import VMException
 from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy
-from libra.rustlib import assert_equal
+from libra.rustlib import assert_equal, bail, ensure
 from canoser import Uint8, Uint64, Uint128, RustEnum
 from canoser import Struct as CanoserStruct
 import traceback
