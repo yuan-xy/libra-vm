@@ -7,6 +7,9 @@ from libra.rustlib import ensure, bail, usize
 from canoser import Uint8, Uint32, Uint16, Uint64, Uint128
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union, Any
+import libra.rustlib
+
+bail = libra.rustlib.bail
 
 def format_str(astr, *args):
     return astr.format(*args)
