@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm.access import ModuleAccess
+from libra_vm.file_format import ModuleAccess
 from libra_vm.file_format import (
     AddressPoolIndex, FunctionSignature, IdentifierIndex, ModuleHandle, ModuleHandleIndex,
     SignatureToken, StructHandle, StructHandleIndex

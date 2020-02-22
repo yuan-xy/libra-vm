@@ -1,3 +1,12 @@
+"""
+/***************************************************************************************
+ *
+ * Don't edit this file
+ *
+ *   All code is copied to file_format.py
+ *
+ **************************************************************************************/
+
 from libra_vm.file_format import (
         AddressPoolIndex, ByteArrayPoolIndex, CompiledModule, CompiledModuleMut, CompiledScript,
         FieldDefinition, FieldDefinitionIndex, FunctionDefinition, FunctionDefinitionIndex,
@@ -271,3 +280,4 @@ class ScriptAccess(abc.ABC):
     def main(self) -> FunctionDefinition:
         return self.as_script().as_inner().main
 
+"""

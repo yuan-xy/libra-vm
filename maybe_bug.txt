@@ -1,8 +1,25 @@
-language/vm/vm-runtime/vm-runtime-types/src/native_functions/signature.rs
-53:            "wrong number of arguments for ed25519_signature_verification expected 3 found {}",
-97:            "wrong number of arguments for ed25519_signature_verification expected 4 found {}",
+
+language/vm/vm-runtime/vm-runtime-types/src/values/values_impl.rs
+683:        // TODO: this is very similar to SharedContainer::borrow_elem. Find a way to
 
 
+vector, native_swap,
+        #TTODO: why not support Uint8/Uint128 bellow
+
+
+Global重复定义：
+enum ContainerRef {
+    Local(Rc<RefCell<Container>>),
+    Global {
+        status: Rc<RefCell<GlobalDataStatus>>,
+        container: Rc<RefCell<Container>>,
+    },
+}
+
+pub struct GlobalValue {
+    status: Rc<RefCell<GlobalDataStatus>>,
+    container: Rc<RefCell<Container>>,
+}
 
 
 
