@@ -149,6 +149,15 @@ class TransactionDataCache:
 
         return self.data_map[ap]
 
+    def load_data_then_move(
+        self,
+        ap: AccessPath,
+        sdef: StructDef,
+    ) -> Optional[Tuple[StructDef, GlobalValue]]:
+        ret = self.load_data(ap, sdef)
+        self.data_map[ap] = None
+        return ret
+
 
     # Make a write set from the updated (dirty, deleted) global resources along with
     # to-be-published modules.

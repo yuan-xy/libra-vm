@@ -1,3 +1,15 @@
+函数签名顺序不一致
+pub struct SystemExecutionContext<'txn>(TransactionExecutionContext<'txn>);
+
+impl<'txn> SystemExecutionContext<'txn> {
+    pub fn new(data_cache: &'txn dyn RemoteCache, gas_left: GasUnits<GasCarrier>) -> Self {
+        SystemExecutionContext(TransactionExecutionContext::new(gas_left, data_cache))
+    }
+
+impl<'txn> TransactionExecutionContext<'txn> {
+    pub fn new(gas_left: GasUnits<GasCarrier>, data_cache: &'txn dyn RemoteCache) -> Self {
+
+
 
 language/vm/vm-runtime/vm-runtime-types/src/values/values_impl.rs
 683:        // TODO: this is very similar to SharedContainer::borrow_elem. Find a way to
