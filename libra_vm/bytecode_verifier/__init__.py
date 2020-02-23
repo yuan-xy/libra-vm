@@ -1,2 +1,2 @@
-from libra_vm.bytecode_verifier.verifier import VerifiedModule
+from libra_vm.bytecode_verifier.verifier import *
 
