@@ -1472,27 +1472,6 @@ class ScriptAccess(abc.ABC):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # A `CompiledProgram` defines the structure of a transaction to execute.
 # It has two parts: modules to be published and a transaction script.
 @dataclass

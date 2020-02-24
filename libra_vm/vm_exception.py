@@ -2,8 +2,12 @@ from libra.vm_error import StatusCode, VMStatus
 from typing import List, Union
 from dataclasses import dataclass, field
 
+class VMExceptionBase(Exception):
+    pass
+
+
 @dataclass
-class VMException(Exception):
+class VMException(VMExceptionBase):
     vm_status: List[VMStatus]
 
     def __init__(self, status: Union[VMStatus, List[VMStatus]]):
@@ -11,3 +15,4 @@ class VMException(Exception):
             self.vm_status = [status]
         else:
             self.vm_status = status
+
