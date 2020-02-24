@@ -1,0 +1,5 @@
+//cargo run -p compiler ../libra-vm/test/vm_runtime/code2/m2.mvir --no-stdlib -m --deps  ../libra-vm/test/vm_runtime/code2/dep.txt
+module M2 {
+    import 0x0.M1;
+    struct T { i: u64, x: M1.X }
+}

@@ -1,0 +1,9 @@
+//modules:
+module M1 {
+    struct X { b: bool }
+    struct T { i: u64, x: Self.X }
+}
+// script:
+// main() {
+//     return;
+// }

@@ -11,12 +11,14 @@ from libra_vm.file_format import (
         FunctionHandleIndex, SignatureToken, StructDefinitionIndex, StructFieldInformation,
         StructHandleIndex, CompiledModule, ModuleAccess
     )
+from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from libra_vm.views import FunctionHandleView, StructHandleView
 from libra_vm.runtime_types.loaded_data import StructDef, Type
 from libra_vm.runtime_types.native_structs import resolve_native_struct
 from libra_vm.runtime_types.type_context import TypeContext
 from typing import List, Optional, Mapping
 from dataclasses import dataclass, field
+from copy import deepcopy
 # Cache for modules published on chain.
 
 
@@ -45,7 +47,7 @@ class VMModuleCache:
     ) -> FunctionRef:
         function_handle = caller_module.function_handle_at(idx)
         callee_name = caller_module.identifier_at(function_handle.name)
-        callee_module_id = FunctionHandleView.new(caller_module, function_handle).module_id()
+        callee_module_id = FunctionHandleView(caller_module, function_handle).module_id()
 
         callee_module = self.get_loaded_module(callee_module_id, data_view)
         if callee_name in callee_module.function_defs_table:
@@ -81,7 +83,7 @@ class VMModuleCache:
         if struct_def.field_information.tag == SerializedNativeStructFlag.NATIVE:
             struct_name = module.identifier_at(struct_handle.name)
             struct_def_module_id =\
-                StructHandleView.new(module, struct_handle).module_id()
+                StructHandleView(module, struct_handle).module_id()
             native_struct = resolve_native_struct(struct_def_module_id, struct_name)
             if native_struct is not None:
                 sdef = StructDef('Native', deepcopy(native_struct.struct_type))
@@ -125,7 +127,7 @@ class VMModuleCache:
         data_view: InterpreterContext,
     ) -> StructDef:
         struct_def = self.resolve_struct_def(module, idx, data_view)
-        type_context = TypeContext.new(type_instantiation)
+        type_context = TypeContext(type_instantiation)
         return type_context.subst_struct_def(struct_def)
 
 
@@ -166,7 +168,7 @@ class VMModuleCache:
     ) -> StructDef:
         struct_handle = module.struct_handle_at(idx)
         struct_name = module.identifier_at(struct_handle.name)
-        struct_def_module_id = StructHandleView.new(module, struct_handle).module_id()
+        struct_def_module_id = StructHandleView(module, struct_handle).module_id()
         module = self.get_loaded_module(struct_def_module_id, data_view)
         struct_def_idx = module.get_struct_def_index(struct_name)
         return self.resolve_struct_def(module, struct_def_idx, data_view)
@@ -192,7 +194,7 @@ class VMModuleCache:
             return Type('ByteArray')
         elif tok.tag == SerializedType.ADDRESS:
             return Type('Address')
-        elif tok.tag == SerializedType.TYPEPARAMETER:
+        elif tok.tag == SerializedType.TYPE_PARAMETER:
             return type_context.get_type(idx)
         elif tok.tag == SerializedType.STRUCT:
             (sh_idx, tys) = tok.struct
@@ -201,7 +203,7 @@ class VMModuleCache:
                 resolved_type = self.resolve_signature_token(module, ty, type_context, data_view)
                 arr.append(resolved_type)
 
-            ctx = TypeContext.new(arr)
+            ctx = TypeContext(arr)
             struct_def =\
                 ctx.subst_struct_def(self.resolve_struct_handle(module, sh_idx, data_view))
             return Type('Struct', struct_def)
@@ -209,7 +211,7 @@ class VMModuleCache:
             sub_tok = tok.reference
             inner_ty = self.resolve_signature_token(module, sub_tok, type_context, data_view)
             return Type('Reference', inner_ty)
-        elif tok.tag == SerializedType.MUTABLEREFERENCE:
+        elif tok.tag == SerializedType.MUTABLE_REFERENCE:
             sub_tok = tok.reference
             inner_ty = self.resolve_signature_token(module, sub_tok, type_context, data_view)
             return Type('MutableReference', inner_ty)

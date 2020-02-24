@@ -104,7 +104,7 @@ class TransactionExecutionContext(ChainState):
 
     @classmethod
     def new(cls, gas_left: GasUnits, data_cache: RemoteCache) -> TransactionExecutionContext:
-        return TransactionExecutionContext(gas_left, [], data_cache)
+        return TransactionExecutionContext(gas_left, [], TransactionDataCache.new(data_cache))
 
     # Clear all the writes local to this execution.
     def clear(self):
@@ -198,8 +198,8 @@ class TransactionExecutionContext(ChainState):
 class SystemExecutionContext(TransactionExecutionContext):
 
     @classmethod
-    def new(data_cache: RemoteCache, gas_left: GasUnits) -> SystemExecutionContext:
-        return SystemExecutionContext(gas_left, [], data_cache)
+    def new(cls, data_cache: RemoteCache, gas_left: GasUnits) -> SystemExecutionContext:
+        return cls(gas_left, [], TransactionDataCache.new(data_cache))
 
     def deduct_gas(self, _amount: GasUnits):
         pass

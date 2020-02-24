@@ -51,6 +51,10 @@ class Index(TableIndex, ModuleIndex):
     def into_index(self) -> usize:
         return self.v0
 
+    @classmethod
+    def new(cls, value):
+        return cls(value)
+
 
 def define_index(name: str, kind: IndexKind, doc: str) -> None:
     clazz = type(name, (Index,), {})

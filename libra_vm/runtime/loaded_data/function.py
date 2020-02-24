@@ -8,12 +8,14 @@ from libra_vm.file_format import (
     StructFieldInformation, TableIndex,
     ModuleAccess
     )
+from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from libra_vm.internals import ModuleIndex
 from libra_vm.runtime_types.loaded_data import StructDef
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass
 import abc
 from libra.rustlib import usize
+from copy import deepcopy
 
 # Loaded representation for function definitions and handles.
 
@@ -99,11 +101,11 @@ class FunctionRef(FunctionReference):
 
 
     def return_count(self) -> usize:
-        return self.sdef.return_count
+        return self.fdef.return_count
 
 
     def is_native(self) -> bool:
-        return (self.sdef.flags & CodeUnit.NATIVE) == CodeUnit.NATIVE
+        return (self.fdef.flags & CodeUnit.NATIVE) == CodeUnit.NATIVE
 
 
     def name(self) -> IdentStr:
