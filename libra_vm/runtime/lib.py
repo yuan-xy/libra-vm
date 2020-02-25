@@ -126,8 +126,9 @@ class VMExecutor(abc.ABC):
     # sorted out before that's possible.
 
     # Executes a block of transactions and returns output for each one of them.
+    @classmethod
     @abc.abstractmethod
-    def execute_block(
+    def execute_block(cls,
         transactions: List[Transaction],
         config: Any,
         state_view: StateView,

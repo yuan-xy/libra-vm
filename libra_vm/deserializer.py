@@ -111,7 +111,7 @@ def check_tables(tables: List[Table], end_tables: Uint64, length: Uint64):
         if checked_offset is not None:
             current_offset = checked_offset
         else:
-            #TODO: libra src lack else branch, maybe bug.
+            #TTODO: libra src lack else branch, maybe bug.
             raise VMException(VMStatus(StatusCode.BAD_HEADER_TABLE))
         if current_offset > length:
             raise VMException(VMStatus(StatusCode.BAD_HEADER_TABLE))
