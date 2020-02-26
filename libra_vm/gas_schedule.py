@@ -6,6 +6,7 @@ from libra_vm.file_format import (
 from libra_vm.file_format_common import Opcodes
 from libra.identifier import Identifier
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
+from libra.rustlib import ensure, bail
 from canoser import Uint64, Uint8
 from enum import IntEnum
 from dataclasses import dataclass
@@ -45,16 +46,16 @@ class GasAlgebra(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def new(cls, carrier: GasCarrier) -> GasAlgebra:
-        pass
+        bail("unimplemented!")
 
     # Get the carrier.
     @abc.abstractmethod
     def get(self) -> GasCarrier:
-        pass
+        bail("unimplemented!")
 
     # Map a function `f` of one argument over the underlying data.
     def map(self, f: Callable[[GasCarrier], GasCarrier]) -> GasAlgebra:
-        return GasAlgebra.new(f(self.get()))
+        return self.__class__.new(f(self.get()))
 
 
     # Map a function `f` of two arguments over the underlying carrier. Note that this function
@@ -65,7 +66,8 @@ class GasAlgebra(abc.ABC):
         other: GasAlgebra,
         f: Callable[[GasCarrier, GasCarrier], GasCarrier],
     ) -> GasAlgebra:
-        return GasAlgebra.new(f(self.get(), other.get()))
+        ret = f(self.get(), other.get())
+        return self.__class__.new(ret)
 
 
     T = TypeVar('T')
@@ -197,6 +199,7 @@ class CostTable:
     def new(cls, instrs: List[Tuple[Bytecode, GasCost]], native_table: List[GasCost]):
         instrs.sort(key = lambda x: instruction_key(x[0]))
 
+        debug_assertions = True
         if debug_assertions:
             instructions_covered = 0
             for (index, (instr, _)) in enumerate(instrs):

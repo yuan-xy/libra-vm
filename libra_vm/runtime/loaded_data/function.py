@@ -14,7 +14,7 @@ from libra_vm.runtime_types.loaded_data import StructDef
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass
 import abc
-from libra.rustlib import usize
+from libra.rustlib import bail, usize
 from copy import deepcopy
 
 # Loaded representation for function definitions and handles.
@@ -182,6 +182,8 @@ class LoadedModule(ModuleAccess):
 
     @classmethod
     def new(cls, module: VerifiedModule) -> LoadedModule:
+        if not isinstance(module, VerifiedModule):
+            bail(f"Not a VerifiedModule: {type(module)}")
         struct_defs_table = {}
         field_defs_table = {}
         function_defs_table = {}

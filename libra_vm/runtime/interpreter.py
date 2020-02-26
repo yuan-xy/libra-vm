@@ -34,6 +34,7 @@ from libra_vm.runtime_types.type_context import TypeContext
 from libra_vm.runtime_types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
 from typing import List, Optional, Mapping, Callable, Any, Tuple
 from dataclasses import dataclass, field
+from canoser import BoolT, Uint8, Uint64, Uint128
 from enum import IntEnum
 
 def derive_type_tag(
@@ -167,8 +168,8 @@ class Interpreter:
         return Interpreter(
             Stack(),
             CallStack(),
-            gas_schedule,
             txn_data,
+            gas_schedule,
         )
 
 
@@ -238,7 +239,7 @@ class Interpreter:
                             ty,
                         )
                 type_actual_tags = [lambda_derive_type_tag(ty) for ty in type_actuals_sig]
-                type_context = TypeContext(current_frame.type_actuals())
+                type_context = TypeContext(current_frame.type_actuals)
                 def lambda_resolve_signature_token(ty):
                     return runtime.resolve_signature_token(
                             current_frame.module(),
@@ -281,19 +282,19 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.RET:
                     gas_const_instr(context, self, Opcodes.RET)
-                    return ExitCode.Return
+                    return ExitCode.Return()
 
                 elif instruction.tag == Opcodes.BR_TRUE:
                     offset = instruction.value
                     gas_const_instr(context, self, Opcodes.BR_TRUE)
-                    if self.operand_stack.pop_as(bool):
+                    if self.operand_stack.pop_as(BoolT):
                         frame.pc = offset
                         break
 
                 elif instruction.tag == Opcodes.BR_FALSE:
                     offset = instruction.value
                     gas_const_instr(context, self, Opcodes.BR_FALSE)
-                    if not self.operand_stack.pop_as(bool):
+                    if not self.operand_stack.pop_as(BoolT):
                         frame.pc = offset
                         break
 
@@ -337,7 +338,7 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.LD_TRUE:
                     gas_const_instr(context, self, Opcodes.LD_TRUE)
-                    self.operand_stack.push(Value.bool(true))
+                    self.operand_stack.push(Value.bool(True))
 
                 elif instruction.tag == Opcodes.LD_FALSE:
                     gas_const_instr(context, self, Opcodes.LD_FALSE)
@@ -600,7 +601,7 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.NOT:
                     gas_const_instr(context, self, Opcodes.NOT)
-                    value = not self.operand_stack.pop_as(bool)
+                    value = not self.operand_stack.pop_as(BoolT)
                     self.operand_stack.push(Value.bool(value))
 
                 else:
@@ -760,8 +761,12 @@ class Interpreter:
         self.binop(lambda_f, IntegerValue)
 
     # Perform a binary operation for boolean values.
-    def binop_bool(self, f, T) -> None:
-        self.binop(lambda lhs, rhs: Value('Bool', f(lhs, rhs)), T)
+    def binop_bool(self, f, T=IntegerValue) -> None:
+        rhs = self.operand_stack.pop_as(T)
+        lhs = self.operand_stack.pop_as(T)
+        b = f(lhs, rhs)
+        result = Value('Bool', b)
+        self.operand_stack.push(result)
 
 
     # Entry point for all global store operations (effectively opcodes).
@@ -964,14 +969,14 @@ class Stack:
     # otherwise.
     def push(self, value: Value) -> None:
         if self.v0.__len__() < OPERAND_STACK_SIZE_LIMIT:
-            self.v0.push(value)
+            self.v0.append(value)
         else:
             raise VMException(VMStatus(StatusCode.EXECUTION_STACK_OVERFLOW))
 
 
     # Pop a `Value` off the stack or abort execution if the stack is empty.
     def pop(self) -> Value:
-        self.v0.pop()
+        return self.v0.pop()
 
 
     # Pop a `Value` of a given type off the stack. Abort if the value is not of the given
@@ -1006,13 +1011,13 @@ class CallStack:
         frame: Frame,
     ):
         if self.v0.__len__() < CALL_STACK_SIZE_LIMIT:
-            self.v0.push(frame)
+            self.v0.append(frame)
         else:
             raise VMFrameException(frame)
 
     # Pop a `Frame` off the call stack.
     def pop(self) -> Optional[Frame]:
-        self.v0.pop()
+        return self.v0.pop()
 
 
 # A `Frame` is the execution context for a function. It holds the locals of the function and
@@ -1082,6 +1087,7 @@ class ExitCodeTag(IntEnum):
     Call = 1
 
 # An `ExitCode` from `execute_code_unit`.
+@dataclass
 class ExitCode:
     tag: ExitCodeTag
     value: Tuple[FunctionHandleIndex, LocalsSignatureIndex] = None

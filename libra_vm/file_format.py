@@ -1131,9 +1131,8 @@ class Bytecode:
         else:
             return cls(opcode)
 
-    @classmethod
-    def NUM_INSTRUCTIONS(cls):
-        return len(Opcodes)
+
+    NUM_INSTRUCTIONS = len(Opcodes)
 
     # Return True if this bytecode instruction always branches
     def is_unconditional_branch(self) -> bool:

@@ -721,31 +721,31 @@ class IntegerValue(RustEnum):
         except Exception:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 
-    def lt(self, other: IntegerValue) -> IntegerValue:
+    def lt(self, other: IntegerValue) -> bool:
         self.check_other_type(other)
         try:
-            return IntegerValue(self.enum_name, self.value < other.value)
+            return self.value < other.value
         except Exception:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 
-    def le(self, other: IntegerValue) -> IntegerValue:
+    def le(self, other: IntegerValue) -> bool:
         self.check_other_type(other)
         try:
-            return IntegerValue(self.enum_name, self.value <= other.value)
+            return self.value <= other.value
         except Exception:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 
-    def gt(self, other: IntegerValue) -> IntegerValue:
+    def gt(self, other: IntegerValue) -> bool:
         self.check_other_type(other)
         try:
-            return IntegerValue(self.enum_name, self.value > other.value)
+            return self.value > other.value
         except Exception:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 
-    def ge(self, other: IntegerValue) -> IntegerValue:
+    def ge(self, other: IntegerValue) -> bool:
         self.check_other_type(other)
         try:
-            return IntegerValue(self.enum_name, self.value >= other.value)
+            return self.value >= other.value
         except Exception:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 

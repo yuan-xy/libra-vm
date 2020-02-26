@@ -50,27 +50,6 @@ class VMRuntime:
         return cls(VMModuleCache(), ScriptCache())
 
 
-    def load_gas_schedule(
-        self,
-        context: InterpreterContext,
-        data_view: RemoteCache,
-    ) -> CostTable:
-        try:
-            address = AccountConfig.association_address()
-            gas_module = self.code_cache.get_loaded_module(GAS_SCHEDULE_MODULE, context)
-
-            gas_struct_def_idx = gas_module.get_struct_def_index(GAS_SCHEDULE_NAME)
-            struct_tag = resource_storage_key(gas_module, gas_struct_def_idx, [])
-            access_path = create_access_path(address, struct_tag)
-
-            data_blob = data_view.get(access_path)
-            table = CostTable.deserialize(data_blob)
-            return table
-        except Exception as err:
-            raise VMException(VMStatus(StatusCode.GAS_SCHEDULE_ERROR)\
-                    .with_sub_status(sub_status.GSE_UNABLE_TO_LOAD_RESOURCE))
-
-
     def publish_module(
         self,
         module: bytes,
@@ -143,6 +122,21 @@ class VMRuntime:
 
     def cache_module(self, module: VerifiedModule):
         self.code_cache.cache_module(module)
+
+
+    def resolve_struct_tag_by_name(
+        self,
+        module_id: ModuleId,
+        name: Identifier,
+        context: InterpreterContext,
+    ) -> StructTag:
+        gas_module = self.code_cache.get_loaded_module(module_id, context)
+        gas_struct_def_idx = gas_module.get_struct_def_index(name)
+        return resource_storage_key(
+            gas_module,
+            gas_struct_def_idx,
+            [],
+        )
 
 
     def resolve_struct_def_by_name(
