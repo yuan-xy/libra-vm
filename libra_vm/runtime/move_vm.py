@@ -26,14 +26,10 @@ class MoveVM(MoveVMImpl):
     def new(cls) -> MoveVM:
         return cls(VMRuntime.new())
 
-    def rent(self, f):
-        return f(self.runtime)
-
-
     # API for temporal backward compatibility.
     # TODO: Get rid of it later with the following three api after LibraVM refactor.
     def execute_runtime(self, f):
-        return self.rent(lambda runtime: f(runtime))
+        return self.f(runtime)
 
 
     def execute_function(
@@ -45,8 +41,8 @@ class MoveVM(MoveVMImpl):
         txn_data: TransactionMetadata,
         args: List[Value],
     ) -> None:
-        self.rent(lambda runtime: runtime.execute_function(\
-                chain_state, txn_data, gas_schedule, module, function_name, args))
+        self.runtime.execute_function(\
+                chain_state, txn_data, gas_schedule, module, function_name, args)
 
 
     def execute_script(
@@ -57,8 +53,8 @@ class MoveVM(MoveVMImpl):
         txn_data: TransactionMetadata,
         args: List[Value],
     ) -> None:
-        self.rent(lambda runtime: runtime.execute_script(\
-            chain_state, txn_data, gas_schedule, script, args))
+        self.runtime.execute_script(\
+            chain_state, txn_data, gas_schedule, script, args)
 
 
     def publish_module(
@@ -67,11 +63,11 @@ class MoveVM(MoveVMImpl):
         chain_state: ChainState,
         txn_data: TransactionMetadata,
     ) -> None:
-        self.rent(lambda runtime: runtime.publish_module(module, chain_state, txn_data))
+        self.runtime.publish_module(module, chain_state, txn_data)
 
 
     def cache_module(self, module: VerifiedModule):
-        self.rent(lambda runtime: runtime.cache_module(module))
+        self.runtime.cache_module(module)
 
 
     def resolve_struct_tag_by_name(
@@ -80,8 +76,8 @@ class MoveVM(MoveVMImpl):
         name: Identifier,
         chain_state: ChainState,
     ) -> StructTag:
-        self.rent(lambda runtime: runtime.resolve_struct_tag_by_name(\
-            module_id, name, chain_state))
+        self.runtime.resolve_struct_tag_by_name(\
+            module_id, name, chain_state)
 
 
     def resolve_struct_def_by_name(
@@ -90,8 +86,8 @@ class MoveVM(MoveVMImpl):
         name: Identifier,
         chain_state: ChainState,
     ) -> StructDef:
-        self.rent(lambda runtime: runtime.resolve_struct_def_by_name(\
-            module_id, name, chain_state))
+        self.runtime.resolve_struct_def_by_name(\
+            module_id, name, chain_state)
 
 
 

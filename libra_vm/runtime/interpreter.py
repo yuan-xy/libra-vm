@@ -104,6 +104,7 @@ class Interpreter:
     # GetTxnSenderAddress, ...)
     txn_data: TransactionMetadata
     gas_schedule: CostTable
+    enable_gas: bool = False
 
 
     # Execute a function.
@@ -334,7 +335,7 @@ class Interpreter:
                         AbstractMemorySize.new(byte_array.__len__())
                     )
                     self.operand_stack\
-                        .push(Value.byte_array(deepcopy(byte_array)))
+                        .push(Value.byte_array(bytes(byte_array)))
 
                 elif instruction.tag == Opcodes.LD_TRUE:
                     gas_const_instr(context, self, Opcodes.LD_TRUE)
