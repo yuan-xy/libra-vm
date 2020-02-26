@@ -7,7 +7,8 @@ from libra_vm.file_format_common import Opcodes
 from libra.identifier import Identifier
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.rustlib import ensure, bail
-from canoser import Uint64, Uint8
+from canoser import Uint64, Uint8, Struct
+from canoser.base import Base
 from enum import IntEnum
 from dataclasses import dataclass
 from typing import List, TypeVar
@@ -125,8 +126,23 @@ class AbstractMemorySize(GasAlgebraBase):
     pass
 
 #A newtype wrapper around the underlying carrier for the gas cost
-class GasUnits(GasAlgebraBase):
-    pass
+class GasUnits(GasAlgebraBase, Base):
+    @classmethod
+    def encode(cls, value):
+        return GasCarrier.encode(value.v0)
+
+    @classmethod
+    def decode(cls, cursor):
+        v0 = GasCarrier.decode(cursor)
+        return cls(v0)
+
+    @classmethod
+    def check_value(cls, value):
+        GasCarrier.check_value(value.v0)
+
+    def to_json_serializable(self):
+        return GasCarrier.to_json_serializable(self.v0)
+
 
 #A newtype wrapper around the gas price for each unit of gas consumed
 class GasPrice(GasAlgebraBase):
@@ -187,13 +203,41 @@ GAS_SCHEDULE_NAME = "T"
 def instruction_key(instruction: Bytecode) -> Uint8:
     return instruction.tag
 
+
+
+# The  `GasCost` tracks:
+# - instruction cost: how much time/computational power is needed to perform the instruction
+# - memory cost: how much memory is required for the instruction, and storage overhead
+class GasCost(Struct):
+    _fields = [
+        ('instruction_gas', GasUnits),
+        ('memory_gas', GasUnits)
+    ]
+
+
+    @classmethod
+    def new(cls, instr_gas: GasCarrier, mem_gas: GasCarrier) -> GasCost:
+        return GasCost(
+            instruction_gas = GasUnits.new(instr_gas),
+            memory_gas = GasUnits.new(mem_gas),
+        )
+
+    # Take a GasCost from our gas schedule and convert it to a total gas charge in `GasUnits`.
+    #
+    # This is used internally for converting from a `GasCost` which is a triple of numbers
+    # represeing instruction, stack, and memory consumption into a number of `GasUnits`.
+    def total(self) -> GasUnits:
+        return self.instruction_gas.add(self.memory_gas)
+
+
 # The cost tables, keyed by the serialized form of the bytecode instruction.  We use the
 # serialized form as opposed to the instruction enum itself as the key since this will be the
 # on-chain representation of bytecode instructions in the future.
-@dataclass
-class CostTable:
-    instruction_table: List[GasCost]
-    native_table: List[GasCost]
+class CostTable(Struct):
+    _fields = [
+        ('instruction_table', [GasCost]),
+        ('native_table', [GasCost])
+    ]
 
     @classmethod
     def new(cls, instrs: List[Tuple[Bytecode, GasCost]], native_table: List[GasCost]):
@@ -223,7 +267,6 @@ class CostTable:
         return self.instruction_table[instr_index - 1]
 
 
-    #[inline]
     def native_cost(self, native_index: NativeCostIndex) -> GasCost:
         return self.native_table[native_index]
 
@@ -256,30 +299,6 @@ class CostTable:
         instrs = [(Bytecode.default(opcode), GasCost.new(0, 0)) for opcode in list(Opcodes)]
         native_table = [GasCost.new(0, 0) for _x in range(NUMBER_OF_NATIVE_FUNCTIONS)]
         return CostTable.new(instrs, native_table)
-
-
-# The  `GasCost` tracks:
-# - instruction cost: how much time/computational power is needed to perform the instruction
-# - memory cost: how much memory is required for the instruction, and storage overhead
-@dataclass
-class GasCost:
-    instruction_gas: GasUnits
-    memory_gas: GasUnits
-
-    @classmethod
-    def new(cls, instr_gas: GasCarrier, mem_gas: GasCarrier) -> GasCost:
-        return GasCost(
-            instruction_gas = GasUnits.new(instr_gas),
-            memory_gas = GasUnits.new(mem_gas),
-        )
-
-    # Take a GasCost from our gas schedule and convert it to a total gas charge in `GasUnits`.
-    #
-    # This is used internally for converting from a `GasCost` which is a triple of numbers
-    # represeing instruction, stack, and memory consumption into a number of `GasUnits`.
-    def total(self) -> GasUnits:
-        return self.instruction_gas.add(self.memory_gas)
-
 
 
 # Computes the number of words rounded up

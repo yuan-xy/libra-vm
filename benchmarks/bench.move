@@ -1,3 +1,5 @@
+//cargo run -p move-lang --bin move-build -- -f language/benchmarks/src/bench.move -s 0x0 -o language/benchmarks/src
+
 // `cargo bench` will call a public function in this module.
 // The Module must be called `Bench` and the set of public functions are callable from the bench (Rust code).
 // `benches/transaction.rs` contains the calling code.
