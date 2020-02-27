@@ -24,7 +24,7 @@ def identifier_serializer_roundtrip(module):
 
 def test_std_module():
     curdir = dirname(__file__)
-    sdir = join(curdir, "../vm/stdlib_modules")
+    sdir = join(curdir, "../../stdlib/modules")
     mvs = [f for f in listdir(sdir) if f.endswith(".mv")]
     for mv in mvs:
         filename = abspath(join(sdir, mv))
