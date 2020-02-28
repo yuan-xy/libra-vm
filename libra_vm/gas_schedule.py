@@ -309,7 +309,7 @@ def words_in(size: AbstractMemorySize) -> AbstractMemorySize:
         assert(word_size > 0)
         # follows from the precondition
         assert(size <= Uint64.max_value - word_size)
-        (size + (word_size - 1)) // word_size
+        return (size + (word_size - 1)) // word_size
 
     # round-up div truncate
     return size.map2(WORD_SIZE, fun)

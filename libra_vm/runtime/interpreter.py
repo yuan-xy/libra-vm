@@ -236,7 +236,7 @@ class Interpreter:
                 def lambda_derive_type_tag(ty):
                     return derive_type_tag(
                             current_frame.module(),
-                            current_frame.type_actual_tags(),
+                            current_frame.type_actual_tags,
                             ty,
                         )
                 type_actual_tags = [lambda_derive_type_tag(ty) for ty in type_actuals_sig]
@@ -343,7 +343,7 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.LD_FALSE:
                     gas_const_instr(context, self, Opcodes.LD_FALSE)
-                    self.operand_stack.push(Value.bool(false))
+                    self.operand_stack.push(Value.bool(False))
 
                 elif instruction.tag == Opcodes.COPY_LOC:
                     idx = instruction.value
@@ -666,7 +666,9 @@ class Interpreter:
         module = function.module()
         module_id = module.self_id()
         function_name = function.name()
-        native_function = NativeFunction.resolve(module_id, function_name)
+        import libra_vm
+        native_function = libra_vm.runtime_types.native_functions.dispatch.resolve_native_function(module_id, function_name)
+        # native_function = NativeFunction.resolve(module_id, function_name)
             #.ok_or_else(|| VMStatus(StatusCode.LINKER_ERROR))
         if module_id == ACCOUNT_MODULE and function_name == EMIT_EVENT_NAME:
             self.call_emit_event(context, type_actual_tags, type_actuals)
@@ -684,7 +686,7 @@ class Interpreter:
                 raise VMException(VMStatus(StatusCode.LINKER_ERROR))
 
             for _ in range(expected_args):
-                arguments.push_front(self.operand_stack.pop())
+                arguments.insert(0, self.operand_stack.pop())
 
             result =\
                 native_function.dispatch(type_actual_tags, arguments, self.gas_schedule)

@@ -50,7 +50,7 @@ class ValueImpl(RustEnum):
         ('U8', Uint8),
         ('U64', Uint64),
         ('U128', Uint128),
-        ('ByteArray', bytearray),
+        ('ByteArray', bytes),
         ('Address', Address),
         ('Container', ContainerRefCell),
         ('ContainerRef', 'libra_vm.runtime_types.values.ContainerRef'),
@@ -233,9 +233,26 @@ class ValueImpl(RustEnum):
         except Exception as err:
             raise VMException(VMStatus(StatusCode.INVALID_DATA).with_message(err))
 
+    @classmethod
+    def gas_costtable_to_value(cls, cost_table: CostTable) -> Value:
+        def gas_cost_to_container(cost: GasCost):
+            #Container(RefCell { value: General([U64(27), U64(1)]) })
+            container = Container('General', [
+                    ValueImpl.Uint64(cost.instruction_gas.v0),
+                    ValueImpl.Uint64(cost.memory_gas.v0),
+                ])
+            return ValueImpl.new_container(container)
+
+        instruction_table = [gas_cost_to_container(x) for x in cost_table.instruction_table]
+        native_table = [gas_cost_to_container(x) for x in cost_table.native_table]
+        instruction_v = ValueImpl.new_container(Container('General', instruction_table))
+        native_v = ValueImpl.new_container(Container('General', native_table))
+        return ValueImpl.new_container(Container('General',[instruction_v, native_v]))
 
     def simple_serialize(self, layout: Type) -> bytes:
         return self.serialize()
+
+
 
 
 ValueInvalid = ValueImpl('Invalid')

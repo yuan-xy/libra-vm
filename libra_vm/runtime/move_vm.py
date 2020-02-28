@@ -76,7 +76,7 @@ class MoveVM(MoveVMImpl):
         name: Identifier,
         chain_state: ChainState,
     ) -> StructTag:
-        self.runtime.resolve_struct_tag_by_name(\
+        return self.runtime.resolve_struct_tag_by_name(\
             module_id, name, chain_state)
 
 
@@ -86,7 +86,7 @@ class MoveVM(MoveVMImpl):
         name: Identifier,
         chain_state: ChainState,
     ) -> StructDef:
-        self.runtime.resolve_struct_def_by_name(\
+        return self.runtime.resolve_struct_def_by_name(\
             module_id, name, chain_state)
 
 

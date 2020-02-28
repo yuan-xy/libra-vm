@@ -266,7 +266,7 @@ class StructDefinition:
             # TODO we might want a more informative error here
             raise VMException([VMStatus(StatusCode.LINKER_ERROR)])
         elif self.field_information.tag == SerializedNativeStructFlag.DECLARED:
-            return field_count
+            return self.field_information.field_count
         else:
             bail("unreachable!")
 

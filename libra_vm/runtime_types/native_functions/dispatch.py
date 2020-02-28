@@ -120,7 +120,7 @@ add_native_function_to_map(
 
 add_native_function_to_map(
     "U64Util",
-    "Uint64_to_bytes",
+    "u64_to_bytes",
     primitive_helpers.native_Uint64_to_bytes,
     [U64],
     [BYTEARRAY]

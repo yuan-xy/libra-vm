@@ -69,4 +69,4 @@ def native_gas(table: CostTable, key: NativeCostIndex, size: usize) -> GasUnits:
 
 
 def pop_arg(arguments, ty):
-    arguments.pop().value_as(ty)
+    return arguments.pop().value_as(ty)
