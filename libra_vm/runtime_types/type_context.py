@@ -22,11 +22,11 @@ class TypeContext:
         if ty.TypeVariable:
             return self.get_type(ty.value)
         elif ty.Reference:
-            return Type('Reference', self.subst_type(ty))
+            return Type('Reference', self.subst_type(ty.value))
         elif ty.MutableReference:
-            return Type('MutableReference', self.subst_type(ty))
+            return Type('MutableReference', self.subst_type(ty.value))
         elif ty.Struct:
-            return Type('Struct', self.subst_struct_def(s))
+            return Type('Struct', self.subst_struct_def(ty.value))
         else:
             return deepcopy(ty)
 

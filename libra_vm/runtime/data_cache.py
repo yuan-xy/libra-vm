@@ -10,6 +10,7 @@ from libra_vm.vm_exception import VMException
 from libra_vm.errors import *
 from typing import List, Optional, Mapping
 from dataclasses import dataclass
+from copy import deepcopy
 import abc
 import logging
 
@@ -165,7 +166,7 @@ class TransactionDataCache:
     # This also ends up checking that reference count around global resources is correct
     # at the end of the transactions (all ReleaseRef are properly called)
     def make_write_set(self) -> WriteSet:
-        if self.data_map.__len__() + self.module_map.__len__() > usize.max_value():
+        if self.data_map.__len__() + self.module_map.__len__() > usize.max_value:
             raise VMException(vm_error(Location(), StatusCode.INVALID_DATA))
 
         sorted_ws: Mapping[AccessPath, WriteOp] = {}
@@ -180,19 +181,19 @@ class TransactionDataCache:
                     # at the end of a transaction
                     data = global_val.into_owned_struct()
                     blob = data.simple_serialize(layout)
-                    sorted_ws[key] = WriteOp.Value(blob)
+                    sorted_ws[key] = WriteOp('Value', blob)
             else:
-                sorted_ws[key] = WriteOp.Deletion
+                sorted_ws[key] = WriteOp('Deletion')
 
         module_map = self.module_map
         self.module_map = {}
         for (module_id, module) in module_map.items():
             ap = AccessPath.code_access_path(module_id)
-            sorted_ws[ap] = WriteOp.Value(module)
+            sorted_ws[ap] = WriteOp('Value', module)
 
         write_set = WriteSetMut([])
         for (key, value) in sorted(sorted_ws.items()):
-            write_set.append((key, value))
+            write_set.write_set.append((key, value))
 
         try:
             return write_set.freeze()

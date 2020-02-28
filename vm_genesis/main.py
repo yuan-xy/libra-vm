@@ -129,5 +129,6 @@ def test_genesis_blob_unchanged():
     file = join(curdir, GENESIS_LOCATION)
     with open(file, 'rb') as genesis_file:
         old_genesis_bytes = genesis_file.read()
-        assert old_genesis_bytes == generate_genesis_blob(stdlib_modules())
+        genesis_bytes = generate_genesis_blob(stdlib_modules())
+        assert old_genesis_bytes == genesis_bytes
 

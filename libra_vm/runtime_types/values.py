@@ -770,7 +770,7 @@ class IntegerValue(RustEnum):
     def into_value(self) -> Value:
         return Value(self.enum_name, self.value)
 
-    def into(self, ty):
+    def into(self, ty) -> int:
         return self.value % (ty.max_value+1)
 
 

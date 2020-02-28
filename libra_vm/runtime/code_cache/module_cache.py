@@ -195,7 +195,7 @@ class VMModuleCache:
         elif tok.tag == SerializedType.ADDRESS:
             return Type('Address')
         elif tok.tag == SerializedType.TYPE_PARAMETER:
-            return type_context.get_type(idx)
+            return type_context.get_type(tok.typeParameter)
         elif tok.tag == SerializedType.STRUCT:
             (sh_idx, tys) = tok.struct
             arr = []

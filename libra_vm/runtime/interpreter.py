@@ -34,7 +34,8 @@ from libra_vm.runtime_types.type_context import TypeContext
 from libra_vm.runtime_types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
 from typing import List, Optional, Mapping, Callable, Any, Tuple
 from dataclasses import dataclass, field
-from canoser import BoolT, Uint8, Uint64, Uint128
+from canoser import BoolT, Uint8, Uint64, Uint128, BytesT
+from copy import deepcopy
 from enum import IntEnum
 
 def derive_type_tag(
@@ -56,8 +57,8 @@ def derive_type_tag(
         return TypeTag('ByteArray')
     elif ty.tag == SerializedType.TYPE_PARAMETER:
         idx = ty.typeParameter
-        if idx > 0 and idx < len(type_actual_tags):
-            inner = type_actual_tags.get(ty.typeParameter)
+        if idx >= 0 and idx < len(type_actual_tags):
+            inner = type_actual_tags[ty.typeParameter]
             return deepcopy(inner)
         else:
             raise VMException(VMStatus(StatusCode.VERIFIER_INVARIANT_VIOLATION)\
@@ -426,17 +427,17 @@ class Interpreter:
                 elif instruction.tag == Opcodes.CAST_U8:
                     gas_const_instr(context, self, Opcodes.CAST_U8)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint8(integer_value.into()))
+                    self.operand_stack.push(Value.Uint8(integer_value.into(Uint8)))
 
                 elif instruction.tag == Opcodes.CAST_U64:
                     gas_const_instr(context, self, Opcodes.CAST_U64)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint64(integer_value.into()))
+                    self.operand_stack.push(Value.Uint64(integer_value.into(Uint64)))
 
                 elif instruction.tag == Opcodes.CAST_U128:
                     gas_const_instr(context, self, Opcodes.CAST_U128)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint128(integer_value.into()))
+                    self.operand_stack.push(Value.Uint128(integer_value.into(Uint128)))
 
                     # Arithmetic Operations
                 elif instruction.tag == Opcodes.ADD:
@@ -729,7 +730,7 @@ class Interpreter:
             .simple_serialize(layout)
             #.ok_or_else(|| VMStatus(StatusCode.DATA_FORMAT_ERROR))
         count = self.operand_stack.pop_as(Uint64)
-        key = self.operand_stack.pop_as(ByteArray)
+        key = self.operand_stack.pop_as(bytes)
         guid = bytes(key)
         context.push_event(ContractEvent(guid, count, type_tag, msg))
 
@@ -984,8 +985,12 @@ class Stack:
 
     # Pop a `Value` of a given type off the stack. Abort if the value is not of the given
     # type or if the stack is empty.
-    def pop_as(self, T):
-        return self.pop().value_as(T)
+    def pop_as(self, ty):
+        if ty == bool:
+            ty = BoolT
+        elif ty == bytes:
+            ty = BytesT()
+        return self.pop().value_as(ty)
 
 
     # Pop n values off the stack.

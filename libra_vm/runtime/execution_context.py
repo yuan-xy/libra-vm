@@ -83,7 +83,7 @@ class InterpreterContextImpl:
             can_write = value is None
         except VMException as err:
             if err.vm_status[0].major_status == StatusCode.MISSING_DATA:
-                return True
+                can_write = True
             else:
                 raise
 
@@ -100,7 +100,6 @@ class InterpreterContextImpl:
 
 
     def move_resource_from(self, ap: AccessPath, sdef: StructDef) -> Value:
-        breakpoint()
         from libra_vm.runtime.chain_state import ChainState
         root_value = ChainState.move_resource_from(self, ap, sdef)
         if root_value is not None:

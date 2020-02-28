@@ -1,6 +1,7 @@
 from __future__ import annotations
 from libra_vm.runtime_types.native_functions import native_gas, NativeResult, NativeFunction
 from libra_vm.runtime_types.loaded_data import StructDef, Type
+from libra_vm.runtime_types.values import *
 
 from libra_vm.runtime_types.native_structs import NativeStructTag, NativeStructType
 from libra.account_address import Address, ADDRESS_LENGTH
@@ -125,11 +126,10 @@ def native_push_back(
     if type(ty_args[0]) == TypeTag and type(v) == Container:
         if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
             and v.value_type == ty_args[0].value_type:
-            v.append(e.value_as(v.value_type))
+            v.value.append(e.value_as(v.value_type))
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
-            #TTODO: Struct mybe e.v0?
-            v.append(e)
+            v.value.append(e)
         else:
             err_vector_elem_ty_mismatch()
     else:
@@ -184,13 +184,13 @@ def native_pop(
         if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
             and v.value_type == ty_args[0].value_type:
             if v:
-                res = ValueImpl(v.enum_name, v.pop())
+                res = ValueImpl(v.enum_name, v.value.pop())
             else:
                 return err_pop_empty_vec()
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
             if v:
-                res = v.pop()
+                res = v.value.pop()
             else:
                 return err_pop_empty_vec()
         else:

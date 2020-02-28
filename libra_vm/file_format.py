@@ -1578,7 +1578,7 @@ class CompiledScriptMut:
         ser.serialize(temp, self)
         ser.serialize_header(binary_data)
         binary_data.extend(temp.as_inner())
-        return binary_data.into_inner()
+        return bytes(binary_data.into_inner())
 
     # exposed as a public function to enable testing the deserializer
     @classmethod
@@ -1629,7 +1629,7 @@ class CompiledModule(ModuleAccess):
     IMPLEMENTED_MODULE_INDEX: Uint16 = 0
 
     def serialize(self) -> bytes:
-        return self.as_inner().serialize()
+        return bytes(self.as_inner().serialize())
 
 
     # Deserialize a bytes slice into a `CompiledModule` instance.
