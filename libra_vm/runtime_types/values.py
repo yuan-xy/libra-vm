@@ -24,6 +24,7 @@ from libra.rustlib import assert_equal, bail, ensure
 from canoser import Uint8, Uint64, Uint128, RustEnum
 from canoser import Struct as CanoserStruct
 import traceback
+import gc
 
 """
 /***************************************************************************************

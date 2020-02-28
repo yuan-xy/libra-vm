@@ -14,6 +14,7 @@ from libra_vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, Gas
 from libra_vm.signature_token_help import *
 from libra_vm.vm_exception import VMException
 from typing import List, Tuple, Optional, Mapping
+from canoser import BoolT, BytesT
 from dataclasses import dataclass
 
 
@@ -69,4 +70,8 @@ def native_gas(table: CostTable, key: NativeCostIndex, size: usize) -> GasUnits:
 
 
 def pop_arg(arguments, ty):
+    if ty == bool:
+        ty = BoolT
+    elif ty == bytes:
+        ty = BytesT()
     return arguments.pop().value_as(ty)

@@ -20,12 +20,12 @@ def native_sha2_256(
         msg = f"wrong number of arguments for sha2_256 expected 1 found {len(arguments)}"
         raise VMException(VMStatus(StatusCode.UNREACHABLE).with_message(msg))
 
-    hash_arg = pop_arg(arguments, ByteArray)
+    hash_arg = pop_arg(arguments, bytes)
     cost = native_gas(cost_table, NativeCostIndex.SHA2_256, hash_arg.__len__())
     sha2 = hashlib.sha256()
     sha2.update(bytes(hash_arg))
     hash_vec = sha2.digest()
-    return_values = [Value.ByteArray(bytearray(hash_vec))]
+    return_values = [Value.byte_array(hash_vec)]
     return NativeResult.ok(cost, return_values)
 
 
@@ -39,11 +39,11 @@ def native_sha3_256(
         msg = f"wrong number of arguments for sha3_256 expected 1 found {len(arguments)}"
         raise VMException(VMStatus(StatusCode.UNREACHABLE).with_message(msg))
 
-    hash_arg = pop_arg(arguments, ByteArray)
+    hash_arg = pop_arg(arguments, bytes)
     cost = native_gas(cost_table, NativeCostIndex.SHA3_256, hash_arg.__len__())
     sha3 = new_sha3_256()
     sha3.update(bytes(hash_arg))
     hash_vec = sha3.digest()
-    return_values = [Value.ByteArray(bytearray(hash_vec))]
+    return_values = [Value.byte_array(hash_vec)]
     return NativeResult.ok(cost, return_values)
 

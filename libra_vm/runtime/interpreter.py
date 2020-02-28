@@ -534,7 +534,7 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.GET_TXN_SENDER:
                     gas_const_instr(context, self, Opcodes.GET_TXN_SENDER)
-                    self.operand_stack.push(Value.address(self.txn_data.sender()))
+                    self.operand_stack.push(Value.address(self.txn_data.sender))
 
                 elif instruction.tag == Opcodes.MUT_BORROW_GLOBAL or\
                         instruction.tag == Opcodes.IMM_BORROW_GLOBAL:
@@ -583,7 +583,7 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.MOVE_TO:
                     (idx, type_actuals_idx) = instruction.value
-                    addr = self.txn_data.sender()
+                    addr = self.txn_data.sender
                     size = self.global_data_op(
                         runtime,
                         context,
@@ -595,7 +595,7 @@ class Interpreter:
                     )
                     gas_instr(context, self, Opcodes.MOVE_TO, size)
 
-                elif instruction.tag == Opcodes.FreezeRef:
+                elif instruction.tag == Opcodes.FREEZE_REF:
                     pass
                     # FreezeRef should just be a null op as we don't distinguish between mut
                     # and immut ref at runtime.
@@ -791,7 +791,7 @@ class Interpreter:
         type_actual_tags = [derive_type_tag(frame.module(), frame.type_actual_tags(), ty)\
             for ty in type_actuals_sig]
 
-        type_context = TypeContext(frame.type_actuals())
+        type_context = TypeContext(frame.type_actuals)
         type_actuals = [runtime.resolve_signature_token(frame.module(), ty, type_context, context)\
             for ty in type_actuals_sig]
 
@@ -881,7 +881,7 @@ class Interpreter:
             runtime.resolve_struct_def(account_module, account_struct_id, [], context)
 
         # TODO: Adding the freshly created account's expiration date to the TransactionOutput here.
-        account_path = Self.make_access_path(account_module, account_struct_id, [], addr)
+        account_path = Interpreter.make_access_path(account_module, account_struct_id, [], addr)
         context.move_resource_to(account_path, account_struct_def, account_resource)
 
 

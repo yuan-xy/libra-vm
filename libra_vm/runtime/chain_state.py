@@ -1,4 +1,5 @@
 from __future__ import annotations
+from libra_vm.runtime.execution_context import InterpreterContextImpl
 from libra_vm.runtime.counters import *
 from libra_vm.runtime.data_cache import RemoteCache, TransactionDataCache
 from libra.access_path import AccessPath
@@ -93,7 +94,7 @@ class ChainState(abc.ABC):
 # section of the transaction flow to another. Because of this, this is the _only_ data that can
 # both be mutated, and persist between interpretation instances.
 @dataclass
-class TransactionExecutionContext(ChainState):
+class TransactionExecutionContext(InterpreterContextImpl, ChainState):
     # Gas metering to track cost of execution.
     gas_left: GasUnits
     # List of events "fired" during the course of an execution.

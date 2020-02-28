@@ -1,4 +1,3 @@
-from libra_vm.runtime.chain_state import ChainState, TransactionExecutionContext
 from libra.access_path import AccessPath
 from libra.contract_event import ContractEvent
 from libra.language_storage import ModuleId
@@ -101,6 +100,8 @@ class InterpreterContextImpl:
 
 
     def move_resource_from(self, ap: AccessPath, sdef: StructDef) -> Value:
+        breakpoint()
+        from libra_vm.runtime.chain_state import ChainState
         root_value = ChainState.move_resource_from(self, ap, sdef)
         if root_value is not None:
             return Value.struct_(global_val.into_owned_struct())

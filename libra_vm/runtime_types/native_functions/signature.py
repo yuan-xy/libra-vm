@@ -43,9 +43,9 @@ def native_ed25519_signature_verification(
     cost_table: CostTable,
 ) -> NativeResult:
     check_arg_number(arguments, 3, 'ed25519_signature_verification')
-    msg = pop_arg(arguments, ByteArray)
-    pubkey = pop_arg(arguments, ByteArray)
-    signature = pop_arg(arguments, ByteArray)
+    msg = pop_arg(arguments, bytes)
+    pubkey = pop_arg(arguments, bytes)
+    signature = pop_arg(arguments, bytes)
 
     cost = native_gas(cost_table, NativeCostIndex.ED25519_VERIFY, msg.__len__())
 
@@ -78,10 +78,10 @@ def native_ed25519_threshold_signature_verification(
     cost_table: CostTable,
 ) -> NativeResult:
     check_arg_number(arguments, 4, 'ed25519_threshold_signature_verification')
-    message = pop_arg(arguments, ByteArray)
-    public_keys = pop_arg(arguments, ByteArray)
-    signatures = pop_arg(arguments, ByteArray)
-    bitmap = pop_arg(arguments, ByteArray)
+    message = pop_arg(arguments, bytes)
+    public_keys = pop_arg(arguments, bytes)
+    signatures = pop_arg(arguments, bytes)
+    bitmap = pop_arg(arguments, bytes)
 
     return ed25519_threshold_signature_verification(
         bitmap,

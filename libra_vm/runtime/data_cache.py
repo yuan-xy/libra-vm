@@ -139,8 +139,8 @@ class TransactionDataCache:
         sdef: StructDef,
     ) -> Optional[Tuple[StructDef, GlobalValue]]:
         if not ap in self.data_map:
-            if ap in self.data_cache:
-                b = self.data_cache[ap]
+            if ap in self.data_cache.data_map:
+                b = self.data_cache.data_map[ap]
                 res = Value.simple_deserialize(b, Type.Struct(deepcopy(sdef)))
                 gr = GlobalValue.new(res)
                 self.data_map[deepcopy(ap)] = (sdef, gr)

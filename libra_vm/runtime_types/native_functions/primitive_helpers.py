@@ -23,9 +23,9 @@ def native_bytearray_concat(
     cost_table: CostTable,
 ) -> NativeResult:
     check_arg_number(arguments, 2, 'bytearray_concat')
-    arg2 = pop_arg(arguments, ByteArray)
-    arg1 = pop_arg(arguments, ByteArray)
-    return_val = arg1.extend(arg2)
+    arg2 = pop_arg(arguments, bytes)
+    arg1 = pop_arg(arguments, bytes)
+    return_val = arg1+arg2
 
     cost = native_gas(
         cost_table,
@@ -64,6 +64,6 @@ def native_Uint64_to_bytes(
     return_val = arg.to_bytes(8, byteorder="little", signed=False)
 
     cost = native_gas(cost_table, NativeCostIndex.U64_TO_BYTES, return_val.__len__())
-    return_values = [Value.byte_array(bytearray(return_val))]
+    return_values = [Value.byte_array(return_val)]
     return NativeResult.ok(cost, return_values)
 
