@@ -26,6 +26,7 @@ from libra_vm.runtime.data_cache import BlockDataCache
 from libra_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import *
 from libra_vm.runtime_types.values import Value
+from multiaddr import Multiaddr
 
 def assert_equal_bail(a, b, hint, *args):
     if not a==b:
@@ -67,11 +68,11 @@ def make_placeholder_discovery_set(validator_set: ValidatorSet) -> DiscoverySet:
             # validator_network_identity_pubkey
             validator_pubkeys.network_identity_public_key,
             # validator_network_address PLACEHOLDER
-            "/ip4/127.0.0.1/tcp/1234",
+            Multiaddr("/ip4/127.0.0.1/tcp/1234").to_bytes(),
             # fullnodes_network_identity_pubkey PLACEHOLDER
             PLACEHOLDER_PUBKEY,
             # fullnodes_network_address PLACEHOLDER
-            "/ip4/127.0.0.1/tcp/1234",
+            Multiaddr("/ip4/127.0.0.1/tcp/1234").to_bytes(),
         )
     discovery_set = [validator_pubkeys_to_discovery_info(x) for x in validator_set]
     return discovery_set
@@ -392,13 +393,13 @@ def initialize_validators(
                     Value.byte_array(discovery_info.validator_network_identity_pubkey),
 
                     # validator_network_address placeholder
-                    Value.byte_array(bytes(discovery_info.validator_network_address, 'utf-8')),
+                    Value.byte_array(discovery_info.validator_network_address),
 
                     # fullnodes_network_identity_pubkey placeholder
                     Value.byte_array(discovery_info.fullnodes_network_identity_pubkey),
 
                     # fullnodes_network_address placeholder
-                    Value.byte_array(bytes(discovery_info.fullnodes_network_address, 'utf-8')),
+                    Value.byte_array(discovery_info.fullnodes_network_address),
                 ],
             )
 

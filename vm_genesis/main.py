@@ -11,8 +11,8 @@ CONFIG_LOCATION = "genesis/vm_config.toml"
 GENESIS_LOCATION = "genesis/genesis.blob"
 MOVELANG_GENESIS_LOCATION = "genesis/movelang_genesis.blob"
 
-# Generate the genesis blob used by the Libra blockchain
-def generate_genesis_blob(stdlib_modules: List[VerifiedModule]) -> bytes:
+
+def generate_genesis_tx(stdlib_modules: List[VerifiedModule]) -> Transaction:
     # swarm = generator.validator_swarm_for_testing(10)
     # discovery_set = make_placeholder_discovery_set(swarm.validator_set)
 
@@ -98,7 +98,12 @@ def generate_genesis_blob(stdlib_modules: List[VerifiedModule]) -> bytes:
             discovery_set,
             stdlib_modules,
         ).into_inner(),
-    ).serialize()
+    )
+
+
+# Generate the genesis blob used by the Libra blockchain
+def generate_genesis_blob(stdlib_modules: List[VerifiedModule]) -> bytes:
+    return generate_genesis_tx(stdlib_modules).serialize()
 
 def main():
     print(
@@ -123,12 +128,37 @@ def main():
 # - change it without remembering to update the on-disk copy
 # - cause generation of the genesis block to fail
 
+def diff_tx(old_tx, tx):
+    cs = tx.value.payload.value
+    old_cs = old_tx.value.payload.value
+    for (oe, ee) in zip(old_cs.events, cs.events):
+        if oe.event_data != ee.event_data and oe.type_tag.value.name == 'DiscoverySetChangeEvent':
+            from libra.discovery_set import DiscoverySet
+            oset = DiscoverySet.deserialize(oe.event_data)
+            eset = DiscoverySet.deserialize(ee.event_data)
+            for idx, (oinfo, einfo) in enumerate(zip(oset, eset)):
+                assert oinfo == einfo
+            assert oset == eset
+        assert oe == ee
+    assert len(old_cs.write_set.write_set) == len(cs.write_set.write_set)
+    for idx, (ow, ew) in enumerate(zip(old_cs.write_set.write_set, cs.write_set.write_set)):
+        if ow != ew:
+            print(idx)
+        if ow[0] != ew[0]:
+            breakpoint()
+    assert cs.events == old_cs.events
+    assert cs == old_cs
+    assert old_tx == tx
+
 def test_genesis_blob_unchanged():
     from os.path import join, abspath, dirname
     curdir = dirname(__file__)
     file = join(curdir, GENESIS_LOCATION)
     with open(file, 'rb') as genesis_file:
         old_genesis_bytes = genesis_file.read()
+        old_tx = Transaction.deserialize(old_genesis_bytes)
+        tx = generate_genesis_tx(stdlib_modules())
+        diff_tx(old_tx, tx)
         genesis_bytes = generate_genesis_blob(stdlib_modules())
         assert old_genesis_bytes == genesis_bytes
 
