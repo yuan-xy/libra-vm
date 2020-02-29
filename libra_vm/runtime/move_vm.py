@@ -26,11 +26,6 @@ class MoveVM(MoveVMImpl):
     def new(cls) -> MoveVM:
         return cls(VMRuntime.new())
 
-    # API for temporal backward compatibility.
-    # TODO: Get rid of it later with the following three api after LibraVM refactor.
-    def execute_runtime(self, f):
-        return self.f(runtime)
-
 
     def execute_function(
         self,

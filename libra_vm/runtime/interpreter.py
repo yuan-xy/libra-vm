@@ -726,12 +726,11 @@ class Interpreter:
         type_tag = type_actual_tags.pop()
         layout = type_actuals.pop()
 
-        msg = self.operand_stack.pop()\
-            .simple_serialize(layout)
+        event_data = self.operand_stack.pop()
+        msg = event_data.simple_serialize(layout)
             #.ok_or_else(|| VMStatus(StatusCode.DATA_FORMAT_ERROR))
         count = self.operand_stack.pop_as(Uint64)
-        key = self.operand_stack.pop_as(bytes)
-        guid = bytes(key)
+        guid = self.operand_stack.pop_as(bytes)
         context.push_event(ContractEvent(guid, count, type_tag, msg))
 
     # Save an account into the data store.

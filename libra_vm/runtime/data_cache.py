@@ -143,6 +143,7 @@ class TransactionDataCache:
             if ap in self.data_cache.data_map:
                 b = self.data_cache.data_map[ap]
                 res = Value.simple_deserialize(b, Type.Struct(deepcopy(sdef)))
+                breakpoint()
                 gr = GlobalValue.new(res)
                 self.data_map[deepcopy(ap)] = (sdef, gr)
             else:
@@ -173,7 +174,17 @@ class TransactionDataCache:
 
         data_map = self.data_map
         self.data_map = {}
+
+        # from libra.validator_set import ValidatorSet
+        # from libra import AccountConfig
+        # vap = AccessPath(
+        #         AccountConfig.validator_set_address_bytes(),
+        #         ValidatorSet.validator_set_path()
+        #     )
         for (key, global_val) in data_map.items():
+            # if key == vap:
+            #     assert global_val[1].container.v0.value[0].value.v0.value.__len__() == 10
+            #     breakpoint()
             if global_val is not None:
                 (layout, global_val) = global_val
                 if not global_val.is_clean():

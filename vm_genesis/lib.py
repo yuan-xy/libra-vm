@@ -128,6 +128,7 @@ def encode_genesis_transaction_with_validator_and_modules(
         public_key,
         initial_gas_schedule(move_vm, data_cache),
     )
+
     create_and_initialize_validator_and_discovery_set(
         move_vm,
         gas_schedule,
@@ -137,7 +138,7 @@ def encode_genesis_transaction_with_validator_and_modules(
     )
     reconfigure(move_vm, gas_schedule, interpreter_context)
     publish_stdlib(interpreter_context, stdlib_modules)
-    # verify_genesis_write_set(interpreter_context.events(), validator_set, discovery_set)
+    verify_genesis_write_set(interpreter_context.events(), validator_set, discovery_set)
 
     genesis_write_set = ChangeSet(
         interpreter_context.make_write_set(),
