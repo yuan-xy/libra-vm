@@ -5,7 +5,7 @@ from libra_vm.runtime_types.loaded_data import StructDef, Type
 
 from libra_vm.runtime_types.native_structs import NativeStructTag, NativeStructType
 from libra.account_address import Address, ADDRESS_LENGTH
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus, SubStatus
 from libra_vm.errors import *

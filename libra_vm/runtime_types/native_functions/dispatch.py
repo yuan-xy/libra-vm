@@ -5,7 +5,7 @@ from libra_vm.runtime_types.values import Value
 import libra_vm.runtime_types.vector as vector
 from libra_vm.runtime_types.native_structs import resolve_native_struct
 from libra.account_address import Address
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus
@@ -68,11 +68,11 @@ NATIVE_FUNCTION_MAP: NativeFunctionMap = {}
 
 
 def add_native_function_to_map(module, name, dis, args, ret):
-    addr = AccountConfig.core_code_address_bytes()
+    addr = CORE_CODE_ADDRESS
     add_native_function(NATIVE_FUNCTION_MAP, addr, module, name, dis, args, ret)
 
 def add_native_function_to_map2(module, name, dis, kind, args, ret):
-    addr = AccountConfig.core_code_address_bytes()
+    addr = CORE_CODE_ADDRESS
     add_native_function(NATIVE_FUNCTION_MAP, addr, module, name, dis, args, ret, kind)
 
 
@@ -140,7 +140,7 @@ add_native_function_to_map2(
     vector.native_length,
     [Kind.All],
     [Reference(tstruct(
-        AccountConfig.core_code_address_bytes(),
+        CORE_CODE_ADDRESS,
         "Vector",
         "T",
         [TypeParameter(0)]
@@ -154,7 +154,7 @@ add_native_function_to_map2(
     vector.native_empty,
     [Kind.All],
     [],
-    [tstruct(AccountConfig.core_code_address_bytes(), "Vector", "T", [TypeParameter(0)]), ]
+    [tstruct(CORE_CODE_ADDRESS, "Vector", "T", [TypeParameter(0)]), ]
 )
 
 add_native_function_to_map2(
@@ -164,7 +164,7 @@ add_native_function_to_map2(
     [Kind.All],
     [
         Reference(tstruct(
-            AccountConfig.core_code_address_bytes(),
+            CORE_CODE_ADDRESS,
             "Vector",
             "T",
             [TypeParameter(0)]
@@ -181,7 +181,7 @@ add_native_function_to_map2(
     [Kind.All],
     [
         MutableReference(tstruct(
-            AccountConfig.core_code_address_bytes(),
+            CORE_CODE_ADDRESS,
             "Vector",
             "T",
             [TypeParameter(0)]
@@ -198,7 +198,7 @@ add_native_function_to_map2(
     [Kind.All],
     [
         MutableReference(tstruct(
-            AccountConfig.core_code_address_bytes(),
+            CORE_CODE_ADDRESS,
             "Vector",
             "T",
             [TypeParameter(0)]
@@ -214,7 +214,7 @@ add_native_function_to_map2(
     vector.native_pop,
     [Kind.All],
     [MutableReference(tstruct(
-        AccountConfig.core_code_address_bytes(),
+        CORE_CODE_ADDRESS,
         "Vector",
         "T",
         [TypeParameter(0)]
@@ -227,7 +227,7 @@ add_native_function_to_map2(
     "destroy_empty",
     vector.native_destroy_empty,
     [Kind.All],
-    [tstruct(AccountConfig.core_code_address_bytes(), "Vector", "T", [TypeParameter(0)])],
+    [tstruct(CORE_CODE_ADDRESS, "Vector", "T", [TypeParameter(0)])],
     []
 )
 
@@ -239,7 +239,7 @@ add_native_function_to_map2(
     [Kind.All],
     [
         MutableReference(tstruct(
-            AccountConfig.core_code_address_bytes(),
+            CORE_CODE_ADDRESS,
             "Vector",
             "T",
             [TypeParameter(0)]

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from libra.access_path import AccessPath
 from libra.account_address import Address
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.contract_event import ContractEvent
 from libra.event import EventKey
 from libra.identifier import IdentStr
@@ -742,7 +742,7 @@ class Interpreter:
         account_module = runtime.get_loaded_module(ACCOUNT_MODULE, context)
         account_resource = self.operand_stack.pop_as(Struct)
         address = self.operand_stack.pop_as(Address)
-        if Address.equal_address(address, AccountConfig.core_code_address_bytes()):
+        if Address.equal_address(address, CORE_CODE_ADDRESS):
             raise VMException(VMStatus(StatusCode.CREATE_NULL_ACCOUNT))
 
         self.save_account(runtime, context, account_module, address, account_resource)

@@ -3,7 +3,7 @@ from __future__ import annotations
 # use crate.{values.{vector, Value},}
 from libra_vm.runtime_types.native_structs import resolve_native_struct
 from libra.account_address import Address
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus

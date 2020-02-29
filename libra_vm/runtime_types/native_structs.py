@@ -1,7 +1,7 @@
 from __future__ import annotations
 from libra_vm.runtime_types.loaded_data import Type
 from libra_vm.file_format import Kind, StructHandleIndex
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from canoser import RustEnum, Struct
@@ -78,7 +78,7 @@ def add_native_map(m, addr, module, name, resource, ty_kinds, tag):
 
 NATIVE_STRUCT_MAP = add_native_map(
     {},
-    AccountConfig.core_code_address_bytes(),
+    CORE_CODE_ADDRESS,
     "Vector",
     "T",
     False,

@@ -8,7 +8,7 @@ from libra_vm.runtime.lib import VMVerifier, VMExecutor
 from libra_vm.runtime.system_module_names import *
 from libra_storage.state_view import StateView
 from libra_vm.bytecode_verifier import VerifiedModule
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.hasher import HashValue
 from libra.block_metadata import BlockMetadata
 from libra.transaction import (
@@ -381,7 +381,7 @@ class LibraVM(VMVerifier, VMExecutor):
         #    might be useful here.
         # 3. We set the max gas to a big number just to get rid of the potential out of gas error.
         txn_data = TransactionMetadata.default()
-        txn_data.sender = AccountConfig.core_code_address_bytes()
+        txn_data.sender = CORE_CODE_ADDRESS
         txn_data.max_gas_amount = GasUnits.new(std.Uint64.MAX)
 
         interpreter_context =\

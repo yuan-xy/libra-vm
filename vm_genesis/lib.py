@@ -5,7 +5,7 @@ from libra_storage.state_view import StateView, EmptyStateView
 
 from libra.access_path import AccessPath
 from libra.account_address import Address
-from libra.account_config import AccountConfig
+from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.contract_event import ContractEvent
 from libra.event import EventKey
 from libra.identifier import Identifier
