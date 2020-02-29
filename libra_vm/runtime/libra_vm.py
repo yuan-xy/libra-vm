@@ -284,6 +284,8 @@ class LibraVM(VMVerifier, VMExecutor):
                     txn_data,
                     convert_txn_args(args),
                 )
+                # let gas_usage = txn_data.max_gas_amount().sub(ctx.gas_left()).get()
+                # record_stats!(observe | TXN_EXECUTION_GAS_USAGE | gas_usage)
                 exec_flag = True
             else:
                 return discard_error_output(VMStatus(StatusCode.UNKNOWN_STATUS))

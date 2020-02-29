@@ -10,11 +10,12 @@ from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus
 from libra_vm.errors import VMResult
-from libra_vm.file_format import FunctionSignature, Kind, SignatureToken, StructHandleIndex
+from libra_vm.file_format import ModuleAccess, FunctionSignature, Kind, SignatureToken, StructHandleIndex
 from libra_vm.file_format_common import SerializedType
 from libra_vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, NativeCostIndex
 from libra_vm.signature_token_help import *
 from libra_vm.vm_exception import VMException
+from libra_vm.views import ModuleView
 from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
 from libra.rustlib import assert_equal

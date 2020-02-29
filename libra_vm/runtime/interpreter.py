@@ -155,12 +155,9 @@ class Interpreter:
         # We count the intrinsic cost of the transaction here, since that needs to also cover the
         # setup of the function.
         interp = Interpreter.new(txn_data, gas_schedule)
-        starting_gas = context.remaining_gas()
         gas_consume(context, calculate_intrinsic_gas(txn_size))
-        ret = interp.execute(runtime, context, func, args)
-        # record_stats!(
-        #     observe | TXN_EXECUTION_GAS_USAGE | starting_gas.sub(context.remaining_gas()).get()
-        # )
+        interp.execute(runtime, context, func, args)
+
 
 
     # Create a new instance of an `Interpreter` in the context of a transaction with a

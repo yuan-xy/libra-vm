@@ -837,9 +837,18 @@ class Struct(CanoserStruct):
         return self.v0.simple_serialize(layout)
 
 
-# A special value that lives in the global storage which you are allowed to take global
-# references from. A global value also contains an internal flag, indicating whether
-# the value has potentially been modified or not.
+# A special value that lives in global storage.
+#
+# Callers are allowed to take global references from a `GlobalValue`. A global value also contains
+# an internal flag, indicating whether the value has potentially been modified or not.
+#
+# For any given value in storage, only one `GlobalValue` may exist to represent it at any time.
+# This means that:
+# * `GlobalValue` **does not** and **cannot** implement `Clone`!
+# * a borrowed reference through `borrow_global` is represented through a `&GlobalValue`.
+# * `borrow_global_mut` is also represented through a `&GlobalValue` -- the bytecode verifier
+#   enforces mutability restrictions.
+# * `move_from` is represented through an owned `GlobalValue`.
 class GlobalValue(CanoserStruct):
     _fields = [
         ('status', GlobalDataStatusRefCell),
@@ -859,7 +868,6 @@ class GlobalValue(CanoserStruct):
                 .with_message(format_str("cannot create global ref from {}", v)))
 
     def borrow_global(self) -> Value:
-        #TTODO: 没有调用borrow，是否正确？
         return ValueImpl('ContainerRef', ContainerRef('Global', self))
 
 
