@@ -176,14 +176,18 @@ class TransactionDataCache:
         self.data_map = {}
 
         # from libra.validator_set import ValidatorSet
-        # from libra import AccountConfig
+        from libra import AccountConfig
         # vap = AccessPath(
-        #         AccountConfig.validator_set_address_bytes(),
-        #         ValidatorSet.validator_set_path()
+        #         AccountConfig.association_address_bytes(),
+        #         AccountConfig.account_resource_path(),
+        #         #"0116608f05d24742a043e6fd12d3b32735f6bfcba287bea92b28a175cd4f3eee32"
         #     )
-        for (key, global_val) in data_map.items():
+        # vap = AccessPath(
+        #         AccountConfig.association_address_bytes(),
+        #         bytes.fromhex("017145d498e0e7f8838533f612ea661134c188d94c2d7f29d547d3ad6731705faa"),
+        #     )
+        for idx, (key, global_val) in enumerate(data_map.items()):
             # if key == vap:
-            #     assert global_val[1].container.v0.value[0].value.v0.value.__len__() == 10
             #     breakpoint()
             if global_val is not None:
                 (layout, global_val) = global_val
@@ -192,6 +196,7 @@ class TransactionDataCache:
                     # at the end of a transaction
                     data = global_val.into_owned_struct()
                     blob = data.simple_serialize(layout)
+                    # breakpoint()
                     sorted_ws[key] = WriteOp('Value', blob)
             else:
                 sorted_ws[key] = WriteOp('Deletion')
@@ -203,7 +208,9 @@ class TransactionDataCache:
             sorted_ws[ap] = WriteOp('Value', module)
 
         write_set = WriteSetMut([])
-        for (key, value) in sorted(sorted_ws.items()):
+        for idx, (key, value) in enumerate(sorted(sorted_ws.items())):
+            # if key == vap:
+            #     breakpoint()
             write_set.write_set.append((key, value))
 
         try:

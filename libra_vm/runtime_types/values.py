@@ -834,7 +834,7 @@ class Struct(CanoserStruct):
                                 .with_message("not a struct".to_string()))
 
     def simple_serialize(self, layout: StructDef) -> bytes:
-        return self.serialize()
+        return self.v0.simple_serialize(layout)
 
 
 # A special value that lives in the global storage which you are allowed to take global

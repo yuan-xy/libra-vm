@@ -39,8 +39,11 @@ GENESIS_SEED = bytes([42]*32)
 # The initial balance of the association account.
 ASSOCIATION_INIT_BALANCE: Uint64 = 1_000_000_000_000_000
 
-GENESIS_KEYPAIR: Tuple[Ed25519PrivateKey, Ed25519PublicKey] = generate_keypair(GENESIS_SEED)
-
+# GENESIS_KEYPAIR: Tuple[Ed25519PrivateKey, Ed25519PublicKey] = generate_keypair(GENESIS_SEED)
+GENESIS_KEYPAIR = (
+        bytes.fromhex("4db4ef1992889d4428e400be3428843db6e89bb2e8aaf4ce8efe00df64012544"),
+        bytes.fromhex("01add5624932fc6e5e82ea4b8b4217c2ea4372a1e4fbc9d910a38b2514931166"),
+    )
 
 # TODO(philiphayes): remove this when we add discovery set to genesis config.
 #PLACEHOLDER_PUBKEY: X25519StaticPublicKey
@@ -233,7 +236,7 @@ def create_and_initialize_main_accounts(
             ],
         )
 
-    genesis_auth_key = public_key# ByteArray.new(Address.from_public_key(public_key))
+    genesis_auth_key = Address.from_public_key(public_key)
     move_vm.execute_function(
             ACCOUNT_MODULE,
             ROTATE_AUTHENTICATION_KEY,
