@@ -600,19 +600,22 @@ class SignatureToken:
             return deepcopy(self)
         elif self.tag == SerializedType.VECTOR:
             ty = self.vector_type
-            ret = SignatureToken(self.tag)
-            ret.vector_type = ty.substitute(tys)
-            return ret
+            return SignatureToken(
+                self.tag,
+                vector_type = ty.substitute(tys)
+            )
         elif self.tag == SerializedType.STRUCT:
             (idx, actuals) = self.struct
-            ret = SignatureToken(self.tag)
-            ret.struct = (idx, [ty.substitute(tys) for ty in actuals])
-            return ret
+            return SignatureToken(
+                self.tag,
+                struct = (idx, [ty.substitute(tys) for ty in actuals])
+            )
         elif self.tag == SerializedType.REFERENCE or self.tag == SerializedType.MUTABLE_REFERENCE:
             ty = self.reference
-            ret = SignatureToken(self.tag)
-            ret.reference = ty.substitute(tys)
-            return ret
+            return SignatureToken(
+                self.tag,
+                reference = ty.substitute(tys)
+            )
         elif self.tag == SerializedType.TYPE_PARAMETER:
             idx = self.typeParameter
             return deepcopy(tys[int(idx)])

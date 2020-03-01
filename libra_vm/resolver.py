@@ -86,10 +86,9 @@ class Resolver:
                 raise VMException(VMStatus(StatusCode.TYPE_RESOLUTION_FAILURE))
         elif sig_token.tag == SerializedType.REFERENCE or sig_token.tag == SerializedType.MUTABLE_REFERENCE:
             sub_sig_token = sig_token.reference
-            breakpoint()
             return SignatureToken(
                 sig_token.tag,
-                self.import_signature_token(dependency, sub_sig_token),
+                reference = self.import_signature_token(dependency, sub_sig_token),
             )
         elif sig_token.tag == SerializedType.VECTOR:
             ty = sig_token.vector_type
