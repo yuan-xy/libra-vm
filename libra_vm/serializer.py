@@ -275,6 +275,9 @@ def serialize_signature_token(binary: BinaryData, token: SignatureToken):
     elif token.tag == SerializedType.TYPE_PARAMETER:
         idx = token.typeParameter
         write_Uint16_as_uleb128(binary, idx)
+    elif token.tag == SerializedType.VECTOR:
+        boxed_token = token.vector_type
+        serialize_signature_token(binary, boxed_token)
     elif token.is_primitive():
         pass
     else:

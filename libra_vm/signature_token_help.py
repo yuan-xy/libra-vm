@@ -14,13 +14,16 @@ def Struct(struct : Tuple[StructHandleIndex, List[SignatureToken]]) -> Signature
     return SignatureToken(SerializedType.STRUCT, struct)
 
 def Reference(ref : SignatureToken) -> SignatureToken:
-    return SignatureToken(SerializedType.REFERENCE, ref)
+    return SignatureToken(SerializedType.REFERENCE, reference=ref)
 
 
 def MutableReference(ref : SignatureToken) -> SignatureToken:
-    return SignatureToken(SerializedType.MUTABLE_REFERENCE, ref)
+    return SignatureToken(SerializedType.MUTABLE_REFERENCE, reference=ref)
 
 
 def TypeParameter(idx : Uint16) -> SignatureToken:
-    return SignatureToken(SerializedType.TYPE_PARAMETER, idx)
+    return SignatureToken(SerializedType.TYPE_PARAMETER, typeParameter=idx)
+
+def Vector(vector_type: SignatureToken) -> SignatureToken:
+    return SignatureToken(SerializedType.VECTOR, vector_type=vector_type)
 

@@ -55,6 +55,8 @@ def derive_type_tag(
         return TypeTag('U128')
     elif ty.tag == SerializedType.BYTEARRAY:
         return TypeTag('ByteArray')
+    elif ty.tag == SerializedType.VECTOR:
+        return TypeTag('Vector', derive_type_tag(module, type_actual_tags, ty.vector_type))
     elif ty.tag == SerializedType.TYPE_PARAMETER:
         idx = ty.typeParameter
         if idx >= 0 and idx < len(type_actual_tags):

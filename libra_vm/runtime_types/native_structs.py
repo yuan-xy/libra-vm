@@ -10,9 +10,7 @@ from dataclasses import dataclass
 
 
 class NativeStructTag(RustEnum):
-    _enums = [
-        ('Vector', None)
-    ]
+    _enums = []
 
 
 # TODO: Clean this up when we promote Vector to a primitive type.
@@ -22,10 +20,6 @@ class NativeStructType(Struct):
         ('tag', NativeStructTag),
         ('type_actuals', [Type])
     ]
-
-    @classmethod
-    def new_vec(cls, ty: Type) -> NativeStructType:
-        return NativeStructType(NativeStructTag('Vector'), [ty])
 
 
 
@@ -46,42 +40,10 @@ class NativeStruct:
 
 # Looks up the expected native struct definition from the module id (address and module) and
 # function name where it was expected to be declared
+# TODO: native structs are now deprecated. Remove them.
 def resolve_native_struct(
     module: ModuleId,
     struct_name: IdentStr,
 ) -> Optional[NativeStruct]:
-    return NATIVE_STRUCT_MAP[module][struct_name]
+    return None
 
-
-NativeStructMap = Mapping[ModuleId, Mapping[Identifier, NativeStruct]]
-
-
-def add_native_map(m, addr, module, name, resource, ty_kinds, tag):
-    ty_args = [Type('TypeVariable', id) for (id, _) in enumerate(ty_kinds)]
-    mid = ModuleId(addr, module)
-    if mid in m:
-        struct_table = m[mid]
-    else:
-        struct_table = {}
-        m[mid] = struct_table
-    expected_index = StructHandleIndex(struct_table.__len__())
-
-    s = NativeStruct(
-        expected_nominal_resource = resource,
-        expected_type_formals = ty_kinds,
-        expected_index = expected_index,
-        struct_type = NativeStructType(tag, ty_args),
-    )
-    assert name not in struct_table
-    struct_table[name] = s
-    return m
-
-NATIVE_STRUCT_MAP = add_native_map(
-    {},
-    CORE_CODE_ADDRESS,
-    "Vector",
-    "T",
-    False,
-    [Kind.All],
-    NativeStructTag('Vector'),
-)

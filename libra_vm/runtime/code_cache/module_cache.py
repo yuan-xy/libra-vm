@@ -194,6 +194,10 @@ class VMModuleCache:
             return Type('ByteArray')
         elif tok.tag == SerializedType.ADDRESS:
             return Type('Address')
+        elif tok.tag == SerializedType.VECTOR:
+            sub_tok = tok.vector_type
+            inner_ty = self.resolve_signature_token(module, sub_tok, type_context, data_view)
+            return Type('Vector', inner_ty)
         elif tok.tag == SerializedType.TYPE_PARAMETER:
             return type_context.get_type(tok.typeParameter)
         elif tok.tag == SerializedType.STRUCT:

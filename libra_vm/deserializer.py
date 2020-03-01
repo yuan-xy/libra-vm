@@ -525,6 +525,9 @@ def load_signature_token(cursor: Cursor) -> SignatureToken:
     stype = SerializedType.from_u8(byte)
     if stype.is_primitive():
         return SignatureToken(stype)
+    elif stype == SerializedType.VECTOR:
+        ty = load_signature_token(cursor)
+        return SignatureToken(stype, vector_type=ty)
     elif stype == SerializedType.REFERENCE or stype == SerializedType.MUTABLE_REFERENCE:
         ref_token = load_signature_token(cursor)
         return SignatureToken(stype, reference=ref_token)

@@ -20,6 +20,7 @@ from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
 from libra.rustlib import assert_equal
 
+#TTODO: Refactor Native Functions, This allows for a generic singature function. commit 18a1734e
 
 # Looks up the expected native function definition from the module id (address and module) and
 # function name where it was expected to be declared.
@@ -46,21 +47,6 @@ def add_native_function(m, addr, module, name, dis, args, ret, kinds=[]):
         m[mid] = {}
     assert name not in m[mid]
     m[mid][name] = f
-
-
-# Helper for finding expected class handle index.
-def tstruct(
-    addr: Address,
-    module_name: str,
-    function_name: str,
-    args: List[SignatureToken],
-) -> SignatureToken:
-    mid = ModuleId(addr, module_name)
-    native_struct = resolve_native_struct(mid, function_name)
-    idx = native_struct.expected_index
-    # TODO assert kinds match
-    assert_equal(args.__len__(), native_struct.expected_type_formals.__len__())
-    return SignatureToken(SerializedType.STRUCT, struct=(idx, args))
 
 
 NativeFunctionMap = Mapping[ModuleId, Mapping[Identifier, NativeFunction]]
@@ -140,12 +126,7 @@ add_native_function_to_map2(
     "length",
     vector.native_length,
     [Kind.All],
-    [Reference(tstruct(
-        CORE_CODE_ADDRESS,
-        "Vector",
-        "T",
-        [TypeParameter(0)]
-    ))],
+    [Reference(Vector(TypeParameter(0)))],
     [U64]
 )
 
@@ -155,7 +136,7 @@ add_native_function_to_map2(
     vector.native_empty,
     [Kind.All],
     [],
-    [tstruct(CORE_CODE_ADDRESS, "Vector", "T", [TypeParameter(0)]), ]
+    [Vector(TypeParameter(0))]
 )
 
 add_native_function_to_map2(
@@ -163,15 +144,7 @@ add_native_function_to_map2(
     "borrow",
     vector.native_borrow,
     [Kind.All],
-    [
-        Reference(tstruct(
-            CORE_CODE_ADDRESS,
-            "Vector",
-            "T",
-            [TypeParameter(0)]
-        )),
-        U64
-    ],
+    [Reference(Vector(TypeParameter(0))), U64],
     [Reference(TypeParameter(0))]
 )
 
@@ -181,12 +154,7 @@ add_native_function_to_map2(
     vector.native_borrow,
     [Kind.All],
     [
-        MutableReference(tstruct(
-            CORE_CODE_ADDRESS,
-            "Vector",
-            "T",
-            [TypeParameter(0)]
-        )),
+        MutableReference(Vector(TypeParameter(0))),
         U64
     ],
     [MutableReference(TypeParameter(0))]
@@ -198,12 +166,7 @@ add_native_function_to_map2(
     vector.native_push_back,
     [Kind.All],
     [
-        MutableReference(tstruct(
-            CORE_CODE_ADDRESS,
-            "Vector",
-            "T",
-            [TypeParameter(0)]
-        )),
+        MutableReference(Vector(TypeParameter(0))),
         TypeParameter(0),
     ],
     []
@@ -214,12 +177,9 @@ add_native_function_to_map2(
     "pop_back",
     vector.native_pop,
     [Kind.All],
-    [MutableReference(tstruct(
-        CORE_CODE_ADDRESS,
-        "Vector",
-        "T",
-        [TypeParameter(0)]
-    ))],
+    [MutableReference(Vector(TypeParameter(
+        0
+    )))],
     [TypeParameter(0)]
 )
 
@@ -228,7 +188,7 @@ add_native_function_to_map2(
     "destroy_empty",
     vector.native_destroy_empty,
     [Kind.All],
-    [tstruct(CORE_CODE_ADDRESS, "Vector", "T", [TypeParameter(0)])],
+    [Vector(TypeParameter(0))],
     []
 )
 
@@ -239,12 +199,7 @@ add_native_function_to_map2(
     vector.native_swap,
     [Kind.All],
     [
-        MutableReference(tstruct(
-            CORE_CODE_ADDRESS,
-            "Vector",
-            "T",
-            [TypeParameter(0)]
-        )),
+        MutableReference(Vector(TypeParameter(0))),
         U64,
         U64,
     ],

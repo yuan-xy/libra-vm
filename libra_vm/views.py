@@ -495,6 +495,9 @@ class SignatureTokenView(ViewInternals):
                 if self.__class__.new(self.module, token).contains_nominal_resource(type_formals):
                     return True
             return False
+        elif self.token.tag == SerializedType.VECTOR:
+            ty = self.token.vector_type
+            return SignatureTokenView(self.module, ty).contains_nominal_resource(type_formals)
         else:
             return False
 

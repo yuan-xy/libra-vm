@@ -14,6 +14,7 @@ class Type(RustEnum):  # order not same with SerializedType
         ('U128', None),
         ('ByteArray', None),
         ('Address', None),
+        ('Vector', 'libra_vm.runtime_types.loaded_data.Type'),
         ('Struct', 'libra_vm.runtime_types.loaded_data.StructDef'),
         ('Reference', 'libra_vm.runtime_types.loaded_data.Type'),
         ('MutableReference', 'libra_vm.runtime_types.loaded_data.Type'),

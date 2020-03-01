@@ -447,6 +447,7 @@ class SignatureToken:
     reference : SignatureToken = None
     # Type parameter.
     typeParameter : TypeParameterIndex = None
+    vector_type: SignatureToken = None
 
 
     def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
@@ -597,6 +598,11 @@ class SignatureToken:
     def substitute(self, tys: List[SignatureToken]) -> SignatureToken:
         if self.is_primitive():
             return deepcopy(self)
+        elif self.tag == SerializedType.VECTOR:
+            ty = self.vector_type
+            ret = SignatureToken(self.tag)
+            ret.vector_type = ty.substitute(tys)
+            return ret
         elif self.tag == SerializedType.STRUCT:
             (idx, actuals) = self.struct
             ret = SignatureToken(self.tag)
@@ -626,6 +632,9 @@ class SignatureToken:
         elif ty.tag == SerializedType.TYPE_PARAMETER:
             idx = ty.typeParameter
             return type_formals[idx]
+        elif ty.tag == SerializedType.VECTOR:
+            ty = ty.vector_type
+            return cls.kind((struct_handles, type_formals), ty)
         elif ty.tag == SerializedType.STRUCT:
             (idx, tys) = ty.struct
             # Get the class handle at idx. Note the index could be out of bounds.

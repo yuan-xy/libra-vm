@@ -84,6 +84,7 @@ class SerializedType(IntEnum):
     STRUCT                  = 0x8
     BYTEARRAY               = 0x9
     TYPE_PARAMETER          = 0xA
+    VECTOR                  = 0xB
 
     def is_primitive(self) -> bool:
         if self in [SerializedType.BOOL, SerializedType.U8, SerializedType.U64, SerializedType.U128, SerializedType.BYTEARRAY, SerializedType.ADDRESS]:

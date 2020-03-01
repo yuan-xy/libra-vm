@@ -24,11 +24,11 @@ def test_roundtrip():
     assert ref2.value.value == StructDef.new([Type('Bool'), Type('U64')])
     roundtrip(Type('TypeVariable', 12345))
 
-def test_native():
-    tag = NativeStructTag('Vector')
-    roundtrip(tag, NativeStructTag)
-    nt = NativeStructType.new_vec(Type('Address'))
-    roundtrip(nt, NativeStructType)
-    struct = StructDef('Native', nt)
-    roundtrip(struct, StructDef)
-    roundtrip(Type('Struct', struct))
+# def test_native():
+#     tag = NativeStructTag('Vector')
+#     roundtrip(tag, NativeStructTag)
+#     nt = NativeStructType.new_vec(Type('Address'))
+#     roundtrip(nt, NativeStructType)
+#     struct = StructDef('Native', nt)
+#     roundtrip(struct, StructDef)
+#     roundtrip(Type('Struct', struct))

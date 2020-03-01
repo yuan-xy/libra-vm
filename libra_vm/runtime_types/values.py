@@ -3,7 +3,6 @@ from libra_vm.runtime_types.ref_cell import RefCell, Ref, RefMut, RefCellCanoser
 from libra_vm.runtime_types.native_functions import native_gas, NativeResult, NativeFunction
 from libra_vm.runtime_types.loaded_data import StructDef, Type
 
-from libra_vm.runtime_types.native_structs import NativeStructTag, NativeStructType
 from libra.account_address import Address, ADDRESS_LENGTH
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.language_storage import ModuleId, TypeTag
@@ -257,9 +256,13 @@ class ValueImpl(RustEnum):
             container = self.value.borrow().v0
             struct_def = layout.value
             return container.simple_serialize(struct_def)
+        elif self.Container and layout.Vector:
+            container = self.value.borrow().v0
+            ty = layout.value
+            return container.simple_serialize_vector(ty)
         else:
             raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
-                    .with_message(format_str("cannot serialize value {} as {}", val, layout))
+                    .with_message(format_str("cannot serialize value {} as {}", self, layout))
                 )
 
 
@@ -335,26 +338,27 @@ class Container(RustEnum):
         if type(struct_def) == StructDef:
             if struct_def.Struct and self.General:
                 inner = struct_def.value
-                if len(v) != len(inner.field_definitions):
-                    pass
-                ret = bytearray()
-                # ret.extend(serialize_tuple(len(v))) #serialize_tuple do nothing
-                for (layout, val) in zip(inner.field_definitions, v):
-                    ret.extend(val.simple_serialize(layout))
-                return bytes(ret)
-            elif struct_def.Native:
-                type_actuals = struct_def.value.type_actuals
-                layout = type_actuals[0]
-                if self.General:
+                if len(v) == len(inner.field_definitions):
                     ret = bytearray()
-                    ret.extend(Uint32.encode(len(v)))
-                    for val in v:
+                    # ret.extend(serialize_tuple(len(v))) #serialize_tuple do nothing
+                    for (layout, val) in zip(inner.field_definitions, v):
                         ret.extend(val.simple_serialize(layout))
                     return bytes(ret)
-                else:
-                    breakpoint()
-                    if self.enum_name == layout.enum_name:
-                        return self.serialize()
+
+        raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
+            .with_message(format_str("cannot serialize container value {} as {}", self, struct_def))
+        )
+
+    def simple_serialize_vector(self, ty: Type) -> bytes:
+        if self.General:
+            v = self.value
+            ret = bytearray()
+            ret.extend(Uint32.encode(len(v)))
+            for val in v:
+                ret.extend(val.simple_serialize(ty))
+            return bytes(ret)
+        elif self.enum_name in ['U8', 'U64', 'U128', 'Bool'] and ty.enum_name == self.enum_name:
+            return self.value_type.encode(self.value)
 
         raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
             .with_message(format_str("cannot serialize container value {} as {}", self, struct_def))
