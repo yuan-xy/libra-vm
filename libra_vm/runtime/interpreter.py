@@ -15,6 +15,7 @@ from libra_vm.runtime.gas_meter import *
 from libra_vm.runtime.identifier import create_access_path, resource_storage_key
 from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from libra_vm.runtime.runtime import VMRuntime
+from libra_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
 from libra_vm.vm_exception import VMException, VMExceptionBase
 from libra_vm.errors import *
@@ -1164,13 +1165,13 @@ class InterpreterForCostSynthesis:
 
     def execute_code_snippet(
         self,
-        runtime: VMRuntime,
+        move_vm: MoveVM,
         context: InterpreterContext,
         code: List[Bytecode],
     ) -> None:
         current_frame = self.interpreter.call_stack.pop()
         self.interpreter\
-            .execute_code_unit(runtime, context, current_frame, code)
+            .execute_code_unit(move_vm.runtime, context, current_frame, code)
         self.interpreter.call_stack.push(current_frame)
 
 

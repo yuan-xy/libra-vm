@@ -85,6 +85,15 @@ class MoveVM(MoveVMImpl):
             module_id, name, chain_state)
 
 
+    #This is an internal method that is exposed only for tests and cost synthesis.
+    #TODO: Figure out a better way to do this.
+    def get_loaded_module(
+        self,
+        mid: ModuleId,
+        data_view: InterpreterContext,
+    ) -> LoadedModule:
+        return self.runtime.get_loaded_module(mid, data_view)
+
 
     @classmethod
     def default(cls) -> MoveVM:
