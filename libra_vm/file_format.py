@@ -3,6 +3,7 @@ from libra_vm.lib import IndexKind, SignatureTokenKind
 from libra_vm.file_format_common import Opcodes, SerializedType, BinaryData, SerializedNativeStructFlag
 from libra_vm.internals import ModuleIndex
 from libra_vm.vm_exception import VMException
+from libra_vm.errors import bounds_error
 from libra.account_address import Address
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId

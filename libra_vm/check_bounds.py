@@ -10,10 +10,8 @@ from libra_vm.lib import IndexKind
 from libra.vm_error import StatusCode, VMStatus
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Iterable, Any
-from libra.rustlib import usize
+from libra.rustlib import usize, flatten
 
-def flatten(arr):
-    return [x for sublist in arr if sublist is not None for x in sublist if x is not None]
 
 @dataclass
 class BoundsChecker:
@@ -116,28 +114,29 @@ class BoundsChecker:
             ss = elem.check_bounds(context)
             for err in ss:
                 append_err_info(err, kind, idx)
+            ret.extend(ss)
         return flatten(ret)
 
 # pub trait BoundsCheck<Context: Copy> {
 #     def check_bounds(self, context: Context) -> List[VMStatus]
 # }
 
-def check_bounds_impl(pool: List[Any], idx: ModuleIndex) -> Optional[VMStatus]:
-    idx = idx.into_index()
+def check_bounds_impl(pool: List[Any], mid: ModuleIndex) -> Optional[VMStatus]:
+    idx = mid.into_index()
     length = pool.__len__()
     if idx >= length:
-        status = bounds_error(idx.KIND, idx, length, StatusCode.INDEX_OUT_OF_BOUNDS)
+        status = bounds_error(mid.KIND, idx, length, StatusCode.INDEX_OUT_OF_BOUNDS)
         return status
     else:
         return None
 
 
-def check_code_unit_bounds_impl(pool: List[Any], bytecode_offset: usize, idx: ModuleIndex) -> List[VMStatus]:
-    idx = idx.into_index()
+def check_code_unit_bounds_impl(pool: List[Any], bytecode_offset: usize, mid: ModuleIndex) -> List[VMStatus]:
+    idx = mid.into_index()
     length = pool.__len__()
     if idx >= length:
         status = bytecode_offset_err(
-            idx.KIND,
+            mid.KIND,
             idx,
             length,
             bytecode_offset,
