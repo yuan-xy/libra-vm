@@ -261,7 +261,11 @@ class StructFieldInformation:
     def Declared(cls, field_count, fields):
         return cls(SerializedNativeStructFlag.DECLARED, field_count, fields)
 
-
+    def get_field_count(self):
+        if self.tag == SerializedNativeStructFlag.NATIVE:
+            return 0
+        else:
+            return self.field_count
 
 
 # A `StructDefinition` is a type definition. It either indicates it is native or

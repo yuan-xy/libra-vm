@@ -7,7 +7,7 @@ def test_valid_duplication():
     def valid_duplication(module: CompiledModule):
         duplication_checker = DuplicationChecker(module)
         errors = duplication_checker.verify()
-        assert len(errors) == 0 #TTODO: why rust test prop_assert!(!errors.is_empty());
+        assert len(errors) == 0 #TTODO: why rust test prop_assert!(!errors.is_empty())
 
     for file, module in build_stdlib_map().items():
         print(file)
