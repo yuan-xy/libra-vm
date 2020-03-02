@@ -1,1 +1,2 @@
 from bytecode_verifier.unused_entries import UnusedEntryChecker
+from bytecode_verifier.check_duplication import DuplicationChecker

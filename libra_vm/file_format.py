@@ -49,6 +49,9 @@ TableIndex = Uint16
 class Index(TableIndex, ModuleIndex):
     v0: TableIndex = 0
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
     def into_index(self) -> usize:
         return self.v0
 
@@ -176,6 +179,9 @@ class ModuleHandle:
     # The name of the module published in the code section for the account in `address`.
     name: IdentifierIndex
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
 
 # A `StructHandle` is a reference to a user defined type. It is composed by a `ModuleHandle`
 # and the name of the type within that module.
@@ -207,6 +213,9 @@ class StructHandle:
     # The type formals (identified by their index into the vec) and their kind constraints
     type_formals: List[Kind]
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
 
 # A `FunctionHandle` is a reference to a function. It is composed by a
 # `ModuleHandle` and the name and signature of that function within the module.
@@ -224,6 +233,9 @@ class FunctionHandle:
     # The signature of the function.
     signature: FunctionSignatureIndex
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
 
 # DEFINITIONS:
 # Definitions are the module code. So the set of types and functions in the module.
@@ -237,6 +249,9 @@ class StructFieldInformation:
     # The starting index for the fields of this type. `FieldDefinition`s for each type must
     # be consecutively stored in the `FieldDefinition` table.
     fields: Optional[FieldDefinitionIndex] = None
+
+    def __hash__(self):
+        return self.__str__().__hash__()
 
     @classmethod
     def Native(cls):
@@ -262,6 +277,9 @@ class StructDefinition:
     field_information: StructFieldInformation
 
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
     def declared_field_count(self) -> MemberCount:
         if self.field_information.tag == SerializedNativeStructFlag.NATIVE:
             # TODO we might want a more informative error here
@@ -282,6 +300,10 @@ class FieldDefinition:
     name: IdentifierIndex
     # The type of the field.
     signature: TypeSignatureIndex
+
+    def __hash__(self):
+        return self.__str__().__hash__()
+
 
 def codeuint_factory():
     return CodeUnit()
@@ -308,6 +330,9 @@ class FunctionDefinition:
     code: CodeUnit = field(default_factory=codeuint_factory)
 
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
     # Returns whether the FunctionDefinition is public.
     def is_public(self) -> bool:
         return self.flags & CodeUnit.PUBLIC != 0
@@ -327,6 +352,9 @@ class FunctionDefinition:
 @dataclass
 class TypeSignature:
     v0: SignatureToken
+
+    def __hash__(self):
+        return self.__str__().__hash__()
 
     def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
         return self.v0.check_struct_handles(struct_handles)
@@ -350,6 +378,9 @@ class FunctionSignature:
     # The type formals (identified by their index into the vec) and their kind constraints
     type_formals: List[Kind]
 
+    def __hash__(self):
+        return self.__str__().__hash__()
+
 
 # A `LocalsSignature` is the list of locals used by a function.
 #
@@ -358,6 +389,9 @@ class FunctionSignature:
 @dataclass
 class LocalsSignature:
     v0: List[SignatureToken]
+
+    def __hash__(self):
+        return self.__str__().__hash__()
 
     def __len__(self) -> usize:
         return self.v0.__len__()
