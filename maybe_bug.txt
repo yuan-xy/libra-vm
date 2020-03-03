@@ -1,3 +1,10 @@
+bytecode_verifier/struct_def.rs
+        // The fields iterator is an option in the case of native structs. Flatten makes an empty
+        // iterator for that case
+        let fields = struct_def.fields().into_iter().flatten();
+
+
+
 函数签名顺序不一致
 pub struct SystemExecutionContext<'txn>(TransactionExecutionContext<'txn>);
 

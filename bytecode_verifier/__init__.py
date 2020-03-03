@@ -8,7 +8,7 @@ from bytecode_verifier.signature import SignatureChecker
 from bytecode_verifier.resources import ResourceTransitiveChecker
 
 # from bytecode_verifier.code_unit_verifier import CodeUnitVerifier
-# from bytecode_verifier.struct_defs import RecursiveStructDefChecker
+from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 
 # from bytecode_verifier.verifier import (
 #     batch_verify_modules, verify_main_signature, verify_module_dependencies,
