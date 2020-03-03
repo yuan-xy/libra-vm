@@ -6,6 +6,7 @@ from libra_vm.file_format import (
     StructDefinition, StructDefinitionIndex, StructFieldInformation, StructHandle,
     StructHandleIndex, TypeSignature
     )
+from libra_vm.file_format_common import SerializedType, SerializedNativeStructFlag
 from libra_vm.lib import SignatureTokenKind
 from libra.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag
@@ -34,6 +35,9 @@ class ViewInternals(abc.ABC):
     def as_inner(self) -> Any:
         pass
 
+    @classmethod
+    def new(cls, a, b):
+        return cls(a, b)
 
 
 # Represents a lazily evaluated abstraction over a module.
@@ -171,10 +175,6 @@ class ModuleHandleView(ViewInternals):
     def as_inner(self):
         return self.module_handle
 
-    @classmethod
-    def new(cls, module, module_handle: ModuleHandle) -> ModuleHandleView:
-        return cls(module, module_handle)
-
     def module_id(self) -> ModuleId:
         return self.module.module_id_for_handle(self.module_handle)
 
@@ -266,7 +266,7 @@ class StructDefinitionView(ViewInternals):
     @classmethod
     def new(cls, module: ModuleAccess, struct_def: StructDefinition) -> StructDefinitionView:
         struct_handle = module.struct_handle_at(struct_def.struct_handle)
-        struct_handle_view = StructHandleView.new(module, struct_handle)
+        struct_handle_view = StructHandleView(module, struct_handle)
         return cls(
             module,
             struct_def,
@@ -295,7 +295,7 @@ class StructDefinitionView(ViewInternals):
             field_count = self.struct_def.field_information.field_count
             fields = self.struct_def.field_information.fields
             arr = module.field_def_range(field_count, fields)
-            return [FieldDefinitionView.new(module, field_def) for field_def in arr]
+            return [FieldDefinitionView(module, field_def) for field_def in arr]
 
 
     def name(self) -> IdentStr :
@@ -314,13 +314,12 @@ class FieldDefinitionView(ViewInternals):
     def as_inner(self):
         return self.field_defs
 
-
     def name(self) -> IdentStr :
         return self.module.identifier_at(self.field_def.name)
 
     def type_signature(self) -> TypeSignatureView:
         type_signature = self.module.type_signature_at(self.field_def.signature)
-        return TypeSignatureView.new(self.module, type_signature)
+        return TypeSignatureView(self.module, type_signature)
 
     def signature_token(self) -> SignatureToken :
         return self.module.type_signature_at(self.field_def.signature).v0
@@ -353,7 +352,7 @@ class FunctionDefinitionView(ViewInternals):
     @classmethod
     def new(cls, module: ModuleAccess, function_def: FunctionDefinition) -> FunctionDefinitionView:
         function_handle = module.function_handle_at(function_def.function)
-        function_handle_view = FunctionHandleView.new(module, function_handle)
+        function_handle_view = FunctionHandleView(module, function_handle)
         return cls(
             module,
             function_def,
@@ -390,7 +389,7 @@ class TypeSignatureView(ViewInternals):
 
 
     def token(self) -> SignatureTokenView:
-        return SignatureTokenView.new(self.module, self.type_signature.v0)
+        return SignatureTokenView(self.module, self.type_signature.v0)
 
 
     def kind(self, type_formals: List[Kind]) -> Kind :
