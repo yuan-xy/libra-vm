@@ -111,7 +111,8 @@ class LabelElem:
     def Field(cls, idx: FieldDefinitionIndex) -> LabelElem:
         return cls(LabelElem.FIELD, idx)
 
-    def default() -> LabelElem:
+    @classmethod
+    def default(cls) -> LabelElem:
         return LabelElem.Local(0)
 
 
@@ -122,6 +123,10 @@ class AbstractState:
     borrow_graph: BorrowGraph #<LabelElem>,
     num_locls: usize
     next_id: usize
+
+    @classmethod
+    def default(cls) -> AbstractState:
+        return cls({}, BorrowGraph.new(), 0, 0)
 
     @classmethod
     def new(function_definition_view: FunctionDefinitionView) -> AbstractState:
@@ -472,9 +477,11 @@ class AbstractState:
             return JoinResult.Unchanged
         else:
             # *self = joined
-            self.locls = joined.locls
-            self.borrow_graph = joined.borrow_graph
-            self.num_locls = joined.num_locls
-            self.next_id = joined.next_id
+            self.replace_with(joined)
             return JoinResult.Changed
 
+    def replace_with(self, other):
+        self.locls = other.locls
+        self.borrow_graph = other.borrow_graph
+        self.num_locls = other.num_locls
+        self.next_id = other.next_id
