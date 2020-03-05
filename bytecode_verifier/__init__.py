@@ -6,8 +6,7 @@ from bytecode_verifier.control_flow_graph import (
 from bytecode_verifier.stack_usage_verifier import StackUsageVerifier
 from bytecode_verifier.signature import SignatureChecker
 from bytecode_verifier.resources import ResourceTransitiveChecker
-
-# from bytecode_verifier.code_unit_verifier import CodeUnitVerifier
+from bytecode_verifier.code_unit_verifier import CodeUnitVerifier
 from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 
 # from bytecode_verifier.verifier import (
