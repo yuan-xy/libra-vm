@@ -10,6 +10,8 @@ from dataclasses import dataclass
 class RefID:
     v0: usize
 
+    def __hash__(self):
+        return self.v0.__hash__()
 
     def isa(self, n: usize) -> bool:
         return self.v0 == n

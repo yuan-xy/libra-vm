@@ -44,6 +44,7 @@ class BlockPrecondition:
         return cls(BlockPrecondition.JOIN_FAILURE, None)
 
 
+@dataclass
 class BlockPostcondition:
     tag: int
     error: Any#AnalysisError

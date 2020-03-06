@@ -1,4 +1,4 @@
-
+import pytest
 from bytecode_verifier import SignatureChecker
 from bytecode_verifier import VerifiedModule
 # from invalid_mutations.signature.{
@@ -209,9 +209,8 @@ def test_no_verify_locals_bad1():
             ),
         )],
     )
-    #TTODO: should raise error
-    VerifiedModule.new(compiled_module_bad1.freeze())
-
+    with pytest.raises(VMException) as excinfo:
+        module = VerifiedModule.new(compiled_module_bad1.freeze())
 
 
 
@@ -256,7 +255,8 @@ def test_no_verify_locals_bad2():
             ),
         )],
     )
-    VerifiedModule.new(compiled_module_bad2.freeze())
+    with pytest.raises(VMException) as excinfo:
+        VerifiedModule.new(compiled_module_bad2.freeze())
 
 
 def test_no_verify_locals_bad3():
@@ -264,7 +264,7 @@ def test_no_verify_locals_bad3():
     # a vector of locals containing two types, U64 and Address. The function
     # must fail verification since the argument type at position 0 is different
     # from the local type at position 0.
-    compiled_module_bad1 = CompiledModuleMut(
+    compiled_module_bad3 = CompiledModuleMut(
         module_handles = [ModuleHandle(
             address = AddressPoolIndex(0),
             name = IdentifierIndex(0),
@@ -301,7 +301,8 @@ def test_no_verify_locals_bad3():
             ),
         )],
     )
-    VerifiedModule.new(compiled_module_bad1.freeze())
+    with pytest.raises(VMException) as excinfo:
+        VerifiedModule.new(compiled_module_bad3.freeze())
 
 
 
@@ -310,7 +311,7 @@ def test_no_verify_locals_bad4():
     # a vector of locals containing three types, U64, U64 and Address. The function
     # must fail verification since the argument type at position 0 is different
     # from the local type at position 0.
-    compiled_module_bad1 = CompiledModuleMut(
+    compiled_module_bad4 = CompiledModuleMut(
         module_handles = [ModuleHandle(
             address = AddressPoolIndex(0),
             name = IdentifierIndex(0),
@@ -347,4 +348,5 @@ def test_no_verify_locals_bad4():
             ),
         )],
     )
-    VerifiedModule.new(compiled_module_bad1.freeze())
+    with pytest.raises(VMException) as excinfo:
+        VerifiedModule.new(compiled_module_bad4.freeze())

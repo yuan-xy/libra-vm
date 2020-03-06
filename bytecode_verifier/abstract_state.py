@@ -129,13 +129,13 @@ class AbstractState:
         return cls({}, BorrowGraph.new(), 0, 0)
 
     @classmethod
-    def new(function_definition_view: FunctionDefinitionView) -> AbstractState:
+    def new(cls, function_definition_view: FunctionDefinitionView) -> AbstractState:
         function_signature_view = function_definition_view.signature()
         locls = {} #BTreeMap
         borrow_graph = BorrowGraph.new()
         for (arg_idx, arg_type_view) in enumerate(function_signature_view.arg_tokens()):
             if arg_type_view.is_reference():
-                rid = RefID.new(arg_idx)
+                rid = RefID(arg_idx)
                 borrow_graph.add(rid)
                 locls[arg_idx] = \
                     TypedAbstractValue(
@@ -151,7 +151,7 @@ class AbstractState:
                         value= AbstractValue.Value(arg_kind),
                     )
 
-        num_locls = function_definition_view.locls_signature().__len__()
+        num_locls = function_definition_view.locals_signature().__len__()
         # ids in [0, num_locls] are reserved for constructing canonical state
         next_id = num_locls + 1
         new_state = AbstractState(
@@ -223,12 +223,12 @@ class AbstractState:
 
     # returns the frame root id
     def frame_root(self) -> RefID:
-        return RefID.new(self.num_locls)
+        return RefID(self.num_locls)
 
 
     # adds and returns new id to borrow graph
     def add(self) -> RefID:
-        rid = RefID.new(self.next_id)
+        rid = RefID(self.next_id)
         self.borrow_graph.add(rid)
         self.next_id += 1
         return rid
@@ -360,7 +360,7 @@ class AbstractState:
         def lambda0(idx, abv):
             if abv.value.tag == AbstractValue.REFERENCE:
                 rid = abv.value.value
-                new_id = RefID.new(idx)
+                new_id = RefID(idx)
                 id_map[rid] = new_id
                 new_abs = TypedAbstractValue(
                     signature= deepcopy(abv.signature),
@@ -398,7 +398,7 @@ class AbstractState:
         if self.num_locls + 1 != self.next_id:
             return False
         for (x, y) in self.locls:
-            if y.value.is_reference() and RefID.new(x) != y.value.extract_id():
+            if y.value.is_reference() and RefID(x) != y.value.extract_id():
                 return False
         return True
 

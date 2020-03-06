@@ -406,7 +406,7 @@ class FunctionSignatureView(ViewInternals):
     function_signature: FunctionSignature
 
     def as_inner(self):
-        return self.function_signatures
+        return self.function_signature
 
     def return_tokens(self) -> List[SignatureTokenView]:
         module = self.module
@@ -426,7 +426,7 @@ class FunctionSignatureView(ViewInternals):
     def arg_count(self) -> usize :
         return self.function_signature.arg_types.__len__()
 
-
+@dataclass
 class LocalsSignatureView(ViewInternals):
     module: ModuleAccess
     locals_signature: LocalsSignature
@@ -434,7 +434,7 @@ class LocalsSignatureView(ViewInternals):
     def as_inner(self):
         return self.locals_signature
 
-    def len(self) -> usize :
+    def __len__(self) -> usize :
         return self.locals_signature.v0.__len__()
 
 

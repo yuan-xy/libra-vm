@@ -36,7 +36,7 @@ class StackUsageVerifier:
 
         errors = []
         for block_id in cfg.blocks:
-            errors.append(verifier.verify_block(block_id, cfg))
+            errors.extend(verifier.verify_block(block_id, cfg))
 
         return errors
 
