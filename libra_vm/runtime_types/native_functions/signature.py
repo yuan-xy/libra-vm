@@ -134,7 +134,7 @@ def ed25519_threshold_signature_verification(
 #                         Err(_) => {
 #                             return NativeResult.err(
 #                                 cost,
-#                                 VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#                                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                                     .with_sub_status(DEFAULT_ERROR_CODE),
 #                             )
 #                         }
@@ -150,7 +150,7 @@ def ed25519_threshold_signature_verification(
 #                         {
 #                             NativeResult.err(
 #                                 cost,
-#                                 VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#                                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                                     .with_sub_status(SIGNATURE_VERIFICATION_FAILURE),
 #                             )
 #                         }
@@ -161,7 +161,7 @@ def ed25519_threshold_signature_verification(
 #                 {
 #                     NativeResult.err(
 #                         cost,
-#                         VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#                         VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                             .with_sub_status(PUBLIC_KEY_DESERIALIZATION_FAILURE),
 #                     )
 #                 }
@@ -172,7 +172,7 @@ def ed25519_threshold_signature_verification(
 #         {
 #             NativeResult.err(
 #                 cost,
-#                 VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                     .with_sub_status(SIGNATURE_DESERIALIZATION_FAILURE),
 #             )
 #         }
@@ -227,7 +227,7 @@ def ed25519_threshold_signature_verification(
 #         # Invalid bitmap length
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                 .with_sub_status(INVALID_BITMAP_LENGTH_FAILURE),
 #         ))
 #     }
@@ -244,7 +244,7 @@ def ed25519_threshold_signature_verification(
 #         # Bitmap is all zeros
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(ZERO_BITMAP_FAILURE),
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(ZERO_BITMAP_FAILURE),
 #         ))
 #     }
 #     # Ensure we have as many signatures as the number of set bits in bitmap.
@@ -252,7 +252,7 @@ def ed25519_threshold_signature_verification(
 #         # Mismatch between Bitmap Hamming weight and number of signatures
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                 .with_sub_status(SIGNATURE_SIZE_FAILURE),
 #         ))
 #     }
@@ -261,7 +261,7 @@ def ed25519_threshold_signature_verification(
 #         # Bitmap points to a non-existent key
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                 .with_sub_status(BITMAP_PUBLIC_KEY_SIZE_FAILURE),
 #         ))
 #     }
@@ -270,7 +270,7 @@ def ed25519_threshold_signature_verification(
 #         # Length of bytes of concatenated keys exceeds the maximum allowed
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                 .with_sub_status(OVERSIZED_PUBLIC_KEY_SIZE_FAILURE),
 #         ))
 #     }
@@ -279,7 +279,7 @@ def ed25519_threshold_signature_verification(
 #         # Concatenated Ed25519 public keys should be a multiple of 32 bytes
 #         return Err(NativeResult.err(
 #             cost,
-#             VMStatus.new(StatusCode.NATIVE_FUNCTION_ERROR)
+#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
 #                 .with_sub_status(INVALID_PUBLIC_KEY_SIZE_FAILURE),
 #         ))
 #     }

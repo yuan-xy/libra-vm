@@ -8,6 +8,7 @@ from libra_vm.file_format import CompiledModule, FunctionDefinition
 from libra_vm import IndexKind, ModuleAccess
 from typing import List, Optional
 from dataclasses import dataclass
+from libra.rustlib import flatten
 
 # This module implements the checker for verifying correctness of function bodies.
 # The overall verification is split between stack_usage_verifier.rs and
@@ -22,7 +23,7 @@ class CodeUnitVerifier:
         verifier = cls(module)
         ret = []
         for (idx, function_definition) in enumerate(verifier.module.function_defs()):
-            errors = verifier.verify_function(function_definition)
+            errors = flatten(verifier.verify_function(function_definition))
             for err in errors:
                 append_err_info(err, IndexKind.FunctionDefinition, idx)
                 ret.append(err)
@@ -37,12 +38,13 @@ class CodeUnitVerifier:
         code = function_definition.code.code
 
         # Check to make sure that the bytecode vector ends with a branching instruction.
-        bytecode = code.last()
-        if bytecode is not None:
+
+        if code:
+            bytecode = code[-1]
             if not bytecode.is_unconditional_branch():
-                return [VMStatus.new(StatusCode.INVALID_FALL_THROUGH)]
+                return [VMStatus(StatusCode.INVALID_FALL_THROUGH)]
         else:
-            return [VMStatus.new(StatusCode.INVALID_FALL_THROUGH)]
+            return [VMStatus(StatusCode.INVALID_FALL_THROUGH)]
 
         return self.verify_function_inner(function_definition, VMControlFlowGraph.new(code))
 

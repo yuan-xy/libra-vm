@@ -61,6 +61,9 @@ class NativeFunction:
     def num_args(self) -> usize:
         return self.expected_signature.arg_types.__len__()
 
+    def signature(self) -> FunctionSignature:
+        return self.expected_signature
+
 
 
 def native_gas(table: CostTable, key: NativeCostIndex, size: usize) -> GasUnits:

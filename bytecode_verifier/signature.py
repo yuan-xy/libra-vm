@@ -40,7 +40,7 @@ class SignatureChecker:
     #         .filter_map(|TypeSignature(ty)| match ty {
     #             Reference(inner) | MutableReference(inner) => match **inner {
     #                 Reference(_) | MutableReference(_) => {
-    #                     Some(VMStatus.new(StatusCode.INVALID_SIGNATURE_TOKEN))
+    #                     Some(VMStatus(StatusCode.INVALID_SIGNATURE_TOKEN))
     #                 }
     #                 _ => None,
     #             },

@@ -226,7 +226,7 @@ class DuplicationChecker:
         implemented_struct_handles = {x.struct_handle for x in self.module.struct_defs()}
 
         idx = None
-        for x in  range(0, self.module.struct_handles().__len__()):
+        for x in  range(self.module.struct_handles().__len__()):
             y = StructHandleIndex.new(x)
             if self.module.struct_handle_at(y).module\
                 == ModuleHandleIndex.new(CompiledModule.IMPLEMENTED_MODULE_INDEX)\
@@ -246,7 +246,7 @@ class DuplicationChecker:
         implemented_function_handles = {x.function for x in self.module.function_defs()}
 
         idx = None
-        for x in range(0, self.module.function_handles().__len__()):
+        for x in range(self.module.function_handles().__len__()):
             y = FunctionHandleIndex.new(x)
             if self.module.function_handle_at(y).module\
                 == ModuleHandleIndex.new(CompiledModule.IMPLEMENTED_MODULE_INDEX)\

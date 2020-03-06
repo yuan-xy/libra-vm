@@ -92,7 +92,7 @@ class VMRuntime:
         main = self.script_cache.cache_script(script, context)
 
         if not verify_actuals(main.signature(), args):
-            raise VMException(VMStatus.new(StatusCode.TYPE_MISMATCH)\
+            raise VMException(VMStatus(StatusCode.TYPE_MISMATCH)\
                 .with_message("Actual Type Mismatch".to_string()))
 
         from libra_vm.runtime.interpreter import Interpreter

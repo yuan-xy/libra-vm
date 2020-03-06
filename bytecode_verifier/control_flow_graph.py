@@ -2,6 +2,7 @@ from __future__ import annotations
 # This module defines the control-flow graph uses for bytecode verification.
 from libra_vm.file_format import Bytecode, CodeOffset
 from typing import List, Set, Mapping, Iterable, Optional
+from libra.rustlib import assert_equal, bail
 from dataclasses import dataclass
 import abc
 
@@ -74,16 +75,17 @@ class VMControlFlowGraph(ControlFlowGraph):
     def new(cls, code: List[Bytecode]) -> VMControlFlowGraph:
         # First go through and collect block ids, i.e., offsets that begin basic blocks.
         # Need to do this first in order to handle backwards edges.
-        block_ids = ()
+        block_ids = set()
         block_ids.add(ENTRY_BLOCK_ID)
-        for pc in range(0, code.__len__()):
+        for pc in range(code.__len__()):
             VMControlFlowGraph.record_block_ids(pc, code, block_ids)
 
 
         # Create basic blocks
         cfg = VMControlFlowGraph({})
         entry = 0
-        for pc in range(0, code.__len__()):
+        for pc in range(code.__len__()):
+            print(pc)
             co_pc: CodeOffset = pc
 
             # Create a basic block
@@ -107,7 +109,7 @@ class VMControlFlowGraph(ControlFlowGraph):
 
 
     def is_end_of_block(pc: CodeOffset, code: List[Bytecode], block_ids: Set[BlockId]) -> bool:
-        pc + 1 == code.__len__()  or (pc + 1) in block_ids
+        return pc + 1 == code.__len__()  or (pc + 1) in block_ids
 
 
     def record_block_ids(pc: CodeOffset, code: List[Bytecode], block_ids: Set[BlockId]):
@@ -115,10 +117,10 @@ class VMControlFlowGraph(ControlFlowGraph):
 
         offset = bytecode.offset()
         if offset is not None:
-            block_ids.insert(offset)
+            block_ids.add(offset)
 
         if bytecode.is_branch() and pc + 1 < (code.__len__()):
-            block_ids.insert(pc + 1)
+            block_ids.add(pc + 1)
 
 
     # A utility function that implements BFS-reachability from block_id with

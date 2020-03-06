@@ -1187,12 +1187,12 @@ class Bytecode:
 
     # Return True if this bytecode instruction always branches
     def is_unconditional_branch(self) -> bool:
-        return self.tag in [Opcodes.Ret, Opcodes.Abort, Opcodes.Branch]
+        return self.tag in [Opcodes.RET, Opcodes.ABORT, Opcodes.BRANCH]
 
     # Return True if the branching behavior of this bytecode instruction depends on a runtime
     # value
     def is_conditional_branch(self) -> bool:
-        return self.tag in [Opcodes.BrFalse, Opcodes.BrTrue]
+        return self.tag in [Opcodes.BR_FALSE, Opcodes.BR_TRUE]
 
     # Returns True if this bytecode instruction is either a conditional or an unconditional branch
     def is_branch(self) -> bool:
@@ -1202,7 +1202,7 @@ class Bytecode:
     # Returns the offset that this bytecode instruction branches to, if any.
     # Note that return and abort are branch instructions, but have no offset.
     def offset(self) -> Optional[CodeOffset]:
-        if self.tag in [Opcodes.BrFalse, Opcodes.BrTrue, Opcodes.Branch]:
+        if self.tag in [Opcodes.BR_FALSE, Opcodes.BR_TRUE, Opcodes.BRANCH]:
             return self.value
         else:
             return None

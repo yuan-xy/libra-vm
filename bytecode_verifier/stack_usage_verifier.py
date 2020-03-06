@@ -35,7 +35,7 @@ class StackUsageVerifier:
         )
 
         errors = []
-        for block_id in cfg.blocks():
+        for block_id in cfg.blocks:
             errors.append(verifier.verify_block(block_id, cfg))
 
         return errors
@@ -122,7 +122,7 @@ class StackUsageVerifier:
             Opcodes.SUB,
             Opcodes.MUL,
             Opcodes.MOD,
-            Opcodes.DID,
+            Opcodes.DIV,
             Opcodes.BIT_OR,
             Opcodes.BIT_AND,
             Opcodes.XOR,
