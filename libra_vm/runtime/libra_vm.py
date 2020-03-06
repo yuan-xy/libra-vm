@@ -7,7 +7,7 @@ from libra_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.lib import VMVerifier, VMExecutor
 from libra_vm.runtime.system_module_names import *
 from libra_storage.state_view import StateView
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.hasher import HashValue
 from libra.block_metadata import BlockMetadata

@@ -5,7 +5,7 @@ from libra.language_storage import ModuleId, StructTag
 from libra_vm.runtime.chain_state import ChainState
 from libra_vm.runtime.loaded_data import LoadedModule
 from libra_vm.runtime.runtime import VMRuntime
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 
 from libra_vm.gas_schedule import CostTable
 from libra_vm.file_format_common import Opcodes

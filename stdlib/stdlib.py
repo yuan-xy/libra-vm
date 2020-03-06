@@ -1,5 +1,5 @@
 from libra_vm.file_format import CompiledScript, CompiledModule
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 import os, json
 from os import listdir
 from os.path import isfile, join, abspath, dirname

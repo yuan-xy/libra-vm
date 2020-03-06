@@ -31,11 +31,14 @@ class Node:
     v0: FunctionDefinitionIndex
     v1: TypeParameterIndex
 
+    def __hash__(self):
+        return (self.v0.v0, self.v1).__hash__()
+
 # Data attached to each edge. Indicating the type of the edge.
 @dataclass
 class Edge:
     tag: int
-    value: SignatureToken
+    value: SignatureToken = None
 
     IDENTITY = 1
     TYCONAPP = 2
@@ -136,6 +139,10 @@ class InstantiationLoopChecker:
     # Helper function that creates an edge from one given node to the other.
     # If a node does not exist, create one.
     def add_edge(self, node_from: Node, node_to: Node, edge: Edge):
+        if not self.graph.has_node(node_from):
+            self.graph.add_node(node_from)
+        if not self.graph.has_node(node_to):
+            self.graph.add_node(node_to)
         self.graph.add_edge((node_from, node_to), attrs = [('data',edge)])
 
 

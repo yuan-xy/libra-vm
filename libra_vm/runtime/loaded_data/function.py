@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra.identifier import IdentStr, Identifier
 from libra.vm_error import StatusCode, VMStatus
 from libra_vm.file_format import (

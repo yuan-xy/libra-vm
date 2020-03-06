@@ -7,7 +7,7 @@ from libra_vm.runtime.execution_context import InterpreterContext
 #from libra_vm.runtime.interpreter import Interpreter
 from libra_vm.runtime.loaded_data import FunctionReference, LoadedModule
 from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId

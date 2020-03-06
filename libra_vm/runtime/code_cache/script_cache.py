@@ -3,7 +3,7 @@ from libra_vm.runtime.code_cache.module_cache import load_and_verify_module_id
 from libra_vm.runtime.execution_context import InterpreterContext
 from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 
-from libra_vm.bytecode_verifier import verify_script_dependencies, VerifiedScript
+from bytecode_verifier import verify_script_dependencies, VerifiedScript
 
 from libra.hasher import HashValue
 from libra.transaction import SCRIPT_HASH_LENGTH

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from vm_genesis.lib import encode_genesis_transaction_with_validator_and_modules, make_placeholder_discovery_set, GENESIS_KEYPAIR
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra.transaction import Transaction
 from libra.validator_public_keys import ValidatorPublicKeys
 # use move_lang_stdlib.move_lang_stdlib_modules

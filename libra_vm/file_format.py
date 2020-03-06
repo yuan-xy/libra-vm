@@ -450,11 +450,11 @@ class Kind(IntEnum):
 
     # Checks if the given kind is a sub-kind of another.
     def is_sub_kind_of(self, k: Kind) -> bool:
-        if k == All:
+        if k == Kind.All:
             return True
-        if self == Resource and k == Resource:
+        if self == Kind.Resource and k == Kind.Resource:
             return True
-        if self == Unrestricted and k == Unrestricted:
+        if self == Kind.Unrestricted and k == Kind.Unrestricted:
             return True
         return False
 
@@ -1540,7 +1540,7 @@ class CompiledProgram:
 # A CompiledScript defines the constant pools (string, address, signatures, etc.), the handle
 # tables (external code references) and it has a `main` definition.
 @dataclass
-class CompiledScript:
+class CompiledScript(ScriptAccess):
     v0: CompiledScriptMut
 
     # Returns the index of `main` in case a script is converted to a module.

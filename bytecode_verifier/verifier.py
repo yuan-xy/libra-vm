@@ -29,7 +29,7 @@ class VerifyException(VMException):
     data: Union[CompiledModule, CompiledScript]
 
     def __init__(self, status: Union[VMStatus, List[VMStatus]], data: Union[CompiledModule, CompiledScript]):
-        super.__init__(status)
+        super().__init__(status)
         self.data = data
 
 
@@ -104,30 +104,30 @@ class VerifiedModule(ModuleAccess):
     # There is a partial order on the checks. For example, the duplication check must precede the
     # structural recursion check. In general, later checks are more expensive.
     @classmethod
-    def new(cls, value:CompiledModule):
+    def new(cls, module: CompiledModule):
         # All CompiledModule instances are statically guaranteed to be bounds checked, so there's
         # no need for more checking.
-        errors = DuplicationChecker.new(module).verify()
+        errors = DuplicationChecker(module).verify()
         if errors:
-            raise VerifyException(errors, value)
+            raise VerifyException(errors, module)
 
         errors = []
-        errors.append(SignatureChecker.new(module).verify())
-        errors.append(ResourceTransitiveChecker.new(module).verify())
+        errors.extend(SignatureChecker(module).verify())
+        errors.extend(ResourceTransitiveChecker.new(module).verify())
         if errors:
-            raise VerifyException(errors, value)
+            raise VerifyException(errors, module)
 
-        errors.append(RecursiveStructDefChecker.new(module).verify())
+        errors.extend(RecursiveStructDefChecker(module).verify())
         if errors:
-            raise VerifyException(errors, value)
+            raise VerifyException(errors, module)
 
-        errors.append(InstantiationLoopChecker.new(module).verify())
+        errors.extend(InstantiationLoopChecker.new(module).verify())
         if errors:
-            raise VerifyException(errors, value)
+            raise VerifyException(errors, module)
 
-        errors.append(CodeUnitVerifier.verify(module))
+        errors.extend(CodeUnitVerifier.verify(module))
         if errors:
-            raise VerifyException(errors, value)
+            raise VerifyException(errors, module)
 
         return VerifiedModule(module)
 

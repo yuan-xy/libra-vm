@@ -144,7 +144,7 @@ class SignatureChecker:
                         func_sig =\
                             self.module.function_signature_at(func_handle.signature)
                         type_actuals =\
-                            self.module.locals_signature_at(*type_actuals_idx).v0
+                            self.module.locals_signature_at(type_actuals_idx).v0
                         errors = check_generic_instance(
                             context,
                             func_sig.type_formals,
@@ -183,6 +183,7 @@ class SignatureChecker:
                     else:
                         errors = []
 
+                    errors = flatten(errors)
                     for err in errors:
                         append_err_info(
                             err.append_message_with_separator(
@@ -209,8 +210,8 @@ def check_generic_instance(
     constraints: List[Kind],
     type_actuals: List[SignatureToken],
 ) -> List[VMStatus]:
-    breakpoint()
     errors = [check_signature_no_refs(context, ty) for ty in type_actuals]
+    errors = flatten(errors)
 
     if constraints.__len__() != type_actuals.__len__():
         errors.append(
@@ -251,9 +252,11 @@ def check_signature_no_refs(
             .with_message("reference not allowed")]
 
     elif ty.tag == SerializedType.VECTOR:
+        ty = ty.vector_type
         return check_signature_no_refs(context, ty)
 
     elif ty.tag == SerializedType.STRUCT:
+        idx, type_actuals = ty.struct
         sh = struct_handles[idx.v0]
         return check_generic_instance(context, sh.type_formals, type_actuals)
     else:

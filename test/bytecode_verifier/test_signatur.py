@@ -1,6 +1,6 @@
 
 from bytecode_verifier import SignatureChecker
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 # from invalid_mutations.signature.{
 #     ApplySignatureDoubleRefContext, ApplySignatureFieldRefContext, DoubleRefMutation,
 #     FieldRefMutation,

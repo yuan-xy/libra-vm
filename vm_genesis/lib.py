@@ -1,6 +1,6 @@
 from __future__ import annotations
 from vm_genesis.genesis_gas_schedule import initial_gas_schedule
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView, EmptyStateView
 
 from libra.access_path import AccessPath

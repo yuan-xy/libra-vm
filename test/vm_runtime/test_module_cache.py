@@ -3,7 +3,7 @@ from libra_vm.runtime.data_cache import RemoteCache, BlockDataCache
 from libra_vm.runtime.chain_state import SystemExecutionContext, TransactionExecutionContext
 from libra_vm.runtime.code_cache import VMModuleCache
 from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
-from libra_vm.bytecode_verifier import VerifiedModule, VerifiedScript
+from bytecode_verifier import VerifiedModule, VerifiedScript
 #use compiler.Compiler
 from libra_storage.state_view import StateView
 from libra.access_path import AccessPath
@@ -582,12 +582,9 @@ def test_dependency_fails_verification():
 
     module_id = ModuleId(Address.default(), ident("Test"))
 
-    #TTODO: implement bytecode verifier.
-    vm_cache.get_loaded_module(module_id, ctx)
-    return
-
     with pytest.raises(VMException) as excinfo:
         vm_cache.get_loaded_module(module_id, ctx)
 
-    assert (err == StatusType.Verification)
-    assert (err.major_status == StatusCode.INVALID_RESOURCE_FIELD)
+    errors = excinfo.value.vm_status
+    assert (errors[0].status_type() == StatusType.Verification)
+    assert (errors[0].major_status == StatusCode.INVALID_RESOURCE_FIELD)

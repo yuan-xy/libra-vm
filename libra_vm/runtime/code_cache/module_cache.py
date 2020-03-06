@@ -1,7 +1,7 @@
 from __future__ import annotations
 from libra_vm.runtime.execution_context import InterpreterContext
 from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
