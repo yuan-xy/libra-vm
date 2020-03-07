@@ -170,7 +170,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
             self.stack.append(TypedAbstractValue(
                 signature,
-                AbstractValue.Reference(id),
+                AbstractValue.Reference(fid),
             ))
             operand_id = operand.value.extract_id()
             state.remove(operand_id)
@@ -408,13 +408,13 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
         elif tag == Opcodes.LD_ADDR:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.Address,
+                signature= signature_token_help.ADDRESS,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
 
         elif tag == Opcodes.LD_BYTEARRAY:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.ByteArray,
+                signature= signature_token_help.BYTEARRAY,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
 
@@ -430,10 +430,10 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
             if not state.is_available(idx):
                 errors.append(err_at_offset(StatusCode.COPYLOC_UNAVAILABLE_ERROR, offset))
             elif signature_view.is_reference():
-                id = state.borrow_local_reference(idx)
+                rid = state.borrow_local_reference(idx)
                 self.stack.append(TypedAbstractValue(
-                    signature= signature_view.as_inner().clone(),
-                    value= AbstractValue.Reference(id),
+                    signature= deepcopy(signature_view.as_inner()),
+                    value= AbstractValue.Reference(rid),
                 ))
             else:
                 kind = signature_view.kind(self.type_formals())
@@ -442,7 +442,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
                 elif kind == Kind.Unrestricted:
                     if not state.is_local_mutably_borrowed(idx):
                         self.stack.append(TypedAbstractValue(
-                            signature= signature_view.as_inner().clone(),
+                            signature= deepcopy(signature_view.as_inner()),
                             value= AbstractValue.Value(Kind.Unrestricted),
                         ))
                     else:
@@ -453,7 +453,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
         elif tag == Opcodes.MOVE_LOC:
             idx = bytecode.value
-            signature = self.locals_signature_view.token_at(idx).as_inner().clone()
+            signature = deepcopy(self.locals_signature_view.token_at(idx).as_inner())
             if not state.is_available(idx):
                 errors.append(err_at_offset(StatusCode.MOVELOC_UNAVAILABLE_ERROR, offset))
             elif signature.is_reference() or not state.is_local_borrowed(idx):
@@ -507,8 +507,8 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
                             ))
                             return
 
-                        mutable_references_to_borrow_from.insert(aid)
-                    all_references_to_borrow_from.insert(aid)
+                        mutable_references_to_borrow_from.add(aid)
+                    all_references_to_borrow_from.add(aid)
 
             for return_type_view in function_signature_view.return_tokens():
                 if return_type_view.is_reference():
@@ -804,9 +804,9 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
             is_copyable = kind1 == Kind.Unrestricted
             if is_copyable and operand1.signature == operand2.signature:
                 if operand1.value.tag == AbstractValue.REFERENCE:
-                    id = operand1.value.value
-                    if self.__class__.is_readable_reference(state, operand1.signature, id):
-                        state.remove(id)
+                    rid = operand1.value.value
+                    if self.__class__.is_readable_reference(state, operand1.signature, rid):
+                        state.remove(rid)
                     else:
                         errors.append(err_at_offset(
                             StatusCode.READREF_EXISTS_MUTABLE_BORROW_ERROR,
@@ -815,9 +815,9 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
                         return
 
                 if operand2.value.tag == AbstractValue.REFERENCE:
-                    id = operand2.value.value
-                    if self.__class__.is_readable_reference(state, operand2.signature, id):
-                        state.remove(id)
+                    rid = operand2.value.value
+                    if self.__class__.is_readable_reference(state, operand2.signature, rid):
+                        state.remove(rid)
                     else:
                         errors.append(err_at_offset(
                             StatusCode.READREF_EXISTS_MUTABLE_BORROW_ERROR,
@@ -874,7 +874,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
             SignatureTokenView.new(self.module(), struct_type).kind(self.type_formals())
 
             operand = self.stack.pop()
-            if operand.signature == signature_token_help.Address:
+            if operand.signature == signature_token_help.ADDRESS:
                 self.stack.append(TypedAbstractValue(
                     signature= signature_token_help.BOOL,
                     value= AbstractValue.Value(Kind.Unrestricted),
@@ -916,7 +916,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
             SignatureTokenView.new(self.module(), struct_type).kind(self.type_formals())
 
             operand = self.stack.pop()
-            if operand.signature == signature_token_help.Address:
+            if operand.signature == signature_token_help.ADDRESS:
                 self.stack.append(TypedAbstractValue(
                     signature= struct_type,
                     value= AbstractValue.Value(Kind.Resource),
@@ -964,13 +964,13 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
         elif tag == Opcodes.GET_TXN_SENDER:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.Address,
+                signature= signature_token_help.ADDRESS,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
 
         elif tag == Opcodes.GET_TXN_PUBLIC_KEY:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.ByteArray,
+                signature= signature_token_help.BYTEARRAY,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
         else:

@@ -131,7 +131,6 @@ class AbstractInterpreter(TransferFunctions):
                 # Can't analyze the block from a failing precondition
                 continue
 
-
             errors = self.execute_block(block_id, state, function_view, cfg)
             if errors is not None:
                 block_invariant.post = BlockPostcondition.Error(errors)
@@ -155,7 +154,7 @@ class AbstractInterpreter(TransferFunctions):
                         continue
                     elif join_result == JoinResult.Changed:
                         # The pre changed. Schedule the next block.
-                        work_list.push(next_block_id)
+                        work_list.append(next_block_id)
                     elif join_result == JoinResult.Error:
                         # This join produced an error. Don't schedule the block.
                         next_block_invariant.pre = BlockPrecondition.JoinFailure()
@@ -171,7 +170,7 @@ class AbstractInterpreter(TransferFunctions):
                             BlockPostcondition.Success(),
                         )
 
-                    work_list.push(next_block_id)
+                    work_list.append(next_block_id)
 
         return inv_map
 

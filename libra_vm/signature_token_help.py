@@ -10,7 +10,9 @@ U128 = SignatureToken(SerializedType.U128)
 BYTEARRAY = SignatureToken(SerializedType.BYTEARRAY)
 ADDRESS = SignatureToken(SerializedType.ADDRESS)
 
-def Struct(struct : Tuple[StructHandleIndex, List[SignatureToken]]) -> SignatureToken:
+def Struct(struct : Tuple[StructHandleIndex, List[SignatureToken]], opt=None) -> SignatureToken:
+    if opt is not None:
+        struct = (struct, opt)
     return SignatureToken(SerializedType.STRUCT, struct)
 
 def Reference(ref : SignatureToken) -> SignatureToken:

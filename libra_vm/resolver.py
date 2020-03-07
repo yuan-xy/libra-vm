@@ -31,19 +31,19 @@ class Resolver:
     def new(cls, module: ModuleAccess) -> Resolver:
         address_map = {}
         for (idx, address) in enumerate(module.address_pool()):
-            address_map.insert(address.clone(), AddressPoolIndex(idx))
+            address_map.insert(address, AddressPoolIndex(idx))
 
         identifier_map = {}
         for (idx, name) in enumerate(module.identifiers()):
-            identifier_map.insert(name.clone(), IdentifierIndex(idx))
+            identifier_map.insert(name, IdentifierIndex(idx))
 
         module_handle_map = {}
         for (idx, module_hadndle) in enumerate(module.module_handles()):
-            module_handle_map.insert(module_hadndle.clone(), ModuleHandleIndex(idx))
+            module_handle_map.insert(module_hadndle, ModuleHandleIndex(idx))
 
         struct_handle_map = {}
         for (idx, struct_handle) in enumerate(module.struct_handles()):
-            struct_handle_map.insert(struct_handle.clone(), StructHandleIndex(idx))
+            struct_handle_map.insert(struct_handle, StructHandleIndex(idx))
 
         return cls(
             address_map,

@@ -50,7 +50,7 @@ class AcquiresVerifier:
                 ))
 
 
-            struct_def = module.struct_defs().get(annotation.v0)
+            struct_def = module.struct_defs()[annotation.v0]
             struct_def_view = StructDefinitionView.new(module, struct_def)
             if not struct_def_view.is_nominal_resource():
                 verifier.errors.append(VMStatus(

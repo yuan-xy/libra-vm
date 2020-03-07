@@ -99,6 +99,9 @@ class LabelElem:
     GLOBAL = 2
     FIELD = 3
 
+    def __hash__(self):
+        return (self.tag, self.value).__hash__()
+
     @classmethod
     def Local(cls, idx: LocalIndex) -> LabelElem:
         return cls(LabelElem.LOCAL, idx)
@@ -140,7 +143,7 @@ class AbstractState:
                 locls[arg_idx] = \
                     TypedAbstractValue(
                         signature= deepcopy(arg_type_view.as_inner()),
-                        value= AbstractValue.Reference(id),
+                        value= AbstractValue.Reference(rid),
                     )
             else:
                 arg_kind = arg_type_view.kind(
@@ -161,6 +164,7 @@ class AbstractState:
             next_id,
         )
         new_state.borrow_graph.add(new_state.frame_root())
+        # assert new_state.num_locls == len(new_state.locls) #why not equal?
         return new_state
 
 
@@ -235,13 +239,13 @@ class AbstractState:
 
 
     # removes `id` from borrow graph
-    def remove(self, id: RefID):
-        self.borrow_graph.remove(id)
+    def remove(self, rid: RefID):
+        self.borrow_graph.remove(rid)
 
 
     # checks if `id` is borrowed
-    def is_borrowed(self, id: RefID) -> bool:
-        return self.borrow_graph.all_borrows(id).__len__() > 0
+    def is_borrowed(self, rid: RefID) -> bool:
+        return self.borrow_graph.all_borrows(rid).__len__() > 0
 
 
     def local_borrows(self, idx: LocalIndex) -> Set[RefID]:
@@ -389,7 +393,7 @@ class AbstractState:
     def all_immutable(self, borrows: Set[RefID]) -> bool:
         for abs_type in self.locls.values():
             if abs_type.signature.is_mutable_reference()\
-                and borrows.contains(abs_type.value.extract_id()):
+                and abs_type.value.extract_id() in borrows:
                 return False
         return True
 
@@ -397,7 +401,7 @@ class AbstractState:
     def is_canonical(self) -> bool:
         if self.num_locls + 1 != self.next_id:
             return False
-        for (x, y) in self.locls:
+        for (x, y) in self.locls.items():
             if y.value.is_reference() and RefID(x) != y.value.extract_id():
                 return False
         return True
@@ -417,8 +421,8 @@ class AbstractState:
         self_graph = deepcopy(self.borrow_graph)
         other_graph = deepcopy(other.borrow_graph)
         for idx in self.iter_locls():
-            self_value = self.locls[idx]
-            other_value = other.locls[idx]
+            self_value = self.locls.get(idx)
+            other_value = other.locls.get(idx)
             if self_value is None:
                 if other_value is None:
                     # Unavailable on both sides, nothing to add
@@ -444,7 +448,7 @@ class AbstractState:
                     # The local has a value on each side, add it to the state
                     checked_verify(self_value == other_value)
                     checked_verify(idx not in locls)
-                    locls[idx] = deepcopy(v1)
+                    locls[idx] = deepcopy(self_value)
 
         self_graph.join(other_graph)
         borrow_graph = self_graph
@@ -454,8 +458,8 @@ class AbstractState:
         return AbstractState(
             locls,
             borrow_graph,
-            next_id,
             num_locls,
+            next_id,
         )
 
 

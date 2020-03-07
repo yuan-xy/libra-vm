@@ -4,7 +4,7 @@ from typing import List, Any, Optional, Mapping, Set
 from dataclasses import dataclass
 from copy import deepcopy
 from enum import IntEnum
-from libra.rustlib import assert_true
+from libra.rustlib import assert_true, flatten
 
 checked_assume = assert_true
 checked_postcondition = assert_true
@@ -48,6 +48,9 @@ class Edge:
     label: Label[Any]
     to: RefID
 
+    def __hash__(self):
+        return (self.edge_type, tuple(self.label), self.to).__hash__()
+
 
     def is_prefix(self, other: Edge) -> bool:
         return self == other or (
@@ -80,7 +83,7 @@ class BorrowGraph:
         checked_precondition(to in self.v0)
         checked_precondition(self.v0[to].__len__() == 0)
         new_edge = Edge(EdgeType.Weak, label, to)
-        self.v0[frm] = new_edge
+        self.v0[frm].add(new_edge)
 
 
     # adds a strong edge and factors other edges coming out of `from` with respect to the new edge
@@ -117,7 +120,7 @@ class BorrowGraph:
 
         def lambda0():
             x = {}
-            for (n, es) in self.v0:
+            for (n, es) in self.v0.items():
                 x[deepcopy(n)] = [x for x in es if x.to == rid]
             return x
         removed_edges = lambda0()
@@ -133,8 +136,8 @@ class BorrowGraph:
 
                     if removed_edge.edge_type == EdgeType.Strong:
                         new_label = []
-                        new_label.append(removed_edge.label.clone())
-                        new_label.append(id_edge.label.clone())
+                        new_label.extend(deepcopy(removed_edge.label))
+                        new_label.extend(deepcopy(id_edge.label))
                         edge = Edge(
                             edge_type= id_edge.edge_type,
                             label= new_label,
@@ -144,13 +147,13 @@ class BorrowGraph:
                     else:
                         edge = Edge(
                             edge_type= EdgeType.Weak,
-                            label= removed_edge.label.clone(),
+                            label= deepcopy(removed_edge.label),
                             to= id_edge.to,
                         )
                         n_edge_set_ref.add(edge)
 
         checked_verify(self.invariant())
-        checked_postcondition(id not in self.v0)
+        checked_postcondition(rid not in self.v0)
 
 
     # renames ids in `self` according to `id_map`
@@ -178,14 +181,14 @@ class BorrowGraph:
 
     # joins `other` into `self`
     def join(self, other: BorrowGraph):
-        for (n, es) in self.unmatched_edges(other):
+        for (n, es) in self.unmatched_edges(other).items():
             self.v0[n].update(es)
 
 
     # gets all ids that are targets of outgoing edges from `id`
-    def all_borrows(self, id: RefID) -> Set[RefID]:
-        checked_precondition(id in self.v0)
-        return {x.to for x in self.v0[id]}
+    def all_borrows(self, rid: RefID) -> Set[RefID]:
+        checked_precondition(rid in self.v0)
+        return {x.to for x in self.v0[rid]}
 
 
     # gets all ids that are targets of outgoing edges from `id` that are labeled with the empty label
@@ -235,6 +238,8 @@ class BorrowGraph:
         for edges in self.v0.values():
             for edge in edges:
                 if edge.to not in self.v0:
+                    return False
+                if flatten(edge.label) != edge.label:
                     return False
         for (n, edges) in self.v0.items():
             for edge in edges:

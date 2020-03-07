@@ -170,7 +170,7 @@ class VMControlFlowGraph(ControlFlowGraph):
 
 
     def blocks(self) -> List[BlockId]:
-        self.blocks.keys().cloned().collect()
+        self.blocks.keys()
 
 
     def instr_indexes(self, block_id: BlockId) -> Iterable[CodeOffset]:

@@ -12,6 +12,7 @@ from libra.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag
 from typing import List, Set, Optional, Tuple, Mapping, Any
 from dataclasses import dataclass
+from copy import deepcopy
 import abc
 
 # An alternate representation of the file format built on top of the existing format.
