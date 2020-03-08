@@ -9,10 +9,13 @@ def batch_of_dir(extern_dir):
     path = join(curdir, extern_dir)
     for root, dirs, files in os.walk(path):
         for file in files:
-            if(file.endswith(".py")):
+            if(file.endswith(".rs")):
                 rs_src = abspath(join(root,file))
                 print(rs_src)
                 cmds = ["/bin/bash", "/usr/bin/rust2py.sh", rs_src]
+                subprocess.run(cmds)
+                py_src = rs_src[0:-3] + ".py"
+                cmds = ["mv", rs_src, py_src]
                 subprocess.run(cmds)
                 #subprocess.run(cmds, cwd=curdir, check=True)
 
