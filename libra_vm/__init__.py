@@ -9,3 +9,4 @@ from libra_vm.gas_schedule import NativeCostIndex
 from libra_vm.views import ModuleView, ViewInternals
 from libra_vm.resolver import Resolver
 from libra_vm.transaction_metadata import TransactionMetadata
+from libra_vm.internals import ModuleIndex
