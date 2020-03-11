@@ -18,6 +18,11 @@ def batch_of_dir(extern_dir):
                 cmds = ["mv", rs_src, py_src]
                 subprocess.run(cmds)
                 #subprocess.run(cmds, cwd=curdir, check=True)
+            elif file.endswith(".py"):
+                rs_src = abspath(join(root,file))
+                print(rs_src)
+                cmds = ["/bin/bash", "/usr/bin/rust2py.sh", rs_src]
+                subprocess.run(cmds)
 
 def main():
     if len(sys.argv) <= 1:

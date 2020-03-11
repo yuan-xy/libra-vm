@@ -35,7 +35,6 @@ class Spanned:
 
 
 # Function used to have nearly tuple-like syntax for creating a Spanned
-def sp_t(T, loc: Loc, value: Any) -> Spanned:
-    assert isinstance(value, T)
+def sp(loc: Loc, value: Any) -> Spanned:
     return Spanned(loc, value)
 
