@@ -350,7 +350,7 @@ def parse_qualified_function_name(
         type_actuals = parse_type_actuals(tokens)
         v: List[str] = module_dot_name.split('.')
         assert (v.__len__() == 2)
-        call = FunctionCall_.ModuleFunctionCall(
+        call = FunctionCall_.module_call(
             ModuleName.new(v[0]),
             FunctionName.new(v[1]),
             type_actuals,

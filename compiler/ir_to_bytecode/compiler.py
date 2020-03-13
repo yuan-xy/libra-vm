@@ -1177,7 +1177,7 @@ def compile_expression(
         (f, exps) = exp.value.v0
         actuals_tys = []
         for types in compile_expression(context, function_frame, code, exps):
-            actuals_tys.push_back(types)
+            actuals_tys.insert(0, types)
 
         return compile_call(context, function_frame, code, f, actuals_tys)
 
@@ -1310,7 +1310,7 @@ def compile_call(
 
         # Return value of current function is pushed onto the stack.
         function_frame.push()
-        signature = context.function_signature(module, name)#.0
+        signature = context.function_signature(module, name)[0]
         return [InferredType.from_signature_token(x) for x in signature.return_types]
 
     else:
