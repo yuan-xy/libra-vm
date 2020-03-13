@@ -3,6 +3,7 @@ from move_ir.types.location import *
 from libra.account_address import Address
 from libra.language_storage import ModuleId
 from move_core.types.identifier import Identifier
+from libra_vm.file_format import CodeUnit
 from libra_vm.file_format_common import Opcodes
 from typing import List, Optional, Any, Union, Tuple
 from dataclasses import dataclass
@@ -367,10 +368,10 @@ class FunctionDependency:
 class FunctionVisibility(IntEnum):
     # The procedure can be invoked anywhere
     # `public`
-    Public = 1
+    Public = CodeUnit.PUBLIC
     # The procedure can be invoked only internally
     # `<no modifier>`
-    Internal = 2
+    Internal = 0
 
 
 # The body of a Move function
@@ -585,15 +586,39 @@ class CmdTag(IntEnum):
 @dataclass
 class Cmd_:
     tag: CmdTag
+    value: Any
+
     # `l_1, ..., l_n = e`
-    assign: Tuple[List[LValue], Exp]
+    @classmethod
+    def Assign(cls, v: Tuple[List[LValue], Exp]):
+        return cls(CmdTag.Assign, v)
+
     # `n { f_1: x_1, ... , f_j: x_j  } = e`
-    Unpack: Tuple[StructName, List[Type], VarFields, Exp]
+    @classmethod
+    def Unpack(cls, v: Tuple[StructName, List[Type], VarFields, Exp]):
+        return cls(CmdTag.Unpack, v)
+
     # `abort e`
-    Abort: [Optional[Exp]]
+    @classmethod
+    def Abort(cls, v: Optional[Exp]):
+        return cls(CmdTag.Abort, v)
+
     # `return e_1, ... , e_j`
-    Return: Exp
-    Exp: Exp
+    @classmethod
+    def Return(cls, v: Exp):
+        return cls(CmdTag.Return, v)
+
+    @classmethod
+    def Exp(cls, v: Exp):
+        return cls(CmdTag.Exp, v)
+
+    @classmethod
+    def Break(cls):
+        return cls(CmdTag.Break)
+
+    @classmethod
+    def Continue(cls):
+        return cls(CmdTag.Continue)
 
     # Creates a command that returns no values
     @classmethod

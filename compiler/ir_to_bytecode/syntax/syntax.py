@@ -1950,10 +1950,10 @@ def parse_import_alias(
 ) -> ModuleName:
     consume_token(tokens, Tok.As)
     alias = parse_module_name(tokens)
-    if alias.as_inner() == ModuleName.self_name():
+    if alias.as_inner() == SELF_MODULE_NAME:
         bail(
             "Invalid use of reserved module alias '{}'",
-            ModuleName.self_name()
+            SELF_MODULE_NAME
         )
     return alias
 

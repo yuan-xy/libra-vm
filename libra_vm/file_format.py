@@ -392,7 +392,7 @@ class FunctionSignature:
 # The remaining elements are the type of each local.
 @dataclass
 class LocalsSignature:
-    v0: List[SignatureToken]
+    v0: List[SignatureToken] = field(default_factory=list)
 
     def __hash__(self):
         return self.__str__().__hash__()
