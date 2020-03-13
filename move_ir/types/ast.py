@@ -216,7 +216,24 @@ class Type:
     reference : Tuple[bool, Type] = None
     # Type parameter.
     typeParameter : TypeVar_ = None
-    vector: Type = None
+    vector_type: Type = None
+
+
+    @classmethod
+    def Vector(cls, v):
+        return cls(SerializedType.VECTOR, vector_type=v)
+
+    @classmethod
+    def Struct(cls, v):
+        return cls(SerializedType.STRUCT, struct=v)
+
+    @classmethod
+    def Reference(cls, v):
+        return cls(SerializedType.REFERENCE, reference=v)
+
+    @classmethod
+    def TypeParameter(cls, v):
+        return cls(SerializedType.TYPE_PARAMETER, typeParameter=v)
 
 
 

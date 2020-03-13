@@ -163,10 +163,6 @@ class VerifiedModule(ModuleAccess):
 class VerifiedScript:
     v0: CompiledScript
 
-    @classmethod
-    def new(cls, value:CompiledScript):
-        return cls(value)
-
     # Verifies this `CompiledScript`, returning a `VerifiedScript` on success.
     #
     # On failure, returns the original `CompiledScript` and a list of verification errors.
@@ -180,7 +176,8 @@ class VerifiedScript:
     # argument. Since the module constructed from a script is guaranteed to have an empty vector
     # of class definitions, the bounds checker will catch any occurrences of these illegal
     # operations.
-    def new(script: CompiledScript) -> VerifiedScript:
+    @classmethod
+    def new(cls, script: CompiledScript) -> VerifiedScript:
         fake_module = script.into_module()
         module = VerifiedModule.new(fake_module).into_inner()
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
-from compiler.ir_to_bytecode.syntax.parse_error import ParseError
+from libra_vm import SerializedType
+from compiler.ir_to_bytecode.syntax.parse_error import ParseErrorInvalidToken
 from compiler.ir_to_bytecode.syntax.lexer import *
 from move_ir.types.codespan import ByteIndex, Span
 from libra.account_address import Address
@@ -9,6 +10,7 @@ from move_ir.types.location import *
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
+from canoser import Uint8, Uint32, Uint64, Uint128
 
 def make_loc(file: str, start: usize, end: usize) -> Loc:
     return Loc(
@@ -37,6 +39,7 @@ def consume_token(
     tok: Tok,
 ) -> None:
     if tokens.peek() != tok:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.advance()
@@ -76,6 +79,7 @@ def parse_name(
     tokens: Lexer,
 ) -> str:
     if tokens.peek() != Tok.NameValue:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     name = tokens.content()
     tokens.advance()
@@ -86,6 +90,7 @@ def parse_name_begin_ty(
     tokens: Lexer,
 ) -> str:
     if tokens.peek() != Tok.NameBeginTyValue:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     s = tokens.content()
     # The token includes a "<" at the end, so chop that off to get the name.
@@ -97,6 +102,7 @@ def parse_dot_name(
     tokens: Lexer,
 ) -> str:
     if tokens.peek() != Tok.DotNameValue:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     name = tokens.content()
     tokens.advance()
@@ -110,6 +116,7 @@ def parse_account_address(
     tokens: Lexer,
 ) -> Address:
     if tokens.peek() != Tok.AddressValue:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     addr = Address.from_hex_literal(tokens.content())
     tokens.advance()
@@ -121,7 +128,7 @@ def parse_account_address(
 # }
 
 def parse_var_(tokens: Lexer) -> Var_:
-    return Var_.new(parse_name(tokens))
+    return parse_name(tokens)
 
 
 def parse_var(tokens: Lexer) -> Var:
@@ -160,47 +167,48 @@ def parse_copyable_val(
 
     if Tok.AddressValue == tk:
         addr = parse_account_address(tokens)
-        val = CopyableVal_.Address(addr)
+        val = CopyableVal_(SerializedType.ADDRESS, addr)
     elif Tok.TRUE == tk:
         tokens.advance()
-        val = CopyableVal_.Bool(True)
+        val = CopyableVal_(SerializedType.BOOL, True)
     elif Tok.FALSE == tk:
         tokens.advance()
-        val = CopyableVal_.Bool(False)
+        val = CopyableVal_(SerializedType.BOOL, False)
 
     elif Tok.U8Value == tk:
         s = tokens.content()
-        if s.ends_with("u8"):
+        if s.endswith("u8"):
             s = s[:s.__len__() - 2]
-        i = Uint8.from_str(s)
+        i = Uint8.int_safe(s)
         tokens.advance()
-        val = CopyableVal_.U8(i)
+        val = CopyableVal_(SerializedType.U8, i)
 
     elif Tok.U64Value == tk:
         s = tokens.content()
-        if s.ends_with("u64"):
+        if s.endswith("u64"):
             s = s[:s.__len__() - 3]
 
-        i = Uint64.from_str(s)
+        i = Uint64.int_safe(s)
         tokens.advance()
-        val = CopyableVal_.U64(i)
+        val = CopyableVal_(SerializedType.U64, i)
 
     elif Tok.U128Value == tk:
         s = tokens.content()
-        if s.ends_with("u128"):
+        if s.endswith("u128"):
             s = s[:s.__len__() - 4]
 
-        i = Uint128.from_str(s)
+        i = Uint128.int_safe(s)
         tokens.advance()
-        val = CopyableVal_.U128(i)
+        val = CopyableVal_(SerializedType.U128, i)
 
     elif Tok.ByteArrayValue == tk:
         s = tokens.content()
         buf = bytes.fromhex(s[2:(s.__len__() - 1)])
         tokens.advance()
-        val = CopyableVal_.ByteArray(buf)
+        val = CopyableVal_(SerializedType.BYTEARRAY, buf)
 
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     end_loc = tokens.previous_end_loc()
@@ -303,9 +311,9 @@ def parse_rhs_of_binary_exp(
         else:
             bail("Unexpected token that is not a binary operator")
 
-        start_loc = result.loc.span().start()
+        start_loc = result.loc.span.start
         end_loc = tokens.previous_end_loc()
-        e = Exp_.BinopExp(result, op, rhs)
+        e = BinopExp((result, op, rhs))
         result = spanned(tokens.file_name(), start_loc, end_loc, e)
 
     return result
@@ -348,6 +356,7 @@ def parse_qualified_function_name(
         )
 
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     end_loc = tokens.previous_end_loc()
@@ -373,7 +382,7 @@ def parse_borrow_field_(
     if tokens.peek() == Tok.NameValue:
         if tokens.lookahead() != Tok.LBrace:
             var = parse_var(tokens)
-            return Exp_.BorrowLocal(mutable, var)
+            return BorrowLocalExp((mutable, var))
 
         start_loc = tokens.start_loc()
         name = parse_name(tokens)
@@ -390,7 +399,7 @@ def parse_borrow_field_(
 
     consume_token(tokens, Tok.Period)
     f = parse_field(tokens).value
-    return Exp_.Borrow(
+    return BorrowExp(
         is_mutable= mutable,
         exp= e,
         field= f,
@@ -405,12 +414,12 @@ def parse_unary_exp_(
     if tk == Tok.Exclaim:
         tokens.advance()
         e = parse_unary_exp(tokens)
-        return Exp_.UnaryExp(UnaryOp.Not, e)
+        return UnaryExp((UnaryOp.Not, e))
 
     elif tk == Tok.Star:
         tokens.advance()
         e = parse_unary_exp(tokens)
-        return Exp_.Dereference(e)
+        return DereferenceExp(e)
 
     elif tk == Tok.AmpMut:
         tokens.advance()
@@ -446,7 +455,7 @@ def parse_call(tokens: Lexer) -> Exp:
         tokens.file_name(),
         start_loc,
         end_loc,
-        Exp_.FunctionCall(f, exp),
+        FunctionCallExp((f, exp)),
     )
 
 
@@ -473,7 +482,7 @@ def parse_call_or_term_(
     ]:
         f = parse_qualified_function_name(tokens)
         exp = parse_call_or_term(tokens)
-        return Exp_.FunctionCall(f, exp)
+        return FunctionCallExp((f, exp))
     else:
         return parse_term_(tokens),
 
@@ -518,11 +527,11 @@ def parse_pack_(
     consume_token(tokens, Tok.LBrace)
     fs = parse_comma_list(tokens, [Tok.RBrace], parse_field_exp, True)
     consume_token(tokens, Tok.RBrace)
-    return Exp_.Pack(
+    return PackExp((
         StructName.new(name),
         type_actuals,
         fs,
-    )
+    ))
 
 
 def parse_term_(tokens: Lexer) -> Exp_:
@@ -532,23 +541,23 @@ def parse_term_(tokens: Lexer) -> Exp_:
         tokens.advance()
         v = parse_var(tokens)
         consume_token(tokens, Tok.RParen)
-        return Exp_.Move(v)
+        return MoveExp(v)
 
     elif tk == Tok.Copy:
         tokens.advance()
         v = parse_var(tokens)
         consume_token(tokens, Tok.RParen)
-        return Exp_.Copy(v)
+        return CopyExp(v)
 
     elif tk == Tok.AmpMut:
         tokens.advance()
         v = parse_var(tokens)
-        return Exp_.BorrowLocal(True, v)
+        return BorrowLocalExp((True, v))
 
     elif tk == Tok.Amp:
         tokens.advance()
         v = parse_var(tokens)
-        return Exp_.BorrowLocal(False, v)
+        return BorrowLocalExp((False, v))
 
     elif tk in [
         Tok.AddressValue,
@@ -559,7 +568,7 @@ def parse_term_(tokens: Lexer) -> Exp_:
         Tok.U128Value,
         Tok.ByteArrayValue,
     ]:
-        return Exp_.Value(parse_copyable_val(tokens))
+        return ValueExp(parse_copyable_val(tokens))
 
     elif tk == Tok.NameValue or tk == Tok.NameBeginTyValue:
         (name, type_actuals) = parse_name_and_type_actuals(tokens)
@@ -569,8 +578,9 @@ def parse_term_(tokens: Lexer) -> Exp_:
         tokens.advance()
         exps = parse_comma_list(tokens, [Tok.RParen], parse_exp, True)
         consume_token(tokens, Tok.RParen)
-        return Exp_.ExprList(exps)
+        return ExprListExp(exps)
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
 
@@ -619,6 +629,7 @@ def consume_end_of_generics(
         tokens.replace_token(Tok.Greater, 1)
         tokens.advance()
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
 
@@ -723,6 +734,7 @@ def parse_lvalue_(
         return LValue_.Pop
 
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
 
@@ -754,7 +766,7 @@ def parse_field_bindings(
             deepcopy(f),
             Spanned(
                 loc= f.loc,
-                value= Var_.new(f.value.into_inner()),
+                value= f.value.into_inner(),
             ),
         )
 
@@ -774,10 +786,11 @@ def parse_assign_(
 ) -> Cmd_:
     lvalues = parse_comma_list(tokens, [Tok.Equal], parse_lvalue, False)
     if not lvalues:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     consume_token(tokens, Tok.Equal)
     e = parse_exp(tokens)
-    return Cmd_.Assign(lvalues, e)
+    return Cmd_.Assign((lvalues, e))
 
 
 def parse_unpack_(
@@ -790,12 +803,12 @@ def parse_unpack_(
     consume_token(tokens, Tok.RBrace)
     consume_token(tokens, Tok.Equal)
     e = parse_exp(tokens)
-    return Cmd_.Unpack(
+    return Cmd_.Unpack((
         StructName.new(name),
         type_actuals,
         bindings,
         e,
-    )
+    ))
 
 
 def parse_cmd_(tokens: Lexer) -> Cmd_:
@@ -835,7 +848,7 @@ def parse_cmd_(tokens: Lexer) -> Cmd_:
             tokens.file_name(),
             start,
             end,
-            Exp_.ExprList(v),
+            ExprListExp(v),
         ))
 
     elif tk == Tok.Continue:
@@ -871,9 +884,10 @@ def parse_cmd_(tokens: Lexer) -> Cmd_:
             tokens.file_name(),
             start,
             end,
-            Exp_.ExprList(v),
+            ExprListExp(v),
         ))
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
 
@@ -897,12 +911,12 @@ def parse_statement(
         consume_token(tokens, Tok.Comma)
         err = parse_exp(tokens)
         consume_token(tokens, Tok.RParen)
-        cond = sp(e.loc, Exp_.UnaryExp(UnaryOp.Not, e))
+        cond = sp(e.loc, UnaryExp((UnaryOp.Not, e)))
         loc = err.loc
-        stmt = Statement.CommandStatement(sp(loc, Cmd_.Abort(err)))
-        return Statement.IfElseStatement(IfElse.if_block(
+        stmt = CommandStatement(sp(loc, Cmd_.Abort(err)))
+        return IfElseStatement(IfElse.if_block(
             cond,
-            sp(loc, Block_.new([stmt])),
+            sp(loc, Block_([stmt])),
         ))
 
     elif tk == Tok.If:
@@ -913,7 +927,7 @@ def parse_statement(
         return parse_loop_statement(tokens),
     elif tk == Tok.Semicolon:
         tokens.advance()
-        return Statement.EmptyStatement
+        return EmptyStatement()
     else:
         # Anything else should be parsed as a Cmd...
         start_loc = tokens.start_loc()
@@ -921,7 +935,7 @@ def parse_statement(
         end_loc = tokens.previous_end_loc()
         cmd = spanned(tokens.file_name(), start_loc, end_loc, c)
         consume_token(tokens, Tok.Semicolon)
-        return Statement.CommandStatement(cmd)
+        return CommandStatement(cmd)
 
 
 # IfStatement : Statement = {
@@ -940,11 +954,11 @@ def parse_if_statement(
     if tokens.peek() == Tok.Else:
         tokens.advance()
         else_block = parse_block(tokens)
-        return Statement.IfElseStatement(IfElse.if_else(
+        return IfElseStatement(IfElse.if_else(
             cond, if_block, else_block,
         ))
     else:
-        return Statement.IfElseStatement(IfElse.if_block(cond, if_block))
+        return IfElseStatement(IfElse.if_block(cond, if_block))
 
 
 
@@ -960,7 +974,7 @@ def parse_while_statement(
     cond = parse_exp(tokens)
     consume_token(tokens, Tok.RParen)
     block = parse_block(tokens)
-    return Statement.WhileStatement(While(cond, block ))
+    return WhileStatement(While(cond, block ))
 
 
 # LoopStatement : Statement = {
@@ -972,7 +986,7 @@ def parse_loop_statement(
 ) -> Statement:
     consume_token(tokens, Tok.Loop)
     block = parse_block(tokens)
-    return Statement.LoopStatement(Loop(block ))
+    return LoopStatement(Loop(block ))
 
 
 # Statements : List[Statement] = {
@@ -1007,7 +1021,7 @@ def parse_block(
         tokens.file_name(),
         start_loc,
         end_loc,
-        Block_.new(stmts),
+        Block_(stmts),
     )
 
 
@@ -1053,7 +1067,7 @@ def parse_function_block_(
     localss = parse_declarations(tokens)
     stmts = parse_statements(tokens)
     consume_token(tokens, Tok.RBrace)
-    (localss, Block_.new(stmts))
+    (localss, Block_(stmts))
 
 
 # Kind: Kind = {
@@ -1068,6 +1082,7 @@ def parse_kind(tokens: Lexer) -> Kind:
     elif tk == Tok.Unrestricted:
         k = Kind.Unrestricted
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.advance()
@@ -1090,27 +1105,27 @@ def parse_type(tokens: Lexer) -> Type:
 
     if tk == Tok.Address:
         tokens.advance()
-        return Type.Address
+        return Type(SerializedType.ADDRESS)
 
     elif tk == Tok.U8:
         tokens.advance()
-        return Type.U8
+        return Type(SerializedType.U8)
 
     elif tk == Tok.U64:
         tokens.advance()
-        return Type.U64
+        return Type(SerializedType.U64)
 
     elif tk == Tok.U128:
         tokens.advance()
-        return Type.U128
+        return Type(SerializedType.U128)
 
     elif tk == Tok.Bool:
         tokens.advance()
-        return Type.Bool
+        return Type(SerializedType.BOOL)
 
     elif tk == Tok.Bytearray:
         tokens.advance()
-        return Type.ByteArray
+        return Type(SerializedType.BYTEARRAY)
 
     elif tk == Tok.Vector:
         tokens.advance()
@@ -1123,19 +1138,20 @@ def parse_type(tokens: Lexer) -> Type:
     elif tk == Tok.DotNameValue:
         s = parse_qualified_struct_ident(tokens)
         tys = parse_type_actuals(tokens)
-        return Type.Struct(s, tys)
+        return Type.Struct((s, tys))
 
     elif tk == Tok.Amp:
         tokens.advance()
-        return Type.Reference(False, parse_type(tokens))
+        return Type.Reference((False, parse_type(tokens)))
 
     elif tk == Tok.AmpMut:
         tokens.advance()
-        return Type.Reference(True, parse_type(tokens))
+        return Type.Reference((True, parse_type(tokens)))
 
     elif tk == Tok.NameValue:
-        return Type.TypeParameter(TypeVar_.new(parse_name(tokens)))
+        return Type.TypeParameter(parse_name(tokens))
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
 
@@ -1150,7 +1166,7 @@ def parse_type_var(
     tokens: Lexer,
 ) -> TypeVar:
     start_loc = tokens.start_loc()
-    type_var = TypeVar_.new(parse_name(tokens))
+    type_var = parse_name(tokens)
     end_loc = tokens.previous_end_loc()
     return spanned(tokens.file_name(), start_loc, end_loc, type_var)
 
@@ -1553,6 +1569,7 @@ def parse_spec_condition(
 
     else:
         tokens.spec_mode = False
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.spec_mode = False
@@ -1767,17 +1784,17 @@ def parse_program(
     if tokens.peek() == Tok.Module:
         m = parse_module(tokens)
         loc = tokens.start_loc()
-        ret_args = spanned(tokens.file_name(), loc, loc, Exp_.ExprList([]))
+        ret_args = spanned(tokens.file_name(), loc, loc, ExprListExp([]))
         ret = spanned(
             tokens.file_name(),
             loc,
             loc,
             Cmd_.Return(ret_args),
         )
-        return_stmt = Statement.CommandStatement(ret)
+        return_stmt = CommandStatement(ret)
         body = FunctionBodyMove(
             locls= [],
-            code= Block_.new([return_stmt]),
+            code= Block_([return_stmt]),
         )
         main = Function_.new(
             FunctionVisibility.Public,
@@ -1862,6 +1879,7 @@ def parse_struct_decl(
     elif tk == Tok.Resource:
         is_nominal_resource = True
     else:
+        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.advance()

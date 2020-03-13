@@ -218,7 +218,7 @@ class Lexer:
 
         elif (ch >= 'a' and ch <= 'z') or (ch >= 'A' and ch <= 'Z') or ch == '$' or ch == '_':
             lenn = get_name_len(text)
-            name = text[:len]
+            name = text[:lenn]
             if not self.spec_mode:
                 sss = text[lenn:]
                 if not sss:
@@ -228,7 +228,7 @@ class Lexer:
                     # Special case for ByteArrayValue: h\"[0-9A-Fa-f]*\"
                     bvlen = 0
                     if name == "h":
-                        bvlen = get_byte_array_value_len(text[(len + 1):])
+                        bvlen = get_byte_array_value_len(text[(lenn + 1):])
                         if bvlen > 0:
                             return (Tok.ByteArrayValue, 2 + bvlen)
 

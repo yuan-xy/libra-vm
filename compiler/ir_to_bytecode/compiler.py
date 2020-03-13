@@ -715,7 +715,7 @@ def compile_if_else(
 
     brFalse_ins_loc = code.__len__()
     # placeholder, final branch target replaced later
-    push_instr(cond_span, Bytecode.BrFalse(0))
+    push_instr(cond_span, Bytecode(Opcodes.BR_FALSE, 0))
     function_frame.pop()
     if_cf_info = compile_block(context, function_frame, code, if_else.if_block.value)
 
@@ -731,14 +731,14 @@ def compile_if_else(
         branch_ins_loc = code.__len__()
         if not if_cf_info.terminal_node:
             # placeholder, final branch target replaced later
-            push_instr(else_block.loc, Bytecode.Branch(0))
+            push_instr(else_block.loc, Bytecode(Opcodes.BRANCH, 0))
             else_block_location += 1
 
         else_cf_info = compile_block(context, function_frame, code, else_block.value)
         if not if_cf_info.terminal_node:
-            code[branch_ins_loc] = Bytecode.Branch(code.__len__())
+            code[branch_ins_loc] = Bytecode(Opcodes.BRANCH, code.__len__())
 
-    code[brFalse_ins_loc] = Bytecode.BrFalse(else_block_location)
+    code[brFalse_ins_loc] = Bytecode(Opcodes.BR_FALSE, else_block_location)
     return ControlFlowInfo.join(if_cf_info, else_cf_info)
 
 
@@ -757,17 +757,17 @@ def compile_while(
     brFalse_loc = code.__len__()
 
     # placeholder, final branch target replaced later
-    push_instr(cond_span, Bytecode.BrFalse(0))
+    push_instr(cond_span, Bytecode(Opcodes.BR_FALSE, 0))
     function_frame.pop()
 
     compile_block(context, function_frame, code, while_.block.value)
-    push_instr(while_.block.loc, Bytecode.Branch(loop_start_loc))
+    push_instr(while_.block.loc, Bytecode(Opcodes.BRANCH, loop_start_loc))
 
     loop_end_loc = code.__len__()
-    code[brFalse_loc] = Bytecode.BrFalse(loop_end_loc)
+    code[brFalse_loc] = Bytecode(Opcodes.BR_FALSE, loop_end_loc)
     breaks = function_frame.get_loop_breaks()
     for i in breaks:
-        code[i] = Bytecode.Branch(loop_end_loc)
+        code[i] = Bytecode(Opcodes.BRANCH, loop_end_loc)
 
 
     function_frame.pop_loop()
@@ -796,12 +796,12 @@ def compile_loop(
     function_frame.push_loop(loop_start_loc)
 
     body_cf_info = compile_block(context, function_frame, code, loop_.block.value)
-    push_instr(loop_.block.loc, Bytecode.Branch(loop_start_loc))
+    push_instr(loop_.block.loc, Bytecode(Opcodes.BRANCH, loop_start_loc))
 
     loop_end_loc = code.__len__()
     breaks = function_frame.get_loop_breaks()
     for i in breaks:
-        code[i] = Bytecode.Branch(loop_end_loc)
+        code[i] = Bytecode(Opcodes.BRANCH, loop_end_loc)
 
 
     function_frame.pop_loop()
@@ -844,14 +844,14 @@ def compile_command(
 
     if cmd.value.tag == CmdTag.Return:
         compile_expression(context, function_frame, code, cmd.value.v0)
-        push_instr(cmd.loc, Bytecode.Ret)
+        push_instr(cmd.loc, Bytecode(Opcodes.RET))
 
     elif cmd.value.tag == CmdTag.Abort:
         exp_opt = cmd.value.v0
         if exp_opt is not None:
             compile_expression(context, function_frame, code, exp_opt)
 
-        push_instr(cmd.loc, Bytecode.Abort)
+        push_instr(cmd.loc, Bytecode(Opcodes.ABORT))
         function_frame.pop()
 
     elif cmd.value.tag == CmdTag.Assign:
@@ -867,22 +867,22 @@ def compile_command(
         compile_expression(context, function_frame, code, e)
 
         def_idx = context.struct_definition_index(name)
-        push_instr(cmd.loc, Bytecode.Unpack(def_idx, type_actuals_id))
+        push_instr(cmd.loc, Bytecode(Opcodes.UNPACK, (def_idx, type_actuals_id)))
         function_frame.pop()
 
         for (field_, lhs_variable) in reversed(bindings):
             loc_idx = function_frame.get_local(lhs_variable.value)
-            st_loc = Bytecode.StLoc(loc_idx)
+            st_loc = Bytecode(Opcodes.ST_LOC, loc_idx)
             push_instr(field_.loc, st_loc)
 
     elif cmd.value.tag == CmdTag.Continue:
         loc = function_frame.get_loop_start()
-        push_instr(cmd.loc, Bytecode.Branch(loc))
+        push_instr(cmd.loc, Bytecode(Opcodes.BRANCH, loc))
 
     elif cmd.value.tag == CmdTag.Break:
         function_frame.push_loop_break(code.__len__())
         # placeholder, to be replaced when the enclosing while is compiled
-        push_instr(cmd.loc, Bytecode.Branch(0))
+        push_instr(cmd.loc, Bytecode(Opcodes.BRANCH, 0))
 
     elif cmd.value.tag == CmdTag.Exp:
         compile_expression(context, function_frame, code, cmd.value.v0)
@@ -907,18 +907,18 @@ def compile_lvalues(
         if tag == LValue_.VAR:
             var = lvalue_.value.value
             loc_idx = function_frame.get_local(var.value)
-            push_instr(lvalue_.loc, Bytecode.StLoc(loc_idx))
+            push_instr(lvalue_.loc, Bytecode(Opcodes.ST_LOC, loc_idx))
             function_frame.pop()
 
         elif tag == LValue_.MUTATE:
             e = lvalue_.value.value
             compile_expression(context, function_frame, code, e)
-            push_instr(lvalue_.loc, Bytecode.WriteRef)
+            push_instr(lvalue_.loc, Bytecode(Opcodes.WRITE_REF))
             function_frame.pop()
             function_frame.pop()
 
         elif tag == LValue_.POP:
-            push_instr(lvalue_.loc, Bytecode.Pop)
+            push_instr(lvalue_.loc, Bytecode(Opcodes.POP))
             function_frame.pop()
         else:
             bail("unreachable!")
@@ -954,7 +954,7 @@ def compile_expression(
     v = exp.value.v0
     if isinstance(exp.value, MoveExp):
         loc_idx = function_frame.get_local(v.value)
-        load_loc = Bytecode.MoveLoc(loc_idx)
+        load_loc = Bytecode(Opcodes.MOVE_LOC, loc_idx)
         push_instr(exp.loc, load_loc)
         function_frame.push()
         loc_type = function_frame.get_local_type(loc_idx)
@@ -962,7 +962,7 @@ def compile_expression(
 
     elif isinstance(exp.value, CopyExp):
         loc_idx = function_frame.get_local(v.value)
-        load_loc = Bytecode.CopyLoc(loc_idx)
+        load_loc = Bytecode(Opcodes.COPY_LOC, loc_idx)
         push_instr(exp.loc, load_loc)
         function_frame.push()
         loc_type = function_frame.get_local_type(loc_idx)
@@ -974,11 +974,11 @@ def compile_expression(
         loc_type = function_frame.get_local_type(loc_idx)
         inner_token = InferredType.from_signature_token(loc_type)
         if is_mutable:
-            push_instr(exp.loc, Bytecode.MutBorrowLoc(loc_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.MUT_BORROW_LOC, loc_idx))
             function_frame.push()
             return [InferredType.MutableReference(inner_token)]
         else:
-            push_instr(exp.loc, Bytecode.ImmBorrowLoc(loc_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.IMM_BORROW_LOC, loc_idx))
             function_frame.push()
             return [InferredType.Reference(inner_token)]
 
@@ -986,36 +986,36 @@ def compile_expression(
         cv_ = exp.value.v0.value
         if cv_.tag == SerializedType.ADDRESS:
             addr_idx = context.address_index(cv_.value)
-            push_instr(exp.loc, Bytecode.LdAddr(addr_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.LD_ADDR, addr_idx))
             function_frame.push()
             return [InferredType.Address]
 
         elif cv_.tag == SerializedType.U8:
-            push_instr(exp.loc, Bytecode.LdU8(cv_.value))
+            push_instr(exp.loc, Bytecode(Opcodes.LD_U8, cv_.value))
             function_frame.push()
             return [InferredType.U8]
 
         elif cv_.tag == SerializedType.U64:
-            push_instr(exp.loc, Bytecode.LdU64(cv_.value))
+            push_instr(exp.loc, Bytecode(Opcodes.LD_U64, cv_.value))
             function_frame.push()
             return [InferredType.U64]
 
         elif cv_.tag == SerializedType.U128:
-            push_instr(exp.loc, Bytecode.LdU128(cv_.value))
+            push_instr(exp.loc, Bytecode(Opcodes.LD_U128, cv_.value))
             function_frame.push()
             return [InferredType.U128]
 
         elif cv_.tag == SerializedType.BYTEARRAY:
             buf_idx = context.byte_array_index(cv_.value)
-            push_instr(exp.loc, Bytecode.LdByteArray(buf_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.LD_BYTEARRAY, buf_idx))
             function_frame.push()
             return [InferredType.ByteArray]
 
         elif cv_.tag == SerializedType.BOOL:
             if cv_.value:
-                bcode = Bytecode.LdTrue
+                bcode = Bytecode(Opcodes.LD_TRUE)
             else:
-                bcode = Bytecode.LdFalse
+                bcode = Bytecode(Opcodes.LD_FALSE)
 
             push_instr(exp.loc, bcode)
             function_frame.push()
@@ -1043,7 +1043,7 @@ def compile_expression(
 
             compile_expression(context, function_frame, code, e)
 
-        push_instr(exp.loc, Bytecode.Pack(def_idx, type_actuals_id))
+        push_instr(exp.loc, Bytecode(Opcodes.PACK, (def_idx, type_actuals_id)))
         for _ in range(num_fields):
             function_frame.pop()
 
@@ -1054,7 +1054,7 @@ def compile_expression(
         (op, e) = exp.value.v0
         compile_expression(context, function_frame, code, e)
         assert op == UnaryOp.Not
-        push_instr(exp.loc, Bytecode.Not)
+        push_instr(exp.loc, Bytecode(Opcodes.NOT))
         return [InferredType.Bool]
 
     elif isinstance(exp.value, BinopExp):
@@ -1065,75 +1065,75 @@ def compile_expression(
         function_frame.pop()
 
         if op == BinOp.Add:
-            push_instr(exp.loc, Bytecode.Add)
+            push_instr(exp.loc, Bytecode(Opcodes.ADD))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Sub:
-            push_instr(exp.loc, Bytecode.Sub)
+            push_instr(exp.loc, Bytecode(Opcodes.SUB))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Mul:
-            push_instr(exp.loc, Bytecode.Mul)
+            push_instr(exp.loc, Bytecode(Opcodes.MUL))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Mod:
-            push_instr(exp.loc, Bytecode.Mod)
+            push_instr(exp.loc, Bytecode(Opcodes.MOD))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Div:
-            push_instr(exp.loc, Bytecode.Div)
+            push_instr(exp.loc, Bytecode(Opcodes.DIV))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.BitOr:
-            push_instr(exp.loc, Bytecode.BitOr)
+            push_instr(exp.loc, Bytecode(Opcodes.BIT_OR))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.BitAnd:
-            push_instr(exp.loc, Bytecode.BitAnd)
+            push_instr(exp.loc, Bytecode(Opcodes.BIT_AND))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Xor:
-            push_instr(exp.loc, Bytecode.Xor)
+            push_instr(exp.loc, Bytecode(Opcodes.XOR))
             return [infer_int_bin_op_result_ty(tys1, tys2)]
 
         elif op == BinOp.Shl:
-            push_instr(exp.loc, Bytecode.Shl)
+            push_instr(exp.loc, Bytecode(Opcodes.SHL))
             return tys1
 
         elif op == BinOp.Shr:
-            push_instr(exp.loc, Bytecode.Shr)
+            push_instr(exp.loc, Bytecode(Opcodes.SHR))
             return tys1
 
         elif op == BinOp.Or:
-            push_instr(exp.loc, Bytecode.Or)
+            push_instr(exp.loc, Bytecode(Opcodes.OR))
             return [InferredType.Bool]
 
         elif op == BinOp.And:
-            push_instr(exp.loc, Bytecode.And)
+            push_instr(exp.loc, Bytecode(Opcodes.AND))
             return [InferredType.Bool]
 
         elif op == BinOp.Eq:
-            push_instr(exp.loc, Bytecode.Eq)
+            push_instr(exp.loc, Bytecode(Opcodes.EQ))
             return [InferredType.Bool]
 
         elif op == BinOp.Neq:
-            push_instr(exp.loc, Bytecode.Neq)
+            push_instr(exp.loc, Bytecode(Opcodes.NEQ))
             return [InferredType.Bool]
 
         elif op == BinOp.Lt:
-            push_instr(exp.loc, Bytecode.Lt)
+            push_instr(exp.loc, Bytecode(Opcodes.LT))
             return [InferredType.Bool]
 
         elif op == BinOp.Gt:
-            push_instr(exp.loc, Bytecode.Gt)
+            push_instr(exp.loc, Bytecode(Opcodes.GT))
             return [InferredType.Bool]
 
         elif op == BinOp.Le:
-            push_instr(exp.loc, Bytecode.Le)
+            push_instr(exp.loc, Bytecode(Opcodes.LE))
             return [InferredType.Bool]
 
         elif op == BinOp.Ge:
-            push_instr(exp.loc, Bytecode.Ge)
+            push_instr(exp.loc, Bytecode(Opcodes.GE))
             return [InferredType.Bool]
 
         elif op == BinOp.Subrange:
@@ -1144,7 +1144,7 @@ def compile_expression(
     elif isinstance(exp.value, DereferenceExp):
         e = exp.value.v0
         loc_type = compile_expression(context, function_frame, code, e).pop(0)
-        push_instr(exp.loc, Bytecode.ReadRef)
+        push_instr(exp.loc, Bytecode(Opcodes.READ_REF))
         if loc_type.tag == InferredTypeTag.MutableReference or \
             loc_type.tag == InferredTypeTag.Reference:
             return [loc_type.reference]
@@ -1161,11 +1161,11 @@ def compile_expression(
         function_frame.pop()
         inner_token = InferredType.from_signature_token(field_type)
         if is_mutable:
-            push_instr(exp.loc, Bytecode.MutBorrowField(fd_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.MUT_BORROW_FIELD, fd_idx))
             function_frame.push()
             return [InferredType.MutableReference(inner_token)]
         else:
-            push_instr(exp.loc, Bytecode.ImmBorrowField(fd_idx))
+            push_instr(exp.loc, Bytecode(Opcodes.IMM_BORROW_FIELD, fd_idx))
             function_frame.push()
             return [InferredType.Reference(inner_token)]
 
@@ -1198,7 +1198,7 @@ def compile_call(
         function = call.value.value
 
         if function.tag == BuiltinTag.GetTxnSender:
-            push_instr(call.loc, Bytecode.GetTxnSenderAddress)
+            push_instr(call.loc, Bytecode(Opcodes.GET_TXN_SENDER))
             function_frame.push()
             return [InferredType.Address]
 
@@ -1207,7 +1207,7 @@ def compile_call(
             tokens = LocalsSignature(compile_types(context, tys))
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
-            push_instr(call.loc, Bytecode.Exists(def_idx, type_actuals_id))
+            push_instr(call.loc, Bytecode(Opcodes.EXISTS, (def_idx, type_actuals_id)))
             function_frame.pop()
             function_frame.push()
             return [InferredType.Bool]
@@ -1218,9 +1218,9 @@ def compile_call(
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
             if mut_:
-                bcode = Bytecode.MutBorrowGlobal(def_idx, type_actuals_id)
+                bcode = Bytecode(Opcodes.MUT_BORROW_GLOBAL, (def_idx, type_actuals_id))
             else:
-                bcode = Bytecode.ImmBorrowGlobal(def_idx, type_actuals_id)
+                bcode = Bytecode(Opcodes.IMM_BORROW_GLOBAL, (def_idx, type_actuals_id))
 
             push_instr(call.loc, bcode)
             function_frame.pop()
@@ -1241,7 +1241,7 @@ def compile_call(
             tokens = LocalsSignature(compile_types(context, tys))
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
-            push_instr(call.loc, Bytecode.MoveFrom(def_idx, type_actuals_id))
+            push_instr(call.loc, Bytecode(Opcodes.MOVE_FROM, (def_idx, type_actuals_id)))
             function_frame.pop() # pop the address
             function_frame.push() # push the return value
 
@@ -1256,12 +1256,12 @@ def compile_call(
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
 
-            push_instr(call.loc, Bytecode.MoveToSender(def_idx, type_actuals_id))
+            push_instr(call.loc, Bytecode(Opcodes.MOVE_TO, (def_idx, type_actuals_id)))
             function_frame.push()
             return []
 
         elif function.tag == BuiltinTag.Freeze:
-            push_instr(call.loc, Bytecode.FreezeRef)
+            push_instr(call.loc, Bytecode(Opcodes.FREEZE_REF))
             function_frame.pop() # pop ref
             function_frame.push() # push imm ref
             xx = argument_types.pop(0)
@@ -1274,19 +1274,19 @@ def compile_call(
             return [InferredType.Reference(inner_token)]
 
         elif function.tag == BuiltinTag.ToU8:
-            push_instr(call.loc, Bytecode.CastU8)
+            push_instr(call.loc, Bytecode(Opcodes.CAST_U8))
             function_frame.pop()
             function_frame.push()
             return [InferredType.U8]
 
         elif function.tag == BuiltinTag.ToU64:
-            push_instr(call.loc, Bytecode.CastU64)
+            push_instr(call.loc, Bytecode(Opcodes.CAST_U64))
             function_frame.pop()
             function_frame.push()
             return [InferredType.U64]
 
         elif function.tag == BuiltinTag.ToU128:
-            push_instr(call.loc, Bytecode.CastU128)
+            push_instr(call.loc, Bytecode(Opcodes.CAST_U128))
             function_frame.pop()
             function_frame.push()
             return [InferredType.U128]
@@ -1299,7 +1299,7 @@ def compile_call(
         tokens = LocalsSignature(compile_types(context, type_actuals))
         type_actuals_id = context.locals_signature_index(tokens)
         fh_idx = context.function_handle(module, name)[1]
-        fcall = Bytecode.Call(fh_idx, type_actuals_id)
+        fcall = Bytecode(Opcodes.CALL, (fh_idx, type_actuals_id))
         push_instr(call.loc, fcall)
         for _ in range(argument_types.__len__()):
             function_frame.pop()
