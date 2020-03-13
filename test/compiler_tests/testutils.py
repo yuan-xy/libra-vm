@@ -1,14 +1,13 @@
 from __future__ import annotations
-from bytecode_verifier import VerifiedModule, VerifiedScript
+from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
 from compiler.ir_to_bytecode.compiler import compile_module, compile_program
 from compiler.ir_to_bytecode.parser import parse_module, parse_program
-
 from libra.account_address import Address
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules#, StdLibOptions
 from libra_vm.file_format import CompiledModule, CompiledScript, ScriptAccess
 from libra.rustlib import *
-
+import traceback
 
 
 def instr_count(compiled, instr_tag):
@@ -58,7 +57,7 @@ def compile_script_string_and_assert_error(
         compile_script_string_impl(code, deps)
         bail("should raise VerifyException")
     except VerifyException as err:
-        return err.data
+        return err.data.into_script()
 
 
 def compile_module_string_impl(

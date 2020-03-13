@@ -379,7 +379,7 @@ class Context:
             bail("Unbound field {}", f)
         else:
             (idx, token, decl_order) = ret
-            return FieldDefinitionIndex(idx, deepcopy(token), decl_order)
+            return (FieldDefinitionIndex(idx), deepcopy(token), decl_order)
 
 
     # Get the type signature index, adds it if it is not bound.
@@ -459,8 +459,7 @@ class Context:
                 name,
                 is_nominal_resource,
                 type_formals,
-            ),
-
+            )
         return StructHandleIndex(get_or_add_item_ref(
             self.struct_handles,
             self.structs.get(sname),

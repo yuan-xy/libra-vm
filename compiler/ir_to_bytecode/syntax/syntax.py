@@ -147,7 +147,7 @@ def parse_field(
     tokens: Lexer,
 ) -> Field:
     start_loc = tokens.start_loc()
-    f = Field_.new(parse_name(tokens))
+    f: Field_ = parse_name(tokens)
     end_loc = tokens.previous_end_loc()
     return spanned(tokens.file_name(), start_loc, end_loc, f)
 
@@ -607,7 +607,7 @@ def parse_qualified_struct_ident(
     assert(v.__len__() == 2)
     m: ModuleName = ModuleName.new(v[0])
     n: StructName = StructName.new(v[1])
-    return QualifiedStructIdent.new(m, n)
+    return QualifiedStructIdent(m, n)
 
 
 # ModuleName: ModuleName = {
@@ -732,7 +732,7 @@ def parse_lvalue_(
 
     elif tk == Tok.Underscore:
         tokens.advance()
-        return LValue_.Pop
+        return LValue_.Pop()
 
     else:
         breakpoint()
@@ -1322,7 +1322,7 @@ def spec_parse_qualified_struct_ident(
     (m_string, n_string) = spec_parse_dot_name(tokens)
     m: ModuleName = ModuleName.new(m_string)
     n: StructName = StructName.new(n_string)
-    return QualifiedStructIdent.new(m, n)
+    return QualifiedStructIdent(m, n)
 
 
 def parse_storage_location(
@@ -2040,7 +2040,7 @@ def parse_module(
 
     tokens.advance()  # consume the RBrace
 
-    return ModuleDefinition.new(
+    return ModuleDefinition(
         name,
         imports,
         [],

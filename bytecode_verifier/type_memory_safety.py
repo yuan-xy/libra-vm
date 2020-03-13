@@ -92,8 +92,8 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
                 errors.append(err_at_offset(StatusCode.JOIN_FAILURE, block_id))
 
             if inv.post.tag == BlockPostcondition.ERROR:
-                err = inv.post.value
-                assert err
+                err = inv.post.error
+                assert len(err) > 0
                 errors.append(err)
 
         return errors

@@ -385,6 +385,8 @@ def get_name_len(text: str) -> usize:
             continue
         if od >= ord('0') and od <= ord('9'):
             continue
+        if ch == '_':
+            continue
         return i
     return len(text)
 

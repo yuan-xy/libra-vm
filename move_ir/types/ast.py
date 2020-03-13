@@ -4,7 +4,7 @@ from libra.account_address import Address
 from libra.language_storage import ModuleId
 from move_core.types.identifier import Identifier
 from libra_vm.file_format import CodeUnit
-from libra_vm.file_format_common import Opcodes
+from libra_vm.file_format_common import Opcodes, SerializedType
 from typing import List, Optional, Any, Union, Tuple
 from dataclasses import dataclass
 from enum import IntEnum
@@ -82,9 +82,14 @@ class Script:
         return get_external_deps(self.imports)
 
 
+class MyStr(str):
+    @classmethod
+    def new(cls, s: str):
+        return cls(s)
 
 # Newtype for a name of a module
-ModuleName = str
+class ModuleName(MyStr):
+    pass
 
 SELF_MODULE_NAME: ModuleName = "Self"
 
@@ -184,7 +189,8 @@ class ImportDefinition:
 
 
 # Newtype for a variable/local
-Var_ = str
+class Var_(MyStr):
+    pass
 
 # The type of a variable with a location
 class Var(Spanned):
@@ -192,7 +198,8 @@ class Var(Spanned):
 
 
 # New type that represents a type variable. Used to declare type formals & reference them.
-TypeVar_ = str
+class TypeVar_(MyStr):
+    pass
 
 # The type of a type variable with a location.
 class TypeVar(Spanned):
@@ -250,9 +257,13 @@ class QualifiedStructIdent:
     # module+address
     name: StructName
 
+    def __hash__(self):
+        return (self.module, self.name).__hash__()
+
 
 # The field newtype
-Field_ = str
+class Field_(MyStr):
+    pass
 
 # A field coupled with source location information
 class Field(Spanned):
@@ -265,7 +276,8 @@ TypeFields = List[Tuple[Field, Type]]
 VarFields = List[Tuple[Field, Var]]
 
 # Newtype for the name of a struct
-StructName = str
+class StructName(MyStr):
+    pass
 
 # A Move struct
 @dataclass
@@ -362,7 +374,8 @@ class StructDefinitionFields:
 
 
 # Newtype for the name of a function
-FunctionName = str
+class FunctionName(MyStr):
+    pass
 
 # The signature of a function
 @dataclass
@@ -560,7 +573,7 @@ class FunctionCall(Spanned):
 @dataclass
 class LValue_:
     tag: int
-    value: Union[Var, Exp]
+    value: Union[Var, Exp, None]
 
     VAR = 1
     MUTATE = 2
@@ -577,7 +590,7 @@ class LValue_:
     # `_`
     @classmethod
     def Pop(cls):
-        return cls(LValue_.POP)
+        return cls(LValue_.POP, None)
 
 
 class LValue(Spanned):
@@ -1066,7 +1079,9 @@ class Bytecode_:
 class Bytecode(Spanned):
     T = Bytecode_
 
-Label = str
+class Label(MyStr):
+    pass
+
 BytecodeBlock = List[Bytecode]
 BytecodeBlocks = List[Tuple[Label, BytecodeBlock]]
 

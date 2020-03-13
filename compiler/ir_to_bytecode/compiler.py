@@ -14,7 +14,7 @@ from libra_vm.file_format import (
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
         StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
     )
-from libra_vm.signature_token_help import *
+from libra_vm import signature_token_help
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
@@ -34,7 +34,7 @@ def record_src_loc_field(context, field):
 
 def record_src_loc_function_type_formals(context, var):
     for (ty_var, _) in var:
-        source_name = (ty_var.value.clone().into_inner(), ty_var.loc)
+        source_name = (ty_var.value, ty_var.loc)
         context.source_map.add_function_type_parameter_mapping(
             context.current_function_definition_index(),
             source_name,
@@ -136,23 +136,23 @@ class InferredType:
 
     @classmethod
     def Vector(cls, v):
-        return cls(InferredTypeTag.VECTOR, vector_type=v)
+        return cls(InferredTypeTag.Vector, vector_type=v)
 
     @classmethod
     def Struct(cls, v):
-        return cls(InferredTypeTag.STRUCT, struct=v)
+        return cls(InferredTypeTag.Struct, struct=v)
 
     @classmethod
     def Reference(cls, v):
-        return cls(InferredTypeTag.REFERENCE, reference=v)
+        return cls(InferredTypeTag.Reference, reference=v)
 
     @classmethod
     def MutableReference(cls, v):
-        return cls(InferredTypeTag.MUTABLE_REFERENCE, reference=v)
+        return cls(InferredTypeTag.MutableReference, reference=v)
 
     @classmethod
     def TypeParameter(cls, v):
-        return cls(InferredTypeTag.TYPE_PARAMETER, typeParameter=v)
+        return cls(InferredTypeTag.typeParameter, typeParameter=v)
 
     @classmethod
     def from_signature_token(cls, sig_token: SignatureToken) -> InferredType:
@@ -160,28 +160,28 @@ class InferredType:
             return InferredType(sig_token.tag)
 
         elif sig_token.tag == SerializedType.VECTOR:
-            return InferredType(sig_token.tag, cls.from_signature_token(sig_token.vector_type))
+            return cls.Vector(cls.from_signature_token(sig_token.vector_type))
 
         elif sig_token.tag == SerializedType.STRUCT:
             (si, _) = sig_token.struct
-            return InferredType(sig_token.tag, si)
+            return cls.Struct(si)
 
         elif sig_token.tag == SerializedType.REFERENCE:
-            return InferredType(sig_token.tag, cls.from_signature_token(sig_token.reference))
+            return cls.Reference(cls.from_signature_token(sig_token.reference))
 
         elif sig_token.tag == SerializedType.MUTABLE_REFERENCE:
-            return InferredType(sig_token.tag, cls.from_signature_token(sig_token.reference))
+            return cls.MutableReference(cls.from_signature_token(sig_token.reference))
 
         elif sig_token.tag == SerializedType.TYPE_PARAMETER:
-            return InferredType(sig_token.tag, sig_token.typeParameter.__str__())
+            return cls.TypeParameter(sig_token.typeParameter.__str__())
         else:
             bail("unreachable!")
 
 
     def get_struct_handle(self) -> StructHandleIndex:
-        if self.tag == InferredTypeTag.REFERENCE or self.tag == InferredTypeTag.MUTABLE_REFERENCE:
+        if self.tag == InferredTypeTag.Reference or self.tag == InferredTypeTag.MutableReference:
             return self.reference.get_struct_handle()
-        elif self.tag == InferredTypeTag.STRUCT:
+        elif self.tag == InferredTypeTag.Struct:
             return self.struct
         else:
             bail("could not infer class type")
@@ -423,7 +423,7 @@ def compile_explicit_dependency_declarations(
 ) -> None:
     for dependency in dependencies:
         for struct_dep in structs:
-            sname = QualifiedStructIdent.new(dependency.name, struct_dep.name)
+            sname = QualifiedStructIdent(dependency.name, struct_dep.name)
             (_, kinds) = type_formals(struct_dep.type_formals)
             context.declare_struct_handle_index(sname, struct_dep.is_nominal_resource, kinds)
 
@@ -560,7 +560,7 @@ def compile_fields(
         )
 
         for (decl_order, (f, ty)) in enumerate(fields):
-            name = context.identifier_index(f.value.as_inner())
+            name = context.identifier_index(f.value)
             record_src_loc_field(context, f)
             sig_token = compile_type(context, ty)
             signature = context.type_signature_index(deepcopy(sig_token))
@@ -954,8 +954,8 @@ def compile_expression(
     exp: Exp,
 ) -> List[InferredType]:
     push_instr = make_push_instr(context, code)
-    v = exp.value.v0
     if isinstance(exp.value, MoveExp):
+        v = exp.value.v0
         loc_idx = function_frame.get_local(v.value)
         load_loc = Bytecode(Opcodes.MOVE_LOC, loc_idx)
         push_instr(exp.loc, load_loc)
@@ -964,6 +964,7 @@ def compile_expression(
         return [InferredType.from_signature_token(loc_type)]
 
     elif isinstance(exp.value, CopyExp):
+        v = exp.value.v0
         loc_idx = function_frame.get_local(v.value)
         load_loc = Bytecode(Opcodes.COPY_LOC, loc_idx)
         push_instr(exp.loc, load_loc)
@@ -1040,7 +1041,7 @@ def compile_expression(
         num_fields = fields.__len__()
         for (field_order, (field, e)) in enumerate(fields):
             # Check that the fields are specified in order matching the definition.
-            (_, _, decl_order) = context.field(sh_idx, field.value.clone())
+            (_, _, decl_order) = context.field(sh_idx, field.value)
             if field_order != decl_order:
                 bail("Field {} defined out of order for class {}", field, name)
 
@@ -1268,7 +1269,7 @@ def compile_call(
             function_frame.pop() # pop ref
             function_frame.push() # push imm ref
             xx = argument_types.pop(0)
-            if xx.tag == InferredTypeTag.REFERENCE or xx.tag == InferredTypeTag.MUTABLE_REFERENCE:
+            if xx.tag == InferredTypeTag.Reference or xx.tag == InferredTypeTag.MutableReference:
                 inner_token = xx.reference
             else:
                 # Incorrect call

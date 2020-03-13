@@ -10,5 +10,5 @@ from bytecode_verifier.code_unit_verifier import CodeUnitVerifier
 from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 from bytecode_verifier.verifier import (
     batch_verify_modules, verify_main_signature, verify_module_dependencies,
-    verify_script_dependencies, VerifiedModule, VerifiedScript,
+    verify_script_dependencies, VerifiedModule, VerifiedScript, VerifyException
 )
