@@ -438,10 +438,10 @@ def compile_imports(
     imports: List[ImportDefinition],
 ) -> None:
     for imp in imports:
-        if imp.tag == ModuleIdent.TRANSACTION:
-            ident = QualifiedModuleIdent(imp.value, address)
-        elif imp.tag == ModuleIdent.QUALIFIED:
-            ident = imp.value
+        if imp.ident.tag == ModuleIdent.TRANSACTION:
+            ident = QualifiedModuleIdent(imp.ident.value, address)
+        elif imp.ident.tag == ModuleIdent.QUALIFIED:
+            ident = imp.ident.value
         else:
             bail("unreachable!")
         context.declare_import(ident, imp.alias)

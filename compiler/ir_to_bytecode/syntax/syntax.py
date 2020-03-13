@@ -617,7 +617,7 @@ def parse_qualified_struct_ident(
 def parse_module_name(
     tokens: Lexer,
 ) -> ModuleName:
-    return ModuleName.new(parse_name(token))
+    return ModuleName.new(parse_name(tokens))
 
 
 def consume_end_of_generics(
@@ -1937,7 +1937,7 @@ def parse_qualified_module_ident(
     a = parse_account_address(tokens)
     consume_token(tokens, Tok.Period)
     m = parse_module_name(tokens)
-    return QualifiedModuleIdent.new(m, a)
+    return QualifiedModuleIdent(m, a)
 
 
 # ModuleIdent: ModuleIdent = {

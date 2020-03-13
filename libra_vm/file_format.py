@@ -1979,7 +1979,6 @@ def dummy_procedure_module(code: List[Bytecode]) -> CompiledModule:
 # Return a simple script that contains only a return in the main()
 def empty_script() -> CompiledScriptMut:
     default_address = b'\x03'*32
-    self_module_name = SELF_MODULE_NAME
     main_name = "main"
     void_void_sig = FunctionSignature(
         arg_types=[],
@@ -2016,7 +2015,7 @@ def empty_script() -> CompiledScriptMut:
         function_signatures=[void_void_sig],
         locals_signatures=[no_args_no_locals],
 
-        identifiers=[self_module_name, main_name],
+        identifiers=[self_module_name(), main_name],
         byte_array_pool=[],
         address_pool=[default_address],
         main=main_def,

@@ -141,11 +141,11 @@ class ModuleIdent:
     QUALIFIED = 2
 
     @classmethod
-    def Transaction(cls, value: ModuleName):
+    def Transaction(cls, v: ModuleName):
         return cls(ModuleIdent.TRANSACTION, v)
 
     @classmethod
-    def Qualified(cls, value: QualifiedModuleIdent):
+    def Qualified(cls, v: QualifiedModuleIdent):
         return cls(ModuleIdent.QUALIFIED, v)
 
     def name(self) -> ModuleName:
