@@ -450,7 +450,7 @@ def get_name_token(name: str) -> Tok:
         "continue" : Tok.Continue,
         "else" : Tok.Else,
         "ensures" : Tok.Ensures,
-        "False" : Tok.FALSE,
+        "false" : Tok.FALSE,
         "freeze" : Tok.Freeze,
         "get_txn_sender" : Tok.GetTxnSender,
         "global" : Tok.Global,              # spec language
@@ -475,7 +475,7 @@ def get_name_token(name: str) -> Tok:
         "struct" : Tok.Struct,
         "succeeds_if" : Tok.SucceedsIf,
         "synthetic" : Tok.Synthetic,
-        "True" : Tok.TRUE,
+        "true" : Tok.TRUE,
         "txn_sender" : Tok.TxnSender,
         "u8" : Tok.U8,
         "u64" : Tok.U64,

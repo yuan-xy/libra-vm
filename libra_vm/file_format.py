@@ -142,10 +142,9 @@ AddressPool = List[Address]
 
 # TODO: "<SELF>" only passes the validator for identifiers because it is special cased. Whenever
 # "<SELF>" is removed, so should the special case in identifier.rs.
-SELF_MODULE_NAME: Identifier = "<SELF>"
 
 def self_module_name() -> IdentStr:
-    return SELF_MODULE_NAME
+    return "<SELF>"
 
 
 # Index 0 into the LocalsSignaturePool, which is guaranteed to be an empty list.

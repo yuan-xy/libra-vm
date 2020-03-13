@@ -15,6 +15,8 @@ from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
 from canoser import Uint16
+from copy import deepcopy
+
 
 TypeFormalMap = Mapping[TypeVar_, TableIndex]
 
@@ -102,8 +104,8 @@ class CompiledDependency:
 
         assert(module != SELF_MODULE_NAME)
         ident = QualifiedModuleIdent(
-            address,
-            module,
+            address = address,
+            name = module,
         )
         name: StructName = self.identifiers[handle.name]
         return (ident, name)
@@ -200,7 +202,7 @@ class Context:
         current_module: QualifiedModuleIdent,
     ) -> Context:
         dependencies = {
-            QualifiedModuleIdent(dep.address(), dep.name()) : CompiledDependency.new(dep) \
+            QualifiedModuleIdent(dep.name(), dep.address()) : CompiledDependency.new(dep) \
             for dep in dependencies_iter
         }
 
@@ -250,6 +252,7 @@ class Context:
 
     # Finish compilation, and materialize the pools for file format.
     def materialize_pools(self) -> Tuple[MaterializedPools, ModuleSourceMap]:
+        cls = self.__class__
         num_functions = self.function_handles.__len__()
         assert(num_functions == self.function_signatures.__len__())
         function_handles = cls.materialize_pool(
@@ -349,6 +352,8 @@ class Context:
 
     # Get the identifier pool index, adds it if missing.
     def identifier_index(self, s: str) -> IdentifierIndex:
+        if not isinstance(s, str):
+            breakpoint()
         ident = ident_str(s)
         m = self.identifiers
         idx: TableIndex = get_or_add_item_macro(m, ident, ident)
@@ -429,7 +434,7 @@ class Context:
         alias: ModuleName,
     ) -> ModuleHandleIndex:
         # We don't care about duplicate aliases, if they exist
-        self.aliases.insert(qid, alias)
+        self.aliases[qid] = alias
         address = self.address_index(qid.address)
         name = self.identifier_index(qid.name)
         self.modules[alias] = (qid, ModuleHandle(address, name))
@@ -657,7 +662,7 @@ class Context:
 
     def ensure_function_declared(self, m: ModuleName, f: FunctionName) -> None:
         m_f = (m, f)
-        if m_f not in function_handles:
+        if m_f not in self.function_handles:
             assert(m_f not in self.function_signatures)
             sig = self.dep_function_signature(m, f)
             self.declare_function(m, f, sig)

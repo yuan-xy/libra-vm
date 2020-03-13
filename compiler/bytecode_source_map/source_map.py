@@ -12,7 +12,7 @@ from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
 from libra.rustlib import list_get
 from copy import deepcopy
-
+from canoser import Uint64
 
 Location = Any
 SourceName = Tuple[str, Location]
@@ -123,7 +123,7 @@ class FunctionSourceMap:
     def add_code_mapping(self, start_offset: CodeOffset, location: Location):
         possible_segment = self.get_code_location(start_offset)
         if possible_segment is None or possible_segment != location:
-            self.code_map.insert(start_offset, location)
+            self.code_map[start_offset] = location
 
 
     # Not that it is important that locations be added in order.

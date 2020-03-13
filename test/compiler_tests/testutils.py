@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from bytecode_verifier import VerifiedModule, VerifiedScript
 from compiler.ir_to_bytecode.compiler import compile_module, compile_program
 from compiler.ir_to_bytecode.parser import parse_module, parse_program
@@ -8,9 +7,12 @@ from libra.account_address import Address
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules#, StdLibOptions
 from libra_vm.file_format import CompiledModule, CompiledScript, ScriptAccess
+from libra.rustlib import *
+
+
 
 def instr_count(compiled, instr_tag):
-    return [x.tag for x in compiled.main.code.code].count(instr_tag)
+    return [x.tag for x in compiled.main().code.code].count(instr_tag)
 
 
 def compile_script_string_impl(

@@ -97,6 +97,9 @@ class QualifiedModuleIdent:
     # Address that this module is published under
     address: Address
 
+    def __hash__(self):
+        return (self.name, self.address).__hash__()
+
 
 # A Move module
 @dataclass
@@ -603,7 +606,7 @@ class CmdTag(IntEnum):
 @dataclass
 class Cmd_:
     tag: CmdTag
-    value: Any
+    value: Any = None
 
     # `l_1, ..., l_n = e`
     @classmethod

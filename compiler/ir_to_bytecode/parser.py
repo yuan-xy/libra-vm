@@ -148,7 +148,6 @@ def parse_cmd_(
 
 
 def handle_error(e: ParseError, code_str: str) -> None:
-    breakpoint()
     if isinstance(e, ParseErrorInvalidToken):
         # files = Files.new()
         # id = files.add(location.file(), code_str.to_string())

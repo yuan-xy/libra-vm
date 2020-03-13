@@ -4,11 +4,12 @@ from compiler.ir_to_bytecode.errors import *
 from compiler.bytecode_source_map.source_map import ModuleSourceMap
 from libra.account_address import Address
 from move_ir.types import ast
+from move_ir.types.ast import *
 from move_ir.types.ast import Bytecode as IRBytecode
 from move_ir.types.ast import Bytecode_ as IRBytecode_
 from move_ir.types.location import *
 from libra_vm.file_format import (
-        SELF_MODULE_NAME, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut, CompiledProgram,
+        self_module_name, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut, CompiledProgram,
         CompiledScript, CompiledScriptMut, FieldDefinition, FieldDefinitionIndex,
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
         StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
@@ -17,12 +18,13 @@ from libra_vm.signature_token_help import *
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
-from canoser import Uint8, Uint16, Uint64
+from canoser import Uint8, Uint16, Uint64, Int64
 from itertools import chain
 from enum import IntEnum
+from copy import deepcopy
 
 def record_src_loc_local(context, var):
-    source_name = (var.value.clone().into_inner(), var.loc)
+    source_name = (var.value, var.loc)
     context.source_map\
         .add_local_mapping(context.current_function_definition_index(), source_name)
 
@@ -215,7 +217,7 @@ class FunctionFrame:
 
     # Manage the stack info for the function
     def push(self) -> None:
-        if self.cur_stack_depth == Int64.max_value():
+        if self.cur_stack_depth == Int64.max_value:
             bail("ICE Stack depth accounting overflow. The compiler can only support a maximum stack depth of up to Int64.max_value")
 
         self.cur_stack_depth += 1
@@ -246,7 +248,7 @@ class FunctionFrame:
 
 
     def define_local(self, var: Var_, type_: SignatureToken) -> Uint8:
-        if self.local_count >= Uint8.max_value():
+        if self.local_count >= Uint8.max_value:
             bail("Max number of locals reached")
 
         cur_loc_idx = self.local_count
@@ -307,7 +309,7 @@ def compile_program(
         source_maps.append(source_map)
 
 
-    deps = deps.into_iter().chain(modules.iter())
+    deps = chain(deps, modules)
     (script, source_map) = compile_script(address, program.script, deps)
     source_maps.append(source_map)
     return (CompiledProgram(modules, script), source_maps)
@@ -320,9 +322,10 @@ def compile_script(
     dependencies: List[ModuleAccess],
 ) -> Tuple[CompiledScript, ModuleSourceMap]:
     current_module = QualifiedModuleIdent(
-        address,
-        SELF_MODULE_NAME,
+        address = address,
+        name = self_module_name(),
     )
+
     context = Context.new(dependencies, current_module)
     self_name = SELF_MODULE_NAME
 
@@ -363,8 +366,8 @@ def compile_module(
     dependencies: List[ModuleAccess],
 ) -> Tuple[CompiledModule, ModuleSourceMap]:
     current_module = QualifiedModuleIdent(
-        address,
-        module.name,
+        address = address,
+        name = module.name,
     )
     context = Context.new(dependencies, current_module)
     self_name = SELF_MODULE_NAME
@@ -436,7 +439,7 @@ def compile_imports(
 ) -> None:
     for imp in imports:
         if imp.tag == ModuleIdent.TRANSACTION:
-            ident = QualifiedModuleIdent(address, imp.value)
+            ident = QualifiedModuleIdent(imp.value, address)
         elif imp.tag == ModuleIdent.QUALIFIED:
             ident = imp.value
         else:
@@ -504,11 +507,11 @@ def function_signature(
     context.bind_type_formals(amap)
     return_types = compile_types(context, f.return_type)
     arg_types = [compile_type(context, ty) for (_, ty) in f.formals]
-    type_formals = [kind(k) for (_, k) in f.type_formals]
+    typeformals = [kind(k) for (_, k) in f.type_formals]
     return FunctionSignature(
         return_types,
         arg_types,
-        type_formals,
+        typeformals,
     )
 
 def compile_structs(
@@ -843,11 +846,11 @@ def compile_command(
 
 
     if cmd.value.tag == CmdTag.Return:
-        compile_expression(context, function_frame, code, cmd.value.v0)
+        compile_expression(context, function_frame, code, cmd.value.value)
         push_instr(cmd.loc, Bytecode(Opcodes.RET))
 
     elif cmd.value.tag == CmdTag.Abort:
-        exp_opt = cmd.value.v0
+        exp_opt = cmd.value.value
         if exp_opt is not None:
             compile_expression(context, function_frame, code, exp_opt)
 
@@ -855,12 +858,12 @@ def compile_command(
         function_frame.pop()
 
     elif cmd.value.tag == CmdTag.Assign:
-        (lvalues, rhs_expressions) = cmd.value.v0
+        (lvalues, rhs_expressions) = cmd.value.value
         compile_expression(context, function_frame, code, rhs_expressions)
         compile_lvalues(context, function_frame, code, lvalues)
 
     elif cmd.value.tag == CmdTag.Unpack:
-        (name, tys, bindings, e) = cmd.value.v0
+        (name, tys, bindings, e) = cmd.value.value
         tokens = LocalsSignature(compile_types(context, tys))
         type_actuals_id = context.locals_signature_index(tokens)
 
@@ -885,7 +888,7 @@ def compile_command(
         push_instr(cmd.loc, Bytecode(Opcodes.BRANCH, 0))
 
     elif cmd.value.tag == CmdTag.Exp:
-        compile_expression(context, function_frame, code, cmd.value.v0)
+        compile_expression(context, function_frame, code, cmd.value.value)
     else:
         bail("unreachable!")
 

@@ -11,6 +11,7 @@ from typing import List, Optional, Tuple
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
 from canoser import Uint8, Uint32, Uint64, Uint128
+from copy import deepcopy
 
 def make_loc(file: str, start: usize, end: usize) -> Loc:
     return Loc(
@@ -484,7 +485,7 @@ def parse_call_or_term_(
         exp = parse_call_or_term(tokens)
         return FunctionCallExp((f, exp))
     else:
-        return parse_term_(tokens),
+        return parse_term_(tokens)
 
 
 def parse_call_or_term(
@@ -853,11 +854,11 @@ def parse_cmd_(tokens: Lexer) -> Cmd_:
 
     elif tk == Tok.Continue:
         tokens.advance()
-        return Cmd_.Continue
+        return Cmd_.Continue()
 
     elif tk == Tok.Break:
         tokens.advance()
-        return Cmd_.Break
+        return Cmd_.Break()
 
     elif tk in [
         Tok.Exists,
@@ -920,11 +921,11 @@ def parse_statement(
         ))
 
     elif tk == Tok.If:
-        return parse_if_statement(tokens),
+        return parse_if_statement(tokens)
     elif tk == Tok.While:
-        return parse_while_statement(tokens),
+        return parse_while_statement(tokens)
     elif tk == Tok.Loop:
-        return parse_loop_statement(tokens),
+        return parse_loop_statement(tokens)
     elif tk == Tok.Semicolon:
         tokens.advance()
         return EmptyStatement()
@@ -1000,7 +1001,9 @@ def parse_statements(
     # The Statements non-terminal in the grammar is always followed by a
     # closing brace, so continue parsing until we find one of those.
     while tokens.peek() != Tok.RBrace:
-        stmts.append(parse_statement(tokens))
+        st = parse_statement(tokens)
+        # assert isinstance(st, Statement)
+        stmts.append(st)
 
     return stmts
 
@@ -1067,7 +1070,7 @@ def parse_function_block_(
     localss = parse_declarations(tokens)
     stmts = parse_statements(tokens)
     consume_token(tokens, Tok.RBrace)
-    (localss, Block_(stmts))
+    return (localss, Block_(stmts))
 
 
 # Kind: Kind = {
@@ -1794,7 +1797,7 @@ def parse_program(
         return_stmt = CommandStatement(ret)
         body = FunctionBodyMove(
             locls= [],
-            code= Block_([return_stmt]),
+            code= Block_([return_stmt])
         )
         main = Function_.new(
             FunctionVisibility.Public,
@@ -1805,9 +1808,9 @@ def parse_program(
             [],
             body,
         )
-        return Program.new(
+        return Program(
             [m],
-            Script.new([], [], spanned(tokens.file_name(), loc, loc, main)),
+            Script([], [], spanned(tokens.file_name(), loc, loc, main)),
         )
     else:
         if tokens.peek() == Tok.Modules:
@@ -1816,7 +1819,7 @@ def parse_program(
             modules = []
 
         s = parse_script(tokens)
-        return Program.new(modules, s)
+        return Program(modules, s)
 
 
 # pub Script : Script = {
@@ -1848,7 +1851,7 @@ def parse_script(
         FunctionBodyMove(localss, body),
     )
     main = spanned(tokens.file_name(), start_loc, end_loc, main)
-    Script.new(imports, [], main)
+    return Script(imports, [], main)
 
 
 # StructKind: bool = {
