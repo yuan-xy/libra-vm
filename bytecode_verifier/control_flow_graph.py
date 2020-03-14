@@ -85,7 +85,6 @@ class VMControlFlowGraph(ControlFlowGraph):
         cfg = VMControlFlowGraph({})
         entry = 0
         for pc in range(code.__len__()):
-            print(pc)
             co_pc: CodeOffset = pc
 
             # Create a basic block

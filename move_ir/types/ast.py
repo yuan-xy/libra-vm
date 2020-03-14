@@ -35,7 +35,7 @@ def get_external_deps(imports: List[ImportDefinition]) -> List[ModuleId]:
     for dep in imports:
         if dep.ident.tag == ModuleIdent.QUALIFIED:
             aid = dep.ident.value
-            identifier = aid.name.v0
+            identifier = aid.name
             deps.add(ModuleId(aid.address, identifier))
     return list(deps)
 

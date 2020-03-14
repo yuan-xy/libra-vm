@@ -1,4 +1,5 @@
 from .testutils import *
+from compiler.ir_to_bytecode.parser import parse_module
 from os.path import isfile, join, abspath, dirname
 import pytest
 
@@ -19,6 +20,12 @@ def test_compile_native_hash():
 def test_compile_libra_coin():
     code = include_str("../../compiler/ir_stdlib/modules/libra_coin.mvir")
     _compiled_module = compile_module_string(code)
+
+
+def test_parse_libra_coin():
+    code = include_str("../../compiler/ir_stdlib/modules/libra_account.mvir")
+    module = parse_module("libra_account.mvir", code)
+    dependency_list = module.get_external_deps()
 
 
 
