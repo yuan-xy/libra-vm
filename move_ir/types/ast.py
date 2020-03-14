@@ -512,13 +512,13 @@ class Builtin:
 
     # Check if there is a struct object (`StructName` resolved by current module) associated with
     # the given address
-    exists: Tuple[StructName, List[Type]]
+    exists: Tuple[StructName, List[Type]] = None
     # Get a reference to the resource(`StructName` resolved by current module) associated
     # with the given address
-    borrow: Tuple[bool, StructName, List[Type]]
+    borrow: Tuple[bool, StructName, List[Type]] = None
 
     # Remove a resource of the given type from the account with the given address
-    move: Tuple[StructName, List[Type]]
+    move: Tuple[StructName, List[Type]] = None
     # Publish an instantiated struct object into sender's account.
 
 

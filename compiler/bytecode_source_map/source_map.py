@@ -10,7 +10,7 @@ from libra_vm.file_format import (
 from libra_vm import ModuleIndex, ModuleAccess, ScriptAccess
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
-from libra.rustlib import list_get
+from libra.rustlib import list_get, bail
 from copy import deepcopy
 from canoser import Uint64
 
@@ -329,7 +329,7 @@ class ModuleSourceMap:
 
     def add_struct_type_parameter_mapping(
         self,
-        fdef_idx: StructDefinitionIndex,
+        struct_def_idx: StructDefinitionIndex,
         name: SourceName,
     ) -> None:
         if struct_def_idx.v0 not in self.struct_map:
@@ -341,7 +341,7 @@ class ModuleSourceMap:
 
     def get_struct_type_parameter_name(
         self,
-        fdef_idx: StructDefinitionIndex,
+        struct_def_idx: StructDefinitionIndex,
         type_parameter_idx: usize,
     ) -> SourceName:
         if struct_def_idx.v0 not in self.struct_map:
@@ -359,9 +359,9 @@ class ModuleSourceMap:
 
     def get_struct_source_map(
         self,
-        fdef_idx: StructDefinitionIndex,
+        struct_def_idx: StructDefinitionIndex,
     ) -> StructSourceMap:
-        return self.struct_map[fdef_idx.v0]
+        return self.struct_map[struct_def_idx.v0]
 
 
     # Create a 'dummy' source map for a compiled module. This is useful for e.g. disassembling

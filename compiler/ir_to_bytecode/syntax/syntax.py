@@ -767,7 +767,7 @@ def parse_field_bindings(
             deepcopy(f),
             Spanned(
                 loc= f.loc,
-                value= f.value.into_inner(),
+                value= f.value,
             ),
         )
 
@@ -873,7 +873,7 @@ def parse_cmd_(tokens: Lexer) -> Cmd_:
         Tok.ToU64,
         Tok.ToU128,
     ]:
-        return Cmd_.Exp(parse_call(token))
+        return Cmd_.Exp(parse_call(tokens))
 
     elif tk == Tok.LParen:
         tokens.advance()

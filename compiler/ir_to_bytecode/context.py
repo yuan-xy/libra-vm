@@ -11,6 +11,7 @@ from libra_vm.file_format import (
         ModuleHandle, ModuleHandleIndex, SignatureToken, StructDefinitionIndex, StructHandle,
         StructHandleIndex, TableIndex, TypeSignature, TypeSignatureIndex, ModuleAccess
     )
+from libra_vm import signature_token_help
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
@@ -99,15 +100,15 @@ class CompiledDependency:
     ) -> Optional[Tuple[QualifiedModuleIdent, StructName]]:
         handle = self.struct_pool[idx.v0]
         module_handle = self.module_pool[handle.module.v0]
-        address = self.address_pool[module_handle.address]
-        module: ModuleName = self.identifiers[module_handle.name]
+        address = self.address_pool[module_handle.address.v0]
+        module: ModuleName = self.identifiers[module_handle.name.v0]
 
         assert(module != SELF_MODULE_NAME)
         ident = QualifiedModuleIdent(
             address = address,
             name = module,
         )
-        name: StructName = self.identifiers[handle.name]
+        name: StructName = self.identifiers[handle.name.v0]
         return (ident, name)
 
 
@@ -554,7 +555,7 @@ class Context:
 
 
     def dep_struct_handle(self, s: QualifiedStructIdent) -> Tuple[bool, List[Kind]]:
-        if s.module.as_inner() == SELF_MODULE_NAME:
+        if s.module == SELF_MODULE_NAME:
             bail("Unbound class {}", s)
 
         mident = self.module_ident(s.module)

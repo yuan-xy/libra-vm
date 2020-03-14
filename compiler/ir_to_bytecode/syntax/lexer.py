@@ -306,7 +306,7 @@ class Lexer:
             if text.startswith("!="):
                 return (Tok.ExclaimEqual, 2)
             else:
-                (Tok.Exclaim, 1)
+                return (Tok.Exclaim, 1)
 
         elif ch == '<':
             if text.startswith("<="):

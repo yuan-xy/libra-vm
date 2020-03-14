@@ -49,7 +49,7 @@ def record_src_loc_function_decl(context, location, function_index):
 
 def record_src_loc_struct_type_formals(context, var):
     for (ty_var, _) in var:
-        source_name = (ty_var.value.clone().into_inner(), ty_var.loc)
+        source_name = (ty_var.value, ty_var.loc)
         context.source_map.add_struct_type_parameter_mapping(
             context.current_struct_definition_index(),
             source_name,
@@ -152,7 +152,7 @@ class InferredType:
 
     @classmethod
     def TypeParameter(cls, v):
-        return cls(InferredTypeTag.typeParameter, typeParameter=v)
+        return cls(InferredTypeTag.TypeParameter, typeParameter=v)
 
     @classmethod
     def from_signature_token(cls, sig_token: SignatureToken) -> InferredType:
@@ -476,7 +476,7 @@ def compile_type(context: Context, ty: Type) -> SignatureToken:
         return SignatureToken(ty.tag)
 
     elif ty.tag == SerializedType.VECTOR:
-        return signature_token_help.Vector(compile_type(context, ty.vector))
+        return signature_token_help.Vector(compile_type(context, ty.vector_type))
 
     elif ty.tag == SerializedType.REFERENCE:
         (is_mutable, inner_type) = ty.reference
@@ -592,7 +592,7 @@ def compile_function(
     function_index: usize,
 ) -> FunctionDefinition:
     record_src_loc_function_decl(context, ast_function.loc, function_index)
-    record_src_loc_struct_type_formals(context,
+    record_src_loc_function_type_formals(context,
         ast_function.value.signature.type_formals
     )
     fh_idx = context.function_handle(self_name, name)[1]
@@ -1185,7 +1185,7 @@ def compile_expression(
         exps = exp.value.v0
         result = []
         for e in exps:
-            result.append(compile_expression(context, function_frame, code, e))
+            result.extend(compile_expression(context, function_frame, code, e))
         return result
 
 
