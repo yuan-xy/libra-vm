@@ -1,5 +1,6 @@
 from .testutils import *
 from compiler.ir_to_bytecode.parser import parse_module
+from bytecode_verifier.verifier import verify_module_dependencies
 from os.path import isfile, join, abspath, dirname
 import pytest
 
@@ -14,6 +15,14 @@ def include_str(filename):
 def test_compile_native_hash():
     code = include_str("../../compiler/ir_stdlib/modules/hash.mvir")
     _compiled_module = compile_module_string(code)
+
+
+def test_compile_u64_util():
+    code = include_str("../../compiler/ir_stdlib/modules/u64_util.mvir")
+    _compiled_module = compile_module_string(code)
+    from stdlib import stdlib_modules
+    errors = verify_module_dependencies(VerifiedModule.new(_compiled_module), stdlib_modules())
+    assert not errors
 
 
 

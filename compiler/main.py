@@ -65,6 +65,8 @@ def main():
     address = args.address
     if not address:
         address = Address.default()
+    else:
+        address = bytes.fromhex(address)
     source_path = args.source_path[0]
     mvir_extension = "mvir"
     mv_extension = "mv"
@@ -138,7 +140,7 @@ def main():
             )
 
         module = compiled_module.serialize()
-        payload = Module.new(module)
+        payload = Module(module)
         payload_bytes = payload.to_json()
         write_output(with_extension(source_path, mv_extension), payload_bytes)
 

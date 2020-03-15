@@ -445,7 +445,7 @@ class Context:
         ))
 
 
-    # Given an identifier and basic "signature" information, creates a class handle
+    # Given an identifier and basic "signature" information, creates a struct handle
     # and adds it to the pool.
     def declare_struct_handle_index(
         self,
@@ -467,7 +467,7 @@ class Context:
         ))
 
 
-    # Given an identifier, declare the class definition index.
+    # Given an identifier, declare the struct definition index.
     def declare_struct_definition_index(
         self,
         s: StructName,

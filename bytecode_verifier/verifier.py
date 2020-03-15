@@ -255,17 +255,17 @@ def verify_module_dependencies(
 
     errors = []
     module_view = ModuleView.new(module)
-    errors.append(verify_struct_kind(module_view, dependency_map))
-    errors.append(verify_function_visibility_and_type(
+    errors.extend(verify_struct_kind(module_view, dependency_map))
+    errors.extend(verify_function_visibility_and_type(
         module_view,
         dependency_map,
     ))
-    errors.append(verify_all_dependencies_provided(
+    errors.extend(verify_all_dependencies_provided(
         module_view,
         dependency_map,
     ))
-    errors.append(verify_native_functions(module_view))
-    errors.append(verify_native_structs(module_view))
+    errors.extend(verify_native_functions(module_view))
+    errors.extend(verify_native_structs(module_view))
     return errors
 
 
@@ -305,7 +305,8 @@ def verify_native_functions(module_view: ModuleView) -> List[VMStatus]:
             declared_function_signature =\
                 native_function_definition_view.signature().as_inner()
             expected_function_signature_res =\
-                vm_native_function.signature(module_view)
+                vm_native_function.signature()
+            #   vm_native_function.signature(module_view)
             # expected_function_signature_opt = match expected_function_signature_res {
             #     opt => opt,
             #     Err(e) => {
