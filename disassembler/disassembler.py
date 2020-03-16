@@ -182,7 +182,7 @@ class Disassembler:
         type_param_context: List[SourceName],
     ) -> str:
         if sig_tok.tag.is_primitive():
-            return sig_tok.tag.name.lower()
+            return sig_tok.tag.tagname.lower()
 
         elif sig_tok.tag == SerializedType.STRUCT:
             (struct_handle_idx, instantiation) = sig_tok.struct
@@ -253,7 +253,7 @@ class Disassembler:
             local_idx = instruction.value
             name = self.name_for_local(local_idx, function_source_map)
             ty = self.type_for_local(local_idx, locals_sigs, function_source_map)
-            return format_str("{}[{}]({}: {})", tag.name, local_idx, name, ty)
+            return format_str("{}[{}]({}: {})", tag.tagname, local_idx, name, ty)
 
         elif tag in[
             Opcodes.MUT_BORROW_FIELD,
@@ -262,7 +262,7 @@ class Disassembler:
             field_idx = instruction.value
             name = self.name_for_field(field_idx)
             ty = self.type_for_field(field_idx)
-            return format_str("{}[{}]({}: {})", tag.name, field_idx, name, ty)
+            return format_str("{}[{}]({}: {})", tag.tagname, field_idx, name, ty)
 
         elif tag in[
             Opcodes.PACK,
@@ -275,7 +275,7 @@ class Disassembler:
         ]:
             (struct_idx, types_idx) = instruction.value
             (name, ty_params) = self.struct_type_info(struct_idx, types_idx)
-            return format_str("{}[{}]({}{})", tag.name, struct_idx, name, ty_params)
+            return format_str("{}[{}]({}{})", tag.tagname, struct_idx, name, ty_params)
 
         elif tag == Opcodes.CALL:
             method_idx, locals_sig_index = instruction.value
@@ -378,8 +378,8 @@ class Disassembler:
             enumerate(function_source_map.locls)]
 
         arg_len = function_signature.arg_types.__len__()
-        locls = locals_names_tys[0:arg_len]
-        args = locals_names_tys[arg_len:]
+        args = locals_names_tys[0:arg_len]
+        locls = locals_names_tys[arg_len:]
         if not self.options.print_locals:
             locls = []
 

@@ -865,10 +865,10 @@ class CodeUnit:
 #     # stack.
 #     #
 #     # The values of the fields of the instance appear on the stack in the order defined
-#     # in the class definition.
+#     # in the struct definition.
 #     #
 #     # This order makes Unpack<T> the inverse of Pack<T>. So `Unpack<T>; Pack<T>` is the identity
-#     # for class T.
+#     # for struct T.
 #     #
 #     # Stack transition:
 #     #
@@ -1145,6 +1145,12 @@ NUMBER_OF_NATIVE_FUNCTIONS: usize = 17
 class Bytecode:
     tag: Opcodes
     value: Any = None
+
+    def __str__(self):
+        if self.value is not None:
+            return f"{self.tag.tagname}({self.value})"
+        else:
+            return self.tag.tagname
 
     @classmethod
     def get_defaults(cls) -> Mapping[Opcodes, Any]:

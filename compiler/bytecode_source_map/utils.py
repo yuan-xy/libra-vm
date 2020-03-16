@@ -4,6 +4,7 @@ from compiler.bytecode_source_map.source_map import ModuleSourceMap, SourceMap
 from move_ir.types.location import Loc
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
+import json
 
 # from codespan.Span
 # from codespan.{FileId, Files}
@@ -23,7 +24,8 @@ Errors = List[Error]
 
 def module_source_map_from_file(file_path: str) -> ModuleSourceMap:
     with open(file_path) as f:
-        obj = json.load(f)
+        jstr = f.read()
+        obj = json.loads(jstr)
         #TTODO: deserialize ModuleSourceMap
         return obj
 

@@ -1,4 +1,4 @@
-from libra.rustlib import bail, usize
+from libra.rustlib import bail, usize, snake_to_camel
 from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field
@@ -85,6 +85,10 @@ class SerializedType(IntEnum):
     BYTEARRAY               = 0x9
     TYPE_PARAMETER          = 0xA
     VECTOR                  = 0xB
+
+    @property
+    def tagname(self):
+        return snake_to_camel(self.name)
 
     def is_primitive(self) -> bool:
         if self in [SerializedType.BOOL, SerializedType.U8, SerializedType.U64, SerializedType.U128, SerializedType.BYTEARRAY, SerializedType.ADDRESS]:
@@ -210,6 +214,10 @@ class Opcodes(IntEnum):
     CAST_U8                 = 0x39,
     CAST_U64                = 0x3A,
     CAST_U128               = 0x3B,
+
+    @property
+    def tagname(self):
+        return snake_to_camel(self.name)
 
     @classmethod
     def from_u8(cls, u8):
