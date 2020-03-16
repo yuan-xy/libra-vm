@@ -7,7 +7,7 @@ from libra.access_path import AccessPath
 from libra.account_address import Address
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
-from libra_vm.bytecode_verifier import VerifiedModule
+from bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView, EmptyStateView
 from libra_vm.gas_schedule import CostTable, GasAlgebra, GasUnits
 from libra_vm.transaction_metadata import TransactionMetadata

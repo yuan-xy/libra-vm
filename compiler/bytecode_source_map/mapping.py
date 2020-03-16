@@ -8,11 +8,11 @@ from dataclasses import dataclass, field
 # An object that associates source code with compiled bytecode and source map.
 @dataclass
 class SourceMapping:
-    # The resulting bytecode from compiling the source map
-    bytecode: CompiledModule
-
     # The source map for the bytecode made w.r.t. to the `source_code`
     source_map: ModuleSourceMap
+
+    # The resulting bytecode from compiling the source map
+    bytecode: CompiledModule
 
     # The source code for the bytecode. This is not required for disassembly, but it is required
     # for being able to print out corresponding source code for marked functions and structs.

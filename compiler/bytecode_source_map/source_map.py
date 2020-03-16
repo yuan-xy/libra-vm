@@ -7,12 +7,15 @@ from libra_vm.file_format import (
         FunctionDefinition, FunctionDefinitionIndex, IdentifierIndex, StructDefinition,
         StructDefinitionIndex, TableIndex,
     )
-from libra_vm import ModuleIndex, ModuleAccess, ScriptAccess
+from libra_vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
 from libra.rustlib import list_get, bail
 from copy import deepcopy
 from canoser import Uint64
+import logging
+
+logger = logging.getLogger(__name__)
 
 Location = Any
 SourceName = Tuple[str, Location]
@@ -61,9 +64,9 @@ class StructSourceMap:
         try:
             count = struct_def.declared_field_count()
             for _x in range(count):
-                self.fields.append(default_loc.clone())
+                self.fields.append(default_loc)
         except VMException as err:
-            pass
+            logger.info(err)
 
         for i in range(struct_handle.type_formals.__len__()):
             name = f"Ty{i}"
@@ -159,7 +162,7 @@ class FunctionSourceMap:
         function_handle = module.function_handle_at(function_def.function)
         function_signature = module.function_signature_at(function_handle.signature)
         function_code = function_def.code
-        locls = module.locals_signature_at(function_code.locls)
+        locls = module.locals_signature_at(function_code.locals)
 
         # Generate names for each type parameter
         for i in range(function_signature.type_formals.__len__()):
@@ -167,7 +170,7 @@ class FunctionSourceMap:
             self.add_type_parameter((name, deepcopy(default_loc)))
 
         # Generate names for each local of the function
-        for i in range(locls[0].__len__()):
+        for i in range(locls.v0.__len__()):
             name = f"loc{i}"
             self.add_local_mapping((name, deepcopy(default_loc)))
 

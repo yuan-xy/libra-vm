@@ -1,6 +1,7 @@
 import argparse, sys, os, json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
+from pathlib import Path
 from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
 from bytecode_verifier.verifier import verify_module_dependencies, VerifiedProgram
 from compiler.lib import Compiler
@@ -46,14 +47,6 @@ def do_verify_module(module: CompiledModule, deps: List[VerifiedModule]) -> Veri
     return verified_module
 
 
-def write_output(path: str, buf: bytes):
-    with open(path, 'w') as file:
-        file.write(buf)
-
-
-def with_extension(file, ext):
-    return file + "." + ext
-
 def main():
     parser = get_parser()
     argv = sys.argv[1:]
@@ -67,11 +60,12 @@ def main():
         address = Address.default()
     else:
         address = bytes.fromhex(address)
+
     source_path = args.source_path[0]
-    mvir_extension = "mvir"
-    mv_extension = "mv"
-    source_map_extension = "mvsm"
-    if not source_path.endswith("."+mvir_extension):
+    mvir_extension = ".mvir"
+    mv_extension = ".mv"
+    source_map_extension = ".mvsm"
+    if not source_path.endswith(mvir_extension):
         print("File extension for input source file should be '{mvir_extension}'")
         sys.exit(1)
 
@@ -91,7 +85,7 @@ def main():
         return
 
     if args.deps_path is not None:
-        deps = fs.read_to_string(args.deps_path)
+        deps = util.read_to_string(args.deps_path)
         deps_list: List[bytes] = json.load(deps) #TTODO: parse deps
         deps = [VerifiedModule.new(CompiledModule.deserialize(x)) for x in deps_list]
     elif args.no_stdlib:
@@ -115,16 +109,13 @@ def main():
 
         if args.output_source_maps:
             source_map_bytes = source_map.__str__() #TTODO: support source_map json
-            write_output(
-                with_extension(source_path, source_map_extension),
-                source_map_bytes,
-            )
+            path = Path(source_path).with_suffix(source_map_extension)
+            path.write_text(source_map_bytes)
 
         script = compiled_program.script.serialize()
-        payload = Script(script, [])
-        # payload_bytes = payload.serialize()
-        payload_bytes = payload.to_json()
-        write_output(with_extension(source_path, mv_extension), payload_bytes)
+        # payload = Script(script, [])
+        # payload_bytes = payload.to_json()
+        Path(source_path).with_suffix(mv_extension).write_bytes(script)
     else:
         (compiled_module, source_map) =\
             util.do_compile_module(source_path, address, deps)
@@ -134,15 +125,12 @@ def main():
 
         if args.output_source_maps:
             source_map_bytes = source_map.__str__()
-            write_output(
-                with_extension(source_path, source_map_extension),
-                source_map_bytes,
-            )
+            Path(source_path).with_suffix(source_map_extension).write_text(source_map_bytes)
 
         module = compiled_module.serialize()
-        payload = Module(module)
-        payload_bytes = payload.to_json()
-        write_output(with_extension(source_path, mv_extension), payload_bytes)
+        # payload = Module(module)
+        # payload_bytes = payload.to_json()
+        Path(source_path).with_suffix(mv_extension).write_bytes(module)
 
 
 if __name__ == '__main__':
