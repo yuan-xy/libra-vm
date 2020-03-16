@@ -26,8 +26,9 @@ def module_source_map_from_file(file_path: str) -> ModuleSourceMap:
     with open(file_path) as f:
         jstr = f.read()
         obj = json.loads(jstr)
+        breakpoint()
+        return ModuleSourceMap.from_dict(obj)
         #TTODO: deserialize ModuleSourceMap
-        return obj
 
 
 def source_map_from_file(file_path: str) -> SourceMap:

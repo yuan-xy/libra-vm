@@ -2,14 +2,16 @@ from __future__ import annotations
 from libra.account_address import Address
 from move_core.types.identifier import Identifier
 from move_ir.types.ast import ModuleName, QualifiedModuleIdent
+from move_ir.types.codespan import Span
 from libra_vm.file_format import (
         AddressPoolIndex, CodeOffset, CompiledModule, CompiledScript, FieldDefinitionIndex,
         FunctionDefinition, FunctionDefinitionIndex, IdentifierIndex, StructDefinition,
         StructDefinitionIndex, TableIndex,
     )
 from libra_vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
-from typing import List, Optional, Any, Union, Tuple, Mapping
+from typing import List, Optional, Any, Union, Tuple, Dict
 from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 from libra.rustlib import list_get, bail
 from copy import deepcopy
 from canoser import Uint64
@@ -17,9 +19,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-Location = Any
+CodeOffset = int #TO support auto deserialize of dataclass
+TableIndex = int
+Location = Span
 SourceName = Tuple[str, Location]
 
+@dataclass_json
 @dataclass
 class StructSourceMap:
     # The source declaration location of the struct
@@ -86,7 +91,7 @@ class StructSourceMap:
             fields,
         )
 
-
+@dataclass_json
 @dataclass
 class FunctionSourceMap:
     # The source location for the definition of this entire function. Note that in certain
@@ -102,7 +107,7 @@ class FunctionSourceMap:
     locls: List[SourceName] = field(default_factory=list)
 
     # The source location map for the function body.
-    code_map: Mapping[CodeOffset, Location] = field(default_factory=dict)
+    code_map: Dict[CodeOffset, Location] = field(default_factory=dict)
 
 
     def add_type_parameter(self, type_name: SourceName):
@@ -197,17 +202,17 @@ class FunctionSourceMap:
             code_map,
         )
 
-
+@dataclass_json
 @dataclass
 class ModuleSourceMap:
     # The name <address.module_name> for module that this source map is for
     module_name: Tuple[Address, Identifier]
 
     # A mapping of StructDefinitionIndex to source map for each struct/resource
-    struct_map: Mapping[TableIndex, StructSourceMap]
+    struct_map: Dict[TableIndex, StructSourceMap]
 
     # A mapping of FunctionDefinitionIndex to the soure map for that function.
-    function_map: Mapping[TableIndex, FunctionSourceMap]
+    function_map: Dict[TableIndex, FunctionSourceMap]
 
     @classmethod
     def new(cls, module_name: QualifiedModuleIdent) -> ModuleSourceMap:

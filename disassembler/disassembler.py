@@ -491,9 +491,10 @@ class Disassembler:
 
 
     def disassemble(self) -> str:
+        addr = self.source_mapper.source_map.module_name[0]
         name = format_str(
             "{}.{}",
-            self.source_mapper.source_map.module_name[0].hex()[0:4],
+            bytes(addr).hex()[0:4],
             self.source_mapper.source_map.module_name[1]
         )
 

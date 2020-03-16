@@ -4,6 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from pathlib import Path
 from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
 from bytecode_verifier.verifier import verify_module_dependencies, VerifiedProgram
+# from compiler.bytecode_source_map.source_map import ModuleSourceMap
 from compiler.lib import Compiler
 from compiler import util
 from compiler.ir_to_bytecode.parser import parse_module, parse_script
@@ -109,7 +110,7 @@ def main():
             compiled_program = verified_program.into_inner()
 
         if args.output_source_maps:
-            source_map_bytes = source_map.__str__() #TTODO: support source_map json
+            source_map_bytes = source_map[0].to_json()
             path = Path(source_path).with_suffix(source_map_extension)
             path.write_text(source_map_bytes)
 
@@ -127,7 +128,7 @@ def main():
             compiled_module = verified_module.into_inner()
 
         if args.output_source_maps:
-            source_map_bytes = source_map.__str__()
+            source_map_bytes = source_map.to_json()
             Path(source_path).with_suffix(source_map_extension).write_text(source_map_bytes)
 
         module = compiled_module.serialize()
