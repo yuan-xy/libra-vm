@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm.runtime_types.loaded_data import Type
+from move_vm.types.loaded_data import Type
 from libra_vm.file_format import Kind, StructHandleIndex
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier

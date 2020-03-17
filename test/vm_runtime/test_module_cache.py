@@ -14,7 +14,7 @@ from libra.vm_error import StatusCode, VMStatus, StatusType
 from libra_vm.file_format import *
 from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from libra_vm.gas_schedule import GasAlgebra, GasUnits
-from libra_vm.runtime_types.loaded_data import StructDef, Type
+from move_vm.types.loaded_data import StructDef, Type
 from typing import List, Optional, Mapping
 from libra_vm import signature_token_help
 from dataclasses import dataclass, field

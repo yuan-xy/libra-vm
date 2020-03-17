@@ -9,8 +9,8 @@ from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 
-from libra_vm.runtime_types.native_functions.dispatch import NativeFunction
-from libra_vm.runtime_types.native_structs import resolve_native_struct
+from move_vm.types.native_functions.dispatch import NativeFunction
+from move_vm.types.native_structs import resolve_native_struct
 
 from libra_vm import ModuleAccess, ScriptAccess, IndexKind, Resolver
 from libra_vm.vm_exception import VMException
@@ -292,8 +292,8 @@ def verify_native_functions(module_view: ModuleView) -> List[VMStatus]:
 
         function_name = native_function_definition_view.name()
 
-        import libra_vm
-        vm_native_function = libra_vm.runtime_types.native_functions.dispatch.resolve_native_function(module_id, function_name)
+        import move_vm
+        vm_native_function = move_vm.types.native_functions.dispatch.resolve_native_function(module_id, function_name)
         # vm_native_function = NativeFunction.resolve(module_id, function_name)
         if vm_native_function is None:
             errors.append(verification_error(

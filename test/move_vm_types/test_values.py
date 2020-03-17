@@ -1,4 +1,4 @@
-from libra_vm.runtime_types.values import *
+from move_vm.types.values import *
 from libra_vm.errors import *
 import pytest
 

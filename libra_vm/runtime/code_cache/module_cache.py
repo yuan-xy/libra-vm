@@ -13,9 +13,9 @@ from libra_vm.file_format import (
     )
 from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from libra_vm.views import FunctionHandleView, StructHandleView
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.native_structs import resolve_native_struct
-from libra_vm.runtime_types.type_context import TypeContext
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.native_structs import resolve_native_struct
+from move_vm.types.type_context import TypeContext
 from typing import List, Optional, Mapping
 from dataclasses import dataclass, field
 from copy import deepcopy

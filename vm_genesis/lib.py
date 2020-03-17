@@ -25,7 +25,7 @@ from libra_vm.runtime.chain_state import ChainState, TransactionExecutionContext
 from libra_vm.runtime.data_cache import BlockDataCache
 from libra_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import *
-from libra_vm.runtime_types.values import Value
+from move_vm.types.values import Value
 from multiaddr import Multiaddr
 
 def assert_equal_bail(a, b, hint, *args):

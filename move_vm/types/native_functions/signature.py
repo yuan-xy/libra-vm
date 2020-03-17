@@ -1,7 +1,7 @@
 from __future__ import annotations
-from libra_vm.runtime_types.native_functions import pop_arg, native_gas, NativeResult
-from libra_vm.runtime_types.native_functions.primitive_helpers import check_arg_number
-from libra_vm.runtime_types.values import Value
+from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
+from move_vm.types.native_functions.primitive_helpers import check_arg_number
+from move_vm.types.values import Value
 from libra_vm.vm_exception import VMException
 from libra_vm.gas_schedule import CostTable, NativeCostIndex
 from libra.crypto.ed25519 import ED25519_SIGNATURE_LENGTH

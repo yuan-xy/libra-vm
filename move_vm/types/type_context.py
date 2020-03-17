@@ -1,6 +1,6 @@
 from __future__ import annotations
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.native_structs import NativeStructType
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.native_structs import NativeStructType
 from libra_vm import VMException, format_str
 from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import bail

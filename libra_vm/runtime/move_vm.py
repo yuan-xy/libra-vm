@@ -10,8 +10,8 @@ from bytecode_verifier import VerifiedModule
 from libra_vm.gas_schedule import CostTable
 from libra_vm.file_format_common import Opcodes
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime_types.loaded_data import StructDef
-from libra_vm.runtime_types.values import Value
+from move_vm.types.loaded_data import StructDef
+from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
 

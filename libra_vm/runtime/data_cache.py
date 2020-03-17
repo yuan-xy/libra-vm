@@ -4,8 +4,8 @@ from libra.access_path import AccessPath
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet, WriteSetMut
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.values import GlobalValue, Value
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.values import GlobalValue, Value
 from libra_vm.vm_exception import VMException
 from libra_vm.errors import *
 from typing import List, Optional, Mapping

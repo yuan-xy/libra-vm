@@ -1,9 +1,9 @@
 from __future__ import annotations
-from libra_vm.runtime_types.native_functions import native_gas, NativeResult, NativeFunction
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.values import *
+from move_vm.types.native_functions import native_gas, NativeResult, NativeFunction
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.values import *
 
-from libra_vm.runtime_types.native_structs import NativeStructTag, NativeStructType
+from move_vm.types.native_structs import NativeStructTag, NativeStructType
 from libra.account_address import Address, ADDRESS_LENGTH
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.language_storage import ModuleId, TypeTag, StructTag

@@ -1,7 +1,7 @@
 from __future__ import annotations
-from libra_vm.runtime_types.ref_cell import RefCell, Ref, RefMut, RefCellCanoser
-from libra_vm.runtime_types.native_functions import native_gas, NativeResult, NativeFunction
-from libra_vm.runtime_types.loaded_data import StructDef, Type
+from move_vm.types.ref_cell import RefCell, Ref, RefMut, RefCellCanoser
+from move_vm.types.native_functions import native_gas, NativeResult, NativeFunction
+from move_vm.types.loaded_data import StructDef, Type
 
 from libra.account_address import Address, ADDRESS_LENGTH
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
@@ -38,7 +38,7 @@ import gc
 """
 
 class ContainerRefCell(RefCellCanoser):
-    delegate_type = 'libra_vm.runtime_types.values.Container'
+    delegate_type = 'move_vm.types.values.Container'
 
 
 # Runtime representation of a Move value.
@@ -53,8 +53,8 @@ class ValueImpl(RustEnum):
         ('ByteArray', bytes),
         ('Address', Address),
         ('Container', ContainerRefCell),
-        ('ContainerRef', 'libra_vm.runtime_types.values.ContainerRef'),
-        ('IndexedRef', 'libra_vm.runtime_types.values.IndexedRef')
+        ('ContainerRef', 'move_vm.types.values.ContainerRef'),
+        ('IndexedRef', 'move_vm.types.values.IndexedRef')
     ]
 
 
@@ -389,7 +389,7 @@ class GlobalDataStatusRefCell(RefCellCanoser):
 class ContainerRef(RustEnum):
     _enums = [
         ('Local', ContainerRefCell),
-        ('Global', 'libra_vm.runtime_types.values.GlobalValue')
+        ('Global', 'move_vm.types.values.GlobalValue')
     ]
 
     def borrow(self) -> Ref:

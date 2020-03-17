@@ -1,4 +1,4 @@
-from libra_vm.runtime_types.ref_cell import *
+from move_vm.types.ref_cell import *
 from canoser import DelegateT
 import pytest
 

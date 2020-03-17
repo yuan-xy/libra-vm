@@ -24,9 +24,9 @@ from libra_vm.file_format import (
 from libra_vm.gas_schedule import CostTable, GAS_SCHEDULE_NAME
 from libra_vm.file_format_common import Opcodes
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.type_context import TypeContext
-from libra_vm.runtime_types.values import Value
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.type_context import TypeContext
+from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
 

@@ -22,7 +22,7 @@ from libra_vm.vm_exception import VMException
 from libra_vm.errors import convert_prologue_runtime_error, format_str
 from libra_vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, GAS_SCHEDULE_NAME
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime_types.values import Value
+from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Union
 from libra.rustlib import usize

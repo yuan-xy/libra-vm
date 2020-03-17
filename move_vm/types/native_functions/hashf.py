@@ -1,6 +1,6 @@
 from __future__ import annotations
-from libra_vm.runtime_types.native_functions import pop_arg, native_gas, NativeResult
-from libra_vm.runtime_types.values import Value
+from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
+from move_vm.types.values import Value
 from libra_vm.vm_exception import VMException
 from libra_vm.gas_schedule import CostTable, NativeCostIndex
 from libra.hasher import HashValue, new_sha3_256

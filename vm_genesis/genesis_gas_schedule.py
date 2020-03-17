@@ -8,8 +8,8 @@ from libra_vm.runtime.chain_state import TransactionExecutionContext
 from libra_vm.runtime.data_cache import RemoteCache
 from libra_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
-from libra_vm.runtime_types.loaded_data import Type
-from libra_vm.runtime_types.values import Value
+from move_vm.types.loaded_data import Type
+from move_vm.types.values import Value
 
 # This file contains the starting gas schedule published at genesis.
 

@@ -29,10 +29,10 @@ from libra_vm.gas_schedule import (
     )
 from libra_vm.file_format_common import Opcodes, SerializedType
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime_types.loaded_data import StructDef, Type
-from libra_vm.runtime_types.native_functions.dispatch import NativeFunction
-from libra_vm.runtime_types.type_context import TypeContext
-from libra_vm.runtime_types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
+from move_vm.types.loaded_data import StructDef, Type
+from move_vm.types.native_functions.dispatch import NativeFunction
+from move_vm.types.type_context import TypeContext
+from move_vm.types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
 from typing import List, Optional, Mapping, Callable, Any, Tuple
 from dataclasses import dataclass, field
 from canoser import BoolT, Uint8, Uint64, Uint128, BytesT
@@ -667,8 +667,8 @@ class Interpreter:
         module = function.module()
         module_id = module.self_id()
         function_name = function.name()
-        import libra_vm
-        native_function = libra_vm.runtime_types.native_functions.dispatch.resolve_native_function(module_id, function_name)
+        import move_vm
+        native_function = move_vm.types.native_functions.dispatch.resolve_native_function(module_id, function_name)
         # native_function = NativeFunction.resolve(module_id, function_name)
             #.ok_or_else(|| VMStatus(StatusCode.LINKER_ERROR))
         if module_id == ACCOUNT_MODULE and function_name == EMIT_EVENT_NAME:

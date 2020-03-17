@@ -14,10 +14,10 @@ class Type(RustEnum):  # order not same with SerializedType
         ('U128', None),
         ('ByteArray', None),
         ('Address', None),
-        ('Vector', 'libra_vm.runtime_types.loaded_data.Type'),
-        ('Struct', 'libra_vm.runtime_types.loaded_data.StructDef'),
-        ('Reference', 'libra_vm.runtime_types.loaded_data.Type'),
-        ('MutableReference', 'libra_vm.runtime_types.loaded_data.Type'),
+        ('Vector', 'move_vm.types.loaded_data.Type'),
+        ('Struct', 'move_vm.types.loaded_data.StructDef'),
+        ('Reference', 'move_vm.types.loaded_data.Type'),
+        ('MutableReference', 'move_vm.types.loaded_data.Type'),
         ('TypeVariable', Uint16)
     ]
 
@@ -39,7 +39,7 @@ class StructDefInner(Struct):
 class StructDef(RustEnum):
     _enums = [
         ('Struct', StructDefInner),
-        ('Native', 'libra_vm.runtime_types.native_structs.NativeStructType')
+        ('Native', 'move_vm.types.native_structs.NativeStructType')
     ]
 
     @classmethod

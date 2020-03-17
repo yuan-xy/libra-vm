@@ -10,7 +10,7 @@ from libra_vm.file_format import (
     )
 from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from libra_vm.internals import ModuleIndex
-from libra_vm.runtime_types.loaded_data import StructDef
+from move_vm.types.loaded_data import StructDef
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass
 import abc
