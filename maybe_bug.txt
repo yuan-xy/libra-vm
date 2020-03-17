@@ -1,8 +1,9 @@
-bytecode_verifier/struct_def.rs
-        // The fields iterator is an option in the case of native structs. Flatten makes an empty
-        // iterator for that case
-        let fields = struct_def.fields().into_iter().flatten();
+disassembler.rs
+--script 说明不对
 
+反汇编native的函数出错：
+ p3 disassembler/main.py -b compiler/ir_stdlib/modules/address_util.mv
+ RUST_BACKTRACE=1 cargo run -p disassembler -- -b language/compiler/src/ir_stdlib/modules/hash.mv
 
 
 函数签名顺序不一致

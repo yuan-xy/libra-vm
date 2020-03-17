@@ -26,16 +26,14 @@ def module_source_map_from_file(file_path: str) -> ModuleSourceMap:
     with open(file_path) as f:
         jstr = f.read()
         obj = json.loads(jstr)
-        breakpoint()
         return ModuleSourceMap.from_dict(obj)
-        #TTODO: deserialize ModuleSourceMap
 
 
 def source_map_from_file(file_path: str) -> SourceMap:
     with open(file_path) as f:
-        obj = json.load(f)
-        #TTODO: deserialize SourceMap
-        return obj
+        jstr = f.read()
+        obj = json.loads(jstr)
+        return [ModuleSourceMap.from_dict(x) for x in obj]
 
 def render_errors(source_mapper: SourceMapping, errors: Errors) -> None:
     if source_mapper.source_code is not None:

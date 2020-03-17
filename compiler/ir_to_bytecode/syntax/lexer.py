@@ -190,7 +190,7 @@ class Lexer:
         lenn: usize,
     ) -> None:
         self.token = token
-        self.cur_end = self.cur_start.wrapping_add(lenn) # memory will run out long before this wraps
+        self.cur_end = self.cur_start + lenn
 
 
 

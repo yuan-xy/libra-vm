@@ -214,12 +214,12 @@ class Disassembler:
 
         elif sig_tok.tag == SerializedType.TYPE_PARAMETER:
             ty_param_index = sig_tok.typeParameter
-            if ty_param_index not in type_param_context:
+            if ty_param_index < 0 or ty_param_index > len(type_param_context):
                 bail(
                     "Type parameter index {} out of bounds while disassembling type signature",
                     ty_param_index
                 )
-            return type_param_context[ty_param_index]
+            return type_param_context[ty_param_index][0]
 
         else:
             bail("unreachable!")
