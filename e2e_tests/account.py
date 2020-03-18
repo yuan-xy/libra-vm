@@ -43,7 +43,7 @@ class Account:
     def new(cls) -> Account:
         # replace `rng` by None (making the function deterministic) and watch the
         # functional_tests fail!
-        privk, pubk = generate_keypair("rng")
+        privkey, pubkey = generate_keypair("rng")
         return cls.with_keypair(privkey, pubkey)
 
 

@@ -1,6 +1,11 @@
 disassembler.rs
 --script 说明不对
 
+e2e-test/account.rs
+create_user_txn
+TransactionPayload.Program is deprecated.
+
+
 反汇编native的函数出错：
  p3 disassembler/main.py -b compiler/ir_stdlib/modules/address_util.mv
  RUST_BACKTRACE=1 cargo run -p disassembler -- -b language/compiler/src/ir_stdlib/modules/hash.mv
