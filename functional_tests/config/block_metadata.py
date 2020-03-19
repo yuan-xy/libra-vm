@@ -7,7 +7,7 @@ from libra import HashValue
 from libra.block_metadata import BlockMetadata
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
-from typing import Any, List, Optional, Mapping
+from typing import Any, List, Optional, Mapping, Union
 from enum import Enum
 from canoser import Uint64
 
