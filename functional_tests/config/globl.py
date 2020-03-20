@@ -59,10 +59,21 @@ class Entry:
         else:
             return False
 
+
+    @classmethod
+    def try_parse(cls, s: str) -> Optional[Entry]:
+        try:
+            return cls.from_str(s)
+        except:
+            return None
+
     @classmethod
     def from_str(cls, s: str) -> Entry:
         s = "".join(s.split())
-        s = strip(s, "//!").lstrip()
+        s = strip(s, "//!")
+        if not s:
+            return None
+        s = s.lstrip()
         s = strip(s, "account:")
         if s:
             v = flatten([x.split() for x in s.split(",")])

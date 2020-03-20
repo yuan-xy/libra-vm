@@ -93,9 +93,9 @@ class Entry:
 
     @classmethod
     def try_parse(cls, s: str) -> Optional[Entry]:
-        if s.startswith("//!"):
+        try:
             return cls.from_str(s)
-        else:
+        except:
             return None
 
 
@@ -179,7 +179,7 @@ class Config:
                 bail("unreachable!")
 
         if sender is None:
-            sender = config.accounts.get("default").account()
+            sender = config.accounts.get("default").account
         if args is None:
             args = []
 

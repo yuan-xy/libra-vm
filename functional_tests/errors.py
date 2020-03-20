@@ -23,4 +23,8 @@ class ErrorKind(Exception):
     tag: ErrorKindTag
     value: Union[TransactionOutput, VMStatus, str]
 
+    @classmethod
+    def Other(cls, msg:str):
+        return cls(ErrorKindTag.Other, msg)
+
 

@@ -3,7 +3,7 @@ from functional_tests.config.globl import Config as GlobalConfig
 from functional_tests.config.transaction import is_new_transaction, Config, Entry
 from functional_tests.errors import *
 from functional_tests.tests.mod import parse_each_line_as
-from functional_tests.tests.global_config_tests import parse_and_build_config as parse_and_build_global_config
+from functional_tests.tests.global_config_test import parse_and_build_config as parse_and_build_global_config
 import pytest
 
 

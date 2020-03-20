@@ -163,8 +163,17 @@ class Directive:
         return self.value
 
 
+    @classmethod
+    def try_parse(cls, s: str) -> Optional[List[SpDirective]]:
+        try:
+            return cls.parse_line(s)
+        except:
+            return None
+
+
     # Parses the line and extracts one or more directives from it.
-    def parse_line(s: str) -> List[SpDirective]:
+    @classmethod
+    def parse_line(cls, s: str) -> List[SpDirective]:
         # TODO: rewrite how the offset is counted.
         offset = 0
 
@@ -179,7 +188,6 @@ class Directive:
                         offset += idx
                         return s[idx:]
                 else:
-                    breakpoint()
                     return s[len(s):]
 
         def stripm(s: str, pat: str):
