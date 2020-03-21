@@ -4,7 +4,8 @@ from functional_tests.errors import *
 from functional_tests.genesis_accounts import make_genesis_accounts
 from e2e_tests.account import Account, AccountData
 from libra.validator_set import ValidatorSet
-# from libra_crypto.PrivateKey
+from libra.crypto.ed25519 import _generate_keypair_by_private_key
+from vm_genesis.main import rust_validator_set
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
@@ -124,15 +125,19 @@ class Config:
 
         # generate a validator set with |validator_accounts| validators
         if validator_accounts > 0:
-            swarm = generator.validator_swarm_for_testing(validator_accounts)
-            validator_keys = {} #BTreeMap<_, _>
-            for c in swarm.nodes:
-                peer_id = c.validator_network.peer_id
-                account_keypair = c.test.as_mut().account_keypair.as_mut()
-                privkey = account_keypair.take_private()
-                validator_keys[peer_id] = privkey
+            assert validator_accounts <= 10
+            validator_set = rust_validator_set()[0:validator_accounts]
+            validator_keys = {x.account_address: b'\x00'*32 for x in validator_set}
 
-            (validator_keys, validator_set) = (validator_keys, swarm.validator_set)
+            # swarm = generator.validator_swarm_for_testing(validator_accounts)
+            # validator_keys = {} #BTreeMap<_, _>
+            # for c in swarm.nodes:
+            #     peer_id = c.validator_network.peer_id
+            #     account_keypair = c.test.as_mut().account_keypair.as_mut()
+            #     privkey = account_keypair.take_private()
+            #     validator_keys[peer_id] = privkey
+
+            (validator_keys, validator_set) = (validator_keys, validator_set)
         else:
             (validator_keys, validator_set) = ({}, [])
 
@@ -143,10 +148,12 @@ class Config:
             ddef = entry.accountDefinition
             if entry.is_validator():
                 validator_accounts -= 1
-                privkey = validator_keys.iter().nth(validator_accounts)[1]
+                # privkey = validator_keys.iter().nth(validator_accounts)[1]
+                privkey = bytes([validator_accounts] * 32)
+                privkey, pubkey = _generate_keypair_by_private_key(privkey)
                 account_data = AccountData.with_keypair(
-                    privkey.clone(),
-                    privkey.public_key(),
+                    privkey,
+                    pubkey,
                     ddef.balance,
                     ddef.sequence_number,
                 )

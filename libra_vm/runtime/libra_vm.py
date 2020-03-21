@@ -20,7 +20,10 @@ from libra.vm_error import StatusCode, SubStatus, VMStatus
 from libra.transaction import WriteSet
 from libra_vm.vm_exception import VMException
 from libra_vm.errors import convert_prologue_runtime_error, format_str
-from libra_vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, GAS_SCHEDULE_NAME
+from libra_vm.gas_schedule import (
+    AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, GAS_SCHEDULE_NAME,
+    MAXIMUM_NUMBER_OF_GAS_UNITS, MAX_PRICE_PER_GAS_UNIT, MIN_PRICE_PER_GAS_UNIT, calculate_intrinsic_gas
+)
 from libra_vm.transaction_metadata import TransactionMetadata
 from move_vm.types.values import Value
 from dataclasses import dataclass
@@ -42,9 +45,9 @@ class LibraVM(VMVerifier, VMExecutor):
     gas_schedule: Optional[CostTable] = None
     config: VMConfig = None
 
-
+    @classmethod
     def new(cls, config=None) -> LibraVM:
-        return cls(MoveVM.new(), config=config)
+        return cls(MoveVM.new(), None, config)
 
 
     # Provides access to some internal APIs of the Libra VM.
@@ -62,13 +65,13 @@ class LibraVM(VMVerifier, VMExecutor):
 
     def fetch_gas_schedule(self, data_cache: RemoteCache) -> CostTable:
         try:
-            address = AccountConfig.association_address()
+            address = AccountConfig.association_address_bytes()
             ctx = SystemExecutionContext.new(data_cache, GasUnits.new(0))
             gas_struct_tag = self.move_vm\
                 .resolve_struct_tag_by_name(GAS_SCHEDULE_MODULE, GAS_SCHEDULE_NAME, ctx)
                 # .map_err(|_| {
                 #     VMStatus(StatusCode.GAS_SCHEDULE_ERROR)
-                #         .with_sub_status(sub_status.GSE_UNABLE_TO_LOAD_MODULE)
+                #         .with_sub_status(SubStatus.GSE_UNABLE_TO_LOAD_MODULE)
                 # })
 
             access_path = create_access_path(address, gas_struct_tag)
@@ -77,15 +80,15 @@ class LibraVM(VMVerifier, VMExecutor):
             return table
         except Exception as err:
             raise VMException(VMStatus(StatusCode.GAS_SCHEDULE_ERROR)\
-                    .with_sub_status(sub_status.GSE_UNABLE_TO_LOAD_RESOURCE))
+                    .with_sub_status(SubStatus.GSE_UNABLE_TO_LOAD_RESOURCE))
 
 
     def get_gas_schedule(self) -> CostTable:
         if self.gas_schedule:
-            return gas_schedule
+            return self.gas_schedule
         else:
             raise VMException(VMStatus(StatusCode.VM_STARTUP_FAILURE)
-                .with_sub_status(sub_status.VSF_GAS_SCHEDULE_NOT_FOUND))
+                .with_sub_status(SubStatus.VSF_GAS_SCHEDULE_NOT_FOUND))
 
 
     def check_payload(
@@ -155,16 +158,16 @@ class LibraVM(VMVerifier, VMExecutor):
         # The submitted max gas units that the transaction can consume is greater than the
         # maximum number of gas units bound that we have set for any
         # transaction.
-        if txn.max_gas_amount() > gas_schedule.MAXIMUM_NUMBER_OF_GAS_UNITS.get():
+        if txn.max_gas_amount > MAXIMUM_NUMBER_OF_GAS_UNITS.get():
             error_str = format_str(
                 "max gas units: {}, gas units submitted: {}",
-                gas_schedule.MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
-                txn.max_gas_amount()
+                MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
+                txn.max_gas_amount
             )
             logger.warning(
                 "[VM] Gas unit error; max {}, submitted {}",
-                gas_schedule.MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
-                txn.max_gas_amount()
+                MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
+                txn.max_gas_amount
             )
             raise VMException(
                 VMStatus(StatusCode.MAX_GAS_UNITS_EXCEEDS_MAX_GAS_UNITS_BOUND)
@@ -175,17 +178,17 @@ class LibraVM(VMVerifier, VMExecutor):
         # The submitted transactions max gas units needs to be at least enough to cover the
         # intrinsic cost of the transaction as calculated against the size of the
         # underlying `RawTransaction`
-        min_txn_fee = gas_schedule.calculate_intrinsic_gas(raw_bytes_len)
-        if txn.max_gas_amount() < min_txn_fee.get():
+        min_txn_fee = calculate_intrinsic_gas(raw_bytes_len)
+        if txn.max_gas_amount < min_txn_fee.get():
             error_str = format_str(
                 "min gas required for txn: {}, gas submitted: {}",
                 min_txn_fee.get(),
-                txn.max_gas_amount()
+                txn.max_gas_amount
             )
             logger.warning(
                 "[VM] Gas unit error; min {}, submitted {}",
                 min_txn_fee.get(),
-                txn.max_gas_amount()
+                txn.max_gas_amount
             )
             raise VMException(
                 VMStatus(StatusCode.MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS)
@@ -197,17 +200,17 @@ class LibraVM(VMVerifier, VMExecutor):
         # NB: MIN_PRICE_PER_GAS_UNIT may equal zero, but need not in the future. Hence why
         # we turn off the clippy warning.
         #[allow(clippy.absurd_extreme_comparisons)]
-        below_min_bound = txn.gas_unit_price() < gas_schedule.MIN_PRICE_PER_GAS_UNIT.get()
+        below_min_bound = txn.gas_unit_price < MIN_PRICE_PER_GAS_UNIT.get()
         if below_min_bound:
             error_str = format_str(
                 "gas unit min price: {}, submitted price: {}",
-                gas_schedule.MIN_PRICE_PER_GAS_UNIT.get(),
-                txn.gas_unit_price()
+                MIN_PRICE_PER_GAS_UNIT.get(),
+                txn.gas_unit_price
             )
             logger.warning(
                 "[VM] Gas unit error; min {}, submitted {}",
-                gas_schedule.MIN_PRICE_PER_GAS_UNIT.get(),
-                txn.gas_unit_price()
+                MIN_PRICE_PER_GAS_UNIT.get(),
+                txn.gas_unit_price
             )
             raise VMException(
                 VMStatus(StatusCode.GAS_UNIT_PRICE_BELOW_MIN_BOUND).with_message(error_str)
@@ -215,16 +218,16 @@ class LibraVM(VMVerifier, VMExecutor):
 
 
         # The submitted gas price is greater than the maximum gas unit price set by the VM.
-        if txn.gas_unit_price() > gas_schedule.MAX_PRICE_PER_GAS_UNIT.get():
+        if txn.gas_unit_price > MAX_PRICE_PER_GAS_UNIT.get():
             error_str = format_str(
                 "gas unit max price: {}, submitted price: {}",
-                gas_schedule.MAX_PRICE_PER_GAS_UNIT.get(),
-                txn.gas_unit_price()
+                MAX_PRICE_PER_GAS_UNIT.get(),
+                txn.gas_unit_price
             )
             logger.warning(
                 "[VM] Gas unit error; min {}, submitted {}",
-                gas_schedule.MAX_PRICE_PER_GAS_UNIT.get(),
-                txn.gas_unit_price()
+                MAX_PRICE_PER_GAS_UNIT.get(),
+                txn.gas_unit_price
             )
             raise VMException(
                 VMStatus(StatusCode.GAS_UNIT_PRICE_ABOVE_MAX_BOUND).with_message(error_str)
@@ -237,16 +240,17 @@ class LibraVM(VMVerifier, VMExecutor):
         state_view: StateView,
         remote_cache: RemoteCache,
     ) -> VerifiedTranscationPayload:
+        transaction = transaction.into_inner()
         ctx = SystemExecutionContext.new(remote_cache, GasUnits.new(0))
         self.check_gas(transaction)
-        self.check_payload(transaction.payload(), state_view)
+        self.check_payload(transaction.payload, state_view)
         txn_data = TransactionMetadata.new(transaction)
         if transaction.payload.Script:
             script = transaction.payload.value
             self.run_prologue(ctx, txn_data)
             return VerifiedTranscationPayload('Script',(
-                script.code(),
-                script.args(),
+                script.code,
+                script.args,
             ))
         elif transaction.payload.Module:
             module = transaction.payload.value
@@ -265,7 +269,7 @@ class LibraVM(VMVerifier, VMExecutor):
         txn_data: TransactionMetadata,
         payload: VerifiedTranscationPayload,
     ) -> TransactionOutput:
-        ctx = TransactionExecutionContext.new(txn_data.max_gas_amount(), remote_cache)
+        ctx = TransactionExecutionContext.new(txn_data.max_gas_amount, remote_cache)
         # TODO: The logic for handling falied transaction fee is pretty ugly right now. Fix it later.
         failed_gas_left = GasUnits.new(0)
         try:
@@ -289,19 +293,21 @@ class LibraVM(VMVerifier, VMExecutor):
                 exec_flag = True
             else:
                 return discard_error_output(VMStatus(StatusCode.UNKNOWN_STATUS))
-        except Exception as err:
-            failed_gas_left = ctx.gas_left()
+        except VMException as error:
+            err = error
+            failed_gas_left = ctx.gas_left
             exec_flag = False
         if exec_flag:
             try:
-                failed_gas_left = ctx.gas_left()
+                failed_gas_left = ctx.gas_left
                 gas_free_ctx = SystemExecutionContext.From(ctx)
                 self.run_epilogue(gas_free_ctx, txn_data)
                 return gas_free_ctx.get_transaction_output(txn_data, VMStatus(StatusCode.EXECUTED))
-            except Exception as err:
+            except VMException as error:
+                err = error
                 exec_flag = False
-        assert exec_flag == False
-        self.failed_transaction_cleanup(err, failed_gas_left, txn_data, remote_cache)
+        if exec_flag == False:
+            return self.failed_transaction_cleanup(err.vm_status[0], failed_gas_left, txn_data, remote_cache)
 
 
     # Generates a transaction output for a transaction that encountered errors during the
@@ -318,11 +324,11 @@ class LibraVM(VMVerifier, VMExecutor):
         if ts.tag == TransactionStatus.Keep:
             try:
                 self.run_epilogue(gas_free_ctx, txn_data)
-                gas_free_ctx.get_transaction_output(txn_data, error_code)
-            except Exception as err:
-                discard_error_output(err.vm_status[0])
+                return gas_free_ctx.get_transaction_output(txn_data, error_code)
+            except VMException as err:
+                return discard_error_output(err.vm_status[0])
         elif ts.tag == TransactionStatus.Discard:
-            discard_error_output(error_code)
+            return discard_error_output(error_code)
         else:
             bail("unreachable!")
 
@@ -332,7 +338,7 @@ class LibraVM(VMVerifier, VMExecutor):
         remote_cache: BlockDataCache,
         txn: SignatureCheckedTransaction,
     ) -> TransactionOutput:
-        txn_data = TransactionMetadata.new(txn)
+        txn_data = TransactionMetadata.new(txn.into_inner())
         verified_payload = self.verify_transaction_impl(txn, state_view, remote_cache)
         # verified_payload = record_stats! {time_hist | TXN_VERIFICATION_TIME_TAKEN | {
         #     self.verify_transaction_impl(txn, state_view, remote_cache)
@@ -454,7 +460,7 @@ class LibraVM(VMVerifier, VMExecutor):
         txn_sequence_number = txn_data.sequence_number
         txn_gas_price = txn_data.gas_unit_price.get()
         txn_max_gas_units = txn_data.max_gas_amount.get()
-        gas_remaining = chain_state.remaining_gas.get()
+        gas_remaining = chain_state.remaining_gas().get()
         # record_stats! {time_hist | TXN_EPILOGUE_TIME_TAKEN | {
         self.move_vm.execute_function(
             ACCOUNT_MODULE,
@@ -485,7 +491,7 @@ class LibraVM(VMVerifier, VMExecutor):
             if block.UserTransaction:
                 outs =\
                     self.execute_user_transactions(block.value, data_cache, state_view)
-                result.append(outs)
+                result.extend(outs)
             elif block.BlockPrologue:
                 result.append(self.process_block_prologue(data_cache, block.value))
             elif block.WriteSet:
@@ -509,7 +515,7 @@ class LibraVM(VMVerifier, VMExecutor):
         for txn in signature_verified_block:
             # record_stats! {time_hist | TXN_TOTAL_TIME_TAKEN | {
             if isinstance(txn, SignatureCheckedTransaction):
-                outout = self.execute_user_transaction(state_view, data_cache, txn)
+                output = self.execute_user_transaction(state_view, data_cache, txn)
             else:
                 output = discard_error_output(txn)
 
@@ -635,33 +641,33 @@ def chunk_block_transactions(txns: List[Transaction]) -> List[TransactionBlock]:
     for txn in txns:
         if txn.BlockMetadata:
             if buf:
-                blocks.append(TransactionBlock.UserTransaction(buf))
+                blocks.append(TransactionBlock('UserTransaction', buf))
                 buf = []
-            blocks.append(TransactionBlock.BlockPrologue(txn.value))
+            blocks.append(TransactionBlock('BlockPrologue', txn.value))
         elif txn.WriteSet:
             if buf:
-                blocks.append(TransactionBlock.UserTransaction(buf))
+                blocks.append(TransactionBlock('UserTransaction', buf))
                 buf = []
-            blocks.append(TransactionBlock.WriteSet(txn.value))
+            blocks.append(TransactionBlock('WriteSet', txn.value))
         elif txn.UserTransaction:
             txn = txn.value
             if txn.payload.WriteSet:
                 if buf:
-                    blocks.append(TransactionBlock.UserTransaction(buf))
+                    blocks.append(TransactionBlock('UserTransaction', buf))
                     buf = []
-                blocks.append(TransactionBlock.WriteSet(txn.payload.value))
+                blocks.append(TransactionBlock('WriteSet', txn.payload.value))
             else:
                 buf.append(txn)
 
     if buf:
-        blocks.append(TransactionBlock.UserTransaction(buf))
+        blocks.append(TransactionBlock('UserTransaction', buf))
 
     return blocks
 
 
 class VerifiedTranscationPayload(RustEnum):
     _enums = [
-        ('Script', (bytes, List[TransactionArgument])),
+        ('Script', (bytes, [TransactionArgument])),
         ('Module', bytes)
     ]
 

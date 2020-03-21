@@ -15,6 +15,9 @@ from libra_vm.errors import vm_error, Location, VMResult
 from libra_vm.file_format import CompiledScript, ScriptAccess
 from typing import List, Optional, Mapping
 from dataclasses import dataclass, field
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Cache for commonly executed scripts
 
@@ -63,7 +66,8 @@ class ScriptCache:
                 .append_message_with_separator('', err))
 
         try:
-            script = VerifiedScript.new(script)
+            vscript = VerifiedScript.new(script)
+            script = vscript.into_inner()
             # verify dependencies
             script_module = script.self_handle()
             deps = []
@@ -71,15 +75,15 @@ class ScriptCache:
                 if module == script_module:
                     continue
 
-                module_id = ModuleId.new(
-                    script.as_inner().address_at(module.address),
-                    script.as_inner().identifier_at(module.name).to_owned(),
+                module_id = ModuleId(
+                    script.address_at(module.address),
+                    script.identifier_at(module.name),
                 )
                 deps.append(load_and_verify_module_id(module_id, context))
 
-            errs = verify_script_dependencies(script, deps)
+            errs = verify_script_dependencies(vscript, deps)
             if not errs:
-                return script
+                return vscript
         except VMException as err:
             errs = err.vm_status
 

@@ -14,7 +14,8 @@ from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure, bail, usize
 from stdlib import stdlib_modules
 from libra_vm import CompiledModule
-from vm_genesis.lib import GENESIS_KEYPAIR
+from vm_genesis.main import rust_validator_set
+from vm_genesis.lib import make_placeholder_discovery_set, GENESIS_KEYPAIR, encode_genesis_transaction_with_validator_and_modules
 from libra_vm.runtime import LibraVM, VMExecutor, VMVerifier
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
@@ -71,12 +72,12 @@ class FakeExecutor:
         publishing_options: Optional[VMPublishingOption],
     ) -> FakeExecutor:
         config = VMConfig()
-        if vm_publishing_options:
-            config.publishing_options = vm_publishing_options
+        if publishing_options:
+            config.publishing_options = publishing_options
 
         executor = FakeExecutor(
             config,
-            FakeDataStore.default(),
+            FakeDataStore({}),
         )
         executor.apply_write_set(write_set)
         return executor
@@ -119,21 +120,22 @@ class FakeExecutor:
             genesis_write_set = GENESIS_WRITE_SET
         else:
             if validator_set is None:
-                validator_set = generator.validator_swarm_for_testing(10).validator_set
-            discovery_set = vm_genesis.make_placeholder_discovery_set(validator_set)
+                validator_set = rust_validator_set()
+                # validator_set = generator.validator_swarm_for_testing(10).validator_set
+            discovery_set = make_placeholder_discovery_set(validator_set)
             if genesis_modules:
                 stdlib_modules = genesis_modules
             else:
                 stdlib_modules = stdlib_modules()
 
-            txn = vm_genesis.encode_genesis_transaction_with_validator_and_modules(
+            txn = encode_genesis_transaction_with_validator_and_modules(
                 GENESIS_KEYPAIR[0],
                 GENESIS_KEYPAIR[1],
                 validator_set,
                 discovery_set,
                 stdlib_modules,
             )
-            genesis_write_set = txn.payload.value.write_set
+            genesis_write_set = txn.into_inner().payload.value.write_set
 
         return cls.from_genesis(genesis_write_set, publishing_options)
 
@@ -170,7 +172,7 @@ class FakeExecutor:
     # Reads the resource [`Value`] for an account from this executor's data store.
     def read_account_resource(self, account: Account) -> Optional[AccountResource]:
         ap = account.make_access_path()
-        data_blob = StateView.get(self.data_store, ap)
+        data_blob = self.data_store.get(ap)
         return AccountResource.deserialize(data_blob)
 
 
@@ -183,10 +185,7 @@ class FakeExecutor:
         txn_block: List[SignedTransaction],
     ) -> List[TransactionOutput]:
         return LibraVM.execute_block(
-            [x.value for x in txn_block],
-                # .into_iter()
-                # .map(Transaction.UserTransaction)
-                # .collect(),
+            [Transaction('UserTransaction', x) for x in txn_block],
             self.config,
             self.data_store,
         )
@@ -226,7 +225,7 @@ class FakeExecutor:
 
     # Get the blob for the associated AccessPath
     def read_from_access_path(self, path: AccessPath) -> Optional[bytes]:
-        return StateView.get(self.data_store, path)
+        return self.data_store.get(path)
 
 
     # Verifies the given transaction by running it through the VM verifier.

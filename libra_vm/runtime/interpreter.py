@@ -151,7 +151,7 @@ class Interpreter:
     ) -> None:
         # We charge an intrinsic amount of gas based upon the size of the transaction submitted
         # (in raw bytes).
-        txn_size = txn_data.transaction_size()
+        txn_size = txn_data.transaction_size
         # The callers of this function verify the transaction before executing it. Transaction
         # verification ensures the following condition.
         assert (txn_size.get() <= (MAX_TRANSACTION_SIZE_IN_BYTES))

@@ -2059,9 +2059,9 @@ def parse_script_or_module(
     tokens: Lexer,
 ) -> ScriptOrModule:
     if tokens.peek() == Tok.Module:
-        return ScriptOrModule(ScriptOrModule.MODULE, parse_module(token))
+        return ScriptOrModule(ScriptOrModule.MODULE, parse_module(tokens))
     else:
-        return ScriptOrModule(ScriptOrModule.SCRIPT, parse_script(token))
+        return ScriptOrModule(ScriptOrModule.SCRIPT, parse_script(tokens))
 
 
 def parse_cmd_string(file: str, inputs: str) -> Cmd_:

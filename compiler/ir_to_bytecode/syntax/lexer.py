@@ -1,5 +1,5 @@
 from __future__ import annotations
-from compiler.ir_to_bytecode.syntax.parse_error import ParseError
+from compiler.ir_to_bytecode.syntax.parse_error import ParseError, ParseErrorInvalidToken
 from move_ir.types.codespan import ByteIndex, Span
 from move_ir.types.location import Loc
 from enum import Enum, auto
@@ -366,7 +366,7 @@ class Lexer:
             return (Tok.RSquare, 1)
         else:
             idx = ByteIndex(start_offset)
-            location = Loc.new(self.file_name(), Span.new(idx, idx))
+            location = Loc(self.file_name(), Span.new(idx, idx))
             raise ParseErrorInvalidToken(location)
 
 

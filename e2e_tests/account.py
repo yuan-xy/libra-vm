@@ -5,7 +5,8 @@ from libra.transaction import (
     RawTransaction, Script, SignedTransaction, TransactionArgument, TransactionPayload
 )
 from move_vm.types.loaded_data import StructDef, Type
-from move_vm.types.values import Struct, Value
+from move_vm.types.values import Struct as VMStruct
+from move_vm.types.values import Value
 from libra.crypto.ed25519 import *
 from vm_genesis.lib import GENESIS_KEYPAIR
 from libra_vm.runtime.identifier import create_access_path
@@ -289,38 +290,38 @@ class AccountData:
 
     def layout() -> StructDef:
         return StructDef.new([
-            Type.ByteArray,
-            Type.Struct(StructDef.new([Type.U64])),
-            Type.Bool,
-            Type.Bool,
-            Type.Struct(StructDef.new([Type.U64, Type.ByteArray])),
-            Type.Struct(StructDef.new([Type.U64, Type.ByteArray])),
-            Type.U64,
-            Type.Struct(StructDef.new([Type.U64])),
+            Type('ByteArray'),
+            Type('Struct', StructDef.new([Type('U64')])),
+            Type('Bool'),
+            Type('Bool'),
+            Type('Struct', StructDef.new([Type('U64'), Type('ByteArray')])),
+            Type('Struct', StructDef.new([Type('U64'), Type('ByteArray')])),
+            Type('U64'),
+            Type('Struct', StructDef.new([Type('U64')])),
         ])
 
 
     # Creates and returns a resource [`Value`] for this data.
     def to_resource(self) -> Value:
         # TODO: publish some concept of Account
-        coin = Value.struct_(Struct.pack([Value.Uint64(self.balance)]))
-        Value.struct_(Struct.pack([
-            Value.byte_array(ByteArray.new(
+        coin = Value.struct_(VMStruct.pack([Value.Uint64(self.balance)]))
+        return Value.struct_(VMStruct.pack([
+            Value.byte_array(
                 Address.from_public_key(self.account.pubkey),
-            )),
+            ),
             coin,
             Value.bool(self.delegated_key_rotation_capability),
             Value.bool(self.delegated_withdrawal_capability),
-            Value.struct_(Struct.pack([
-                Value.Uint64(self.received_events.count()),
-                Value.byte_array(ByteArray.new(self.received_events.key())),
+            Value.struct_(VMStruct.pack([
+                Value.Uint64(self.received_events.count),
+                Value.byte_array(self.received_events.key),
             ])),
-            Value.struct_(Struct.pack([
-                Value.Uint64(self.sent_events.count()),
-                Value.byte_array(ByteArray.new(self.sent_events.key())),
+            Value.struct_(VMStruct.pack([
+                Value.Uint64(self.sent_events.count),
+                Value.byte_array(self.sent_events.key),
             ])),
             Value.Uint64(self.sequence_number),
-            Value.struct_(Struct.pack([Value.Uint64(self.event_generator)])),
+            Value.struct_(VMStruct.pack([Value.Uint64(self.event_generator)])),
         ]))
 
 

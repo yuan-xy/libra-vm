@@ -59,7 +59,6 @@ class FakeDataStore(StateView, RemoteCache):
     #
     # Returns the previous data if the key was occupied.
     def set(self, access_path: AccessPath, data_blob: bytes) -> Optional[bytes]:
-        self.data.insert(access_path, data_blob)
         if access_path in self.data:
             ret = self.data[access_path]
             self.data[access_path] = data_blob
@@ -100,7 +99,7 @@ class FakeDataStore(StateView, RemoteCache):
 # impl StateView for FakeDataStore {
     def get(self, access_path: AccessPath) -> Optional[bytes]:
         if access_path in self.data:
-            return deepcopy(self.data[access_path])
+            return self.data[access_path]
         else:
             return None
 

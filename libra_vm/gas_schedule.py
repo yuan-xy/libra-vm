@@ -324,9 +324,9 @@ def calculate_intrinsic_gas(
 
     if transaction_size.get() > LARGE_TRANSACTION_CUTOFF.get():
         excess = words_in(transaction_size.sub(LARGE_TRANSACTION_CUTOFF))
-        min_transaction_fee.add(INTRINSIC_GAS_PER_BYTE.mul(excess))
+        return min_transaction_fee.add(INTRINSIC_GAS_PER_BYTE.mul(excess))
     else:
-        min_transaction_fee.unitary_cast()
+        return min_transaction_fee.unitary_cast(GasUnits)
 
 
 

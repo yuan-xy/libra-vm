@@ -35,6 +35,13 @@ class Transaction:
     config: TransactionConfig
     ins: str
 
+    def __init__(self, config, ins):
+        self.config = config
+        if isinstance(ins, str):
+            self.ins = ins
+        else:
+            bail("unreachable!")
+
 
 # Commands that drives the operation of LibraVM. Such as:
 # 1. Execute user transaction
@@ -191,8 +198,7 @@ def fetch_script_dependencies(
     script: CompiledScript,
 ) -> List[VerifiedModule]:
     module = script.into_module()
-    idents = [x.module_id() for x in ModuleView.new(module).module_handles()]
-    return fetch_dependencies(fexec, idents)
+    return fetch_module_dependencies(fexec, module)
 
 
 def fetch_module_dependencies(
@@ -200,6 +206,9 @@ def fetch_module_dependencies(
     module: CompiledModule,
 ) -> List[VerifiedModule]:
     idents = [x.module_id() for x in ModuleView.new(module).module_handles()]
+    for x in idents:
+        if x.address == module.address() and x.name == '<SELF>':
+            idents.remove(x)
     return fetch_dependencies(fexec, idents)
 
 
@@ -264,13 +273,13 @@ def get_transaction_parameters(
     account_resource = fexec.read_account_resource(config.sender)
     sequence_number = config.sequence_number
     if sequence_number is None:
-        sequence_number = account_resource.sequence_number()
+        sequence_number = account_resource.sequence_number
 
     max_gas = config.max_gas
     if max_gas is None:
         max_gas = min(
                         MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
-                        account_resource.balance(),
+                        account_resource.balance,
                     )
     expiration_time = config.expiration_time
     if expiration_time is None:
@@ -388,7 +397,7 @@ def eval_transaction(
 ) -> Status:
     # Unwrap the given results. Upon failure, logs the error and aborts.
     def unwrap_or_abort(res):
-        pass
+        return res
         # ($res: expr) => {{
         #     match $res {
         #         Ok(r) => r,
@@ -410,7 +419,7 @@ def eval_transaction(
     compiler_log = lambda s: log.append(EvaluationOutput.Output(OutputType.CompilerLog(s)))
 
     parsed_script_or_module =\
-        unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.input))
+        unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.ins))
 
     compiled_script = parsed_script_or_module.script
     if compiled_script:
@@ -527,12 +536,12 @@ def eeval(
     # Set up a fake executor with the genesis block and create the accounts.
     if not config.validator_set:
         # use the default validator set. this uses a precomputed validator set and is cheap
-        fexec = FakeExecutor.custom_genesis(TComp.stdlib(), None, VMPublishingOption.Open)
+        fexec = FakeExecutor.custom_genesis(compiler.stdlib(), None, VMPublishingOption.Open)
     else:
         # use custom validator set. this requires dynamically generating a new genesis tx and
         # is thus more expensive.
         fexec = FakeExecutor.custom_genesis(
-            TComp.stdlib(),
+            compiler.stdlib(),
             config.validator_set,
             VMPublishingOption.Open,
         )

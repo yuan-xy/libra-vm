@@ -21,7 +21,7 @@ class Compiler(abc.ABC):
     # Return the (ordered) list of modules to be used for genesis. If None is returned the staged
     # version of the stdlib is used.
     @abc.abstractmethod
-    def stdlib() -> Optional[List[VerifiedModule]]:
+    def stdlib(self) -> Optional[List[VerifiedModule]]:
         bail("unimplemented!")
 
 

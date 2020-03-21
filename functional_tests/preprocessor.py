@@ -10,6 +10,8 @@ from functional_tests.config.transaction import Entry as TransactionConfigEntry
 from functional_tests.config.transaction import is_new_transaction
 from functional_tests.errors import *
 from functional_tests.evaluator import Command, Transaction
+from libra.rustlib import usize, bail, flatten, format_str
+from typing import Any, List, Optional, Mapping
 import re
 
 PAT = re.compile(r"\{\{([A-Za-z][A-Za-z0-9]*)\}\}")
@@ -18,9 +20,10 @@ PAT = re.compile(r"\{\{([A-Za-z][A-Za-z0-9]*)\}\}")
 def substitute_addresses(config: GlobalConfig, text: str) -> str:
     def lambda0(m):
         name = m.group(1)
-        return format_str("0x{}", config.get_account_for_name(name).address())
+        address = config.get_account_for_name(name).address()
+        return format_str("0x{}", bytes(address).hex())
 
-    return PAT.subn(lambda0, text)
+    return PAT.sub(lambda0, text)
 
 
 
