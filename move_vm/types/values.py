@@ -263,8 +263,15 @@ class ValueImpl(RustEnum):
             return Value.struct_(Struct.pack(fields))
 
         elif layout.Vector:
-            breakpoint()
-            bail("unimplemented!")
+            size = Uint32.decode(cursor)
+            arr = []
+            for _i in range(size):
+                arr.append(ValueImpl.simple_decode(cursor, layout.value))
+
+            if layout.value.enum_name in ['U8', 'U64', 'U128', 'Bool']:
+                return ValueImpl.new_container(Container(layout.value.enum_name, arr))
+            else:
+                return ValueImpl.new_container(Container('General', arr))
         else:
             bail("unreachable!")
 

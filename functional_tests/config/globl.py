@@ -157,6 +157,7 @@ class Config:
                     ddef.balance,
                     ddef.sequence_number,
                 )
+                account_data.account.addr = validator_set[validator_accounts].account_address
             else:
                 account_data = AccountData.new(
                     ddef.balance,

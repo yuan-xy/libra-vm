@@ -53,17 +53,17 @@ def run_testcase(path: str):
 
 def test_ir_testsuite():
     curdir = dirname(__file__)
-    path = join(curdir, "../../libra/language/ir-testsuite/tests/commands")
+    path = join(curdir, "../../libra/language/ir-testsuite/tests")
     for root, dirs, files in os.walk(path):
         for file in files:
             if(file.endswith(".mvir")):
                 fullname = join(root, file)
-                print(fullname)
+                print(file)
                 # if file == "return_type_mismatch_and_unused_resource.mvir":
-                run_testcase(fullname)
-                # try:
-                #     run_testcase(join(root, file))
-                #     print("pass")
-                # except Exception:
-                #     print("FAIL")
+                # run_testcase(fullname)
+                try:
+                    run_testcase(join(root, file))
+                    print("pass")
+                except Exception:
+                    print("FAIL")
 

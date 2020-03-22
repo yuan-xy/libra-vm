@@ -129,8 +129,7 @@ class Interpreter:
         function_name: IdentStr,
         args: List[Value],
     ) -> None:
-        # print(module)
-        # print(function_name)
+        # print(f"{module.name}.{function_name}")
         interp = Interpreter.new(txn_data, gas_schedule)
         loaded_module = runtime.get_loaded_module(module, context)
         func_idx = loaded_module\
@@ -279,6 +278,7 @@ class Interpreter:
         #code = frame.code_definition()
         while True:
             for instruction in code[frame.pc:]:
+                # print(f"PC[{frame.pc}] -> {instruction}")
                 frame.pc += 1
                 if instruction.tag == Opcodes.POP:
                     gas_const_instr(context, self, Opcodes.POP)
@@ -511,6 +511,7 @@ class Interpreter:
                     self.binop_bool(IntegerValue.ge)
 
                 elif instruction.tag == Opcodes.ABORT:
+                    # breakpoint()
                     gas_const_instr(context, self, Opcodes.ABORT)
                     error_code = self.operand_stack.pop_as(Uint64)
                     raise VMException(VMStatus(StatusCode.ABORTED).with_sub_status(error_code))

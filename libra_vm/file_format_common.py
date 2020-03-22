@@ -130,9 +130,6 @@ class SerializedKind(IntEnum):
 
     @classmethod
     def from_u8(cls, u8):
-        if u8 == 3:
-            #TODO: why no resource kind?
-            breakpoint()
         if u8 <=0 or u8 > len(cls):
             raise VMException(VMStatus(StatusCode.UNKNOWN_SERIALIZED_TYPE))
         return cls(u8)

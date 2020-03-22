@@ -8,6 +8,7 @@ from libra_vm.runtime.lib import VMVerifier, VMExecutor
 from libra_vm.runtime.system_module_names import *
 from libra_storage.state_view import StateView
 from bytecode_verifier import VerifiedModule
+from libra import Address
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.hasher import HashValue
 from libra.block_metadata import BlockMetadata
@@ -29,7 +30,7 @@ from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Union
 from libra.rustlib import usize
-from canoser import RustEnum, Uint64
+from canoser import RustEnum, Uint64, MapT, BytesT
 import traceback
 import logging
 
@@ -396,32 +397,37 @@ class LibraVM(VMVerifier, VMExecutor):
         # 3. We set the max gas to a big number just to get rid of the potential out of gas error.
         txn_data = TransactionMetadata.default()
         txn_data.sender = CORE_CODE_ADDRESS
-        txn_data.max_gas_amount = GasUnits.new(std.Uint64.MAX)
+        txn_data.max_gas_amount = GasUnits.new(Uint64.max_value)
 
         interpreter_context =\
-            TransactionExecutionContext.new(txn_data.max_gas_amount(), remote_cache)
+            TransactionExecutionContext.new(txn_data.max_gas_amount, remote_cache)
         # TODO: We might need a non zero cost table here so that we can at least bound the execution
         #       time by a reasonable amount.
         gas_schedule = CostTable.zero()
 
         args = [
-            Value.Uint64(block_metadata.timestamp),
+            Value.Uint64(block_metadata.timestamp_usecs),
             Value.byte_array(block_metadata.id),
-            Value.byte_array(block_metadata.previous_vote),
+            Value.byte_array(MapT(Address, BytesT).encode(block_metadata.previous_block_votes)),
             Value.address(block_metadata.proposer),
         ]
-        self.move_vm.execute_function(
-            LIBRA_SYSTEM_MODULE,
-            BLOCK_PROLOGUE,
-            gas_schedule,
-            interpreter_context,
-            txn_data,
-            args,
-        )
-        output = interpreter_context\
-            .get_transaction_output(txn_data, VMStatus(StatusCode.EXECUTED))
-        remote_cache.push_write_set(output.write_set)
-        return output
+        try:
+            self.move_vm.execute_function(
+                LIBRA_SYSTEM_MODULE,
+                BLOCK_PROLOGUE,
+                gas_schedule,
+                interpreter_context,
+                txn_data,
+                args,
+            )
+            output = interpreter_context\
+                .get_transaction_output(txn_data, VMStatus(StatusCode.EXECUTED))
+            remote_cache.push_write_set(output.write_set)
+            return output
+        except Exception as err:
+            traceback.print_exc()
+            breakpoint()
+            raise
 
     # Run the prologue of a transaction by calling into `PROLOGUE_NAME` function stored
     # in the `ACCOUNT_MODULE` on chain.

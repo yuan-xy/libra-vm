@@ -525,12 +525,14 @@ def eval_block_metadata(
     try:
         outputs = executor.execute_transaction_block([txn])
         output = outputs.pop()
-        executor.apply_write_set(output.write_set())
+        executor.apply_write_set(output.write_set)
         log.append(EvaluationOutput.Output(OutputType.TransactionOutput(
             output,
         )))
         return Status.Success
     except Exception as err:
+        traceback.print_exc()
+        breakpoint()
         err = ErrorKind(ErrorKindTag.VerificationError, err)
         log.append(EvaluationOutput.Error(err))
         return Status.Failure
