@@ -14,7 +14,7 @@ from libra_vm.file_format import (
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
         StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
     )
-from libra_vm import signature_token_help
+from libra_vm import signature_token_help, VMException
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
@@ -355,8 +355,10 @@ def compile_script(
         mpools.address_pool,
         main,
     )
-    return (compiled_script.freeze(), source_map)
-        # .map_err(|errs| InternalCompilerError.BoundsCheckErrors(errs).into())
+    try:
+        return (compiled_script.freeze(), source_map)
+    except VMException as err:
+        raise BoundsCheckErrors(err.vm_status)
 
 
 # Compile a module.

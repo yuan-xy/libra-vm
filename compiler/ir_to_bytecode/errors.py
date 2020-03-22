@@ -13,6 +13,6 @@ class BoundsCheckErrors(InternalCompilerError):
     v0: List[VMStatus]
 
     def __str__(self):
-        return f"Post-compile bounds check errors: {self.v0}"
+        return f"BoundsCheckErrors:Post-compile bounds check errors: {self.v0}"
 
 

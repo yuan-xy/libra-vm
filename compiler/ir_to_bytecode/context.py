@@ -395,7 +395,7 @@ class Context:
     def struct_definition_index(self, s: StructName) -> StructDefinitionIndex:
         ret = self.struct_defs.get(s)
         if ret is None:
-            bail("Missing class definition for {}", s)
+            bail("Missing struct definition for {}", s)
         else:
             return StructDefinitionIndex(ret)
 

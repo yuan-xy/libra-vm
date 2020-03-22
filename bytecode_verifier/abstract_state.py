@@ -468,7 +468,7 @@ class AbstractState:
     def join(self, state: AbstractState) -> JoinResult:
         joined = AbstractState.join_(self, state)
         if joined is None:
-            return JoinResult.Error,
+            return JoinResult.Error
 
         checked_verify(self.num_locls == joined.num_locls)
         locls_unchanged = True

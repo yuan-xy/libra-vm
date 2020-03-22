@@ -317,8 +317,12 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
                         matches,
                     )
 
+    prev_d = None
     for d in directives:
+        if prev_d and prev_d.inner == d.inner:
+            cur += 1
         ret = lambda0(d)
+        prev_d = d
         if ret is not None:
             return ret
 

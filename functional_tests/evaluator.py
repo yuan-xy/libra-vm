@@ -26,7 +26,7 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union
 from enum import IntEnum
 from canoser import Uint64
-
+import traceback
 
 # A transaction to be evaluated by the testing infra.
 # Contains code and a transaction config.

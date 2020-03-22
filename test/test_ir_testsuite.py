@@ -59,6 +59,7 @@ def test_ir_testsuite():
             if(file.endswith(".mvir")):
                 fullname = join(root, file)
                 print(fullname)
+                # if file == "return_type_mismatch_and_unused_resource.mvir":
                 run_testcase(fullname)
                 # try:
                 #     run_testcase(join(root, file))
