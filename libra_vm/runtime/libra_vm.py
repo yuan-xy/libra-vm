@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Mapping, Union
 from libra.rustlib import usize
 from canoser import RustEnum, Uint64
+import traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -255,7 +256,7 @@ class LibraVM(VMVerifier, VMExecutor):
         elif transaction.payload.Module:
             module = transaction.payload.value
             self.run_prologue(ctx, txn_data)
-            return VerifiedTranscationPayload('Module', module.code())
+            return VerifiedTranscationPayload('Module', module.code)
         elif transaction.payload.WriteSet:
             raise VMException(VMStatus(StatusCode.UNREACHABLE))
         else:
@@ -275,6 +276,7 @@ class LibraVM(VMVerifier, VMExecutor):
         try:
             if payload.Module:
                 self.move_vm.publish_module(payload.value, ctx, txn_data)
+                exec_flag = True
             elif payload.Script:
                 (s, args) = payload.value
                 try:
@@ -294,6 +296,7 @@ class LibraVM(VMVerifier, VMExecutor):
             else:
                 return discard_error_output(VMStatus(StatusCode.UNKNOWN_STATUS))
         except VMException as error:
+            traceback.print_exc()
             err = error
             failed_gas_left = ctx.gas_left
             exec_flag = False
@@ -304,6 +307,7 @@ class LibraVM(VMVerifier, VMExecutor):
                 self.run_epilogue(gas_free_ctx, txn_data)
                 return gas_free_ctx.get_transaction_output(txn_data, VMStatus(StatusCode.EXECUTED))
             except VMException as error:
+                traceback.print_exc()
                 err = error
                 exec_flag = False
         if exec_flag == False:
@@ -323,9 +327,11 @@ class LibraVM(VMVerifier, VMExecutor):
         ts = TransactionStatus.from_vm_status(error_code)
         if ts.tag == TransactionStatus.Keep:
             try:
-                self.run_epilogue(gas_free_ctx, txn_data)
+                #self.run_epilogue(gas_free_ctx, txn_data)
                 return gas_free_ctx.get_transaction_output(txn_data, error_code)
             except VMException as err:
+                traceback.print_exc()
+                breakpoint()
                 return discard_error_output(err.vm_status[0])
         elif ts.tag == TransactionStatus.Discard:
             return discard_error_output(error_code)
@@ -356,7 +362,7 @@ class LibraVM(VMVerifier, VMExecutor):
             result = discard_error_output(err.vm_status[0])
 
         if TransactionStatus.Keep == result.status.tag:
-            remote_cache.push_write_set(result.write_set())
+            remote_cache.push_write_set(result.write_set)
 
         return result
 
@@ -462,6 +468,7 @@ class LibraVM(VMVerifier, VMExecutor):
         txn_max_gas_units = txn_data.max_gas_amount.get()
         gas_remaining = chain_state.remaining_gas().get()
         # record_stats! {time_hist | TXN_EPILOGUE_TIME_TAKEN | {
+
         self.move_vm.execute_function(
             ACCOUNT_MODULE,
             EPILOGUE_NAME,

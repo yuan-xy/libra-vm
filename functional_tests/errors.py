@@ -28,3 +28,21 @@ class ErrorKind(Exception):
         return cls(ErrorKindTag.Other, msg)
 
 
+    @classmethod
+    def VMExecutionFailure(cls, v):
+        return cls(ErrorKindTag.VMExecutionFailure, v)
+
+    @classmethod
+    def DiscardedTransaction(cls, v):
+        return cls(ErrorKindTag.DiscardedTransaction, v)
+
+    @classmethod
+    def CheckerFailure(cls, v):
+        return cls(ErrorKindTag.CheckerFailure, v)
+
+    @classmethod
+    def VerificationError(cls, v):
+        return cls(ErrorKindTag.VerificationError, v)
+
+
+

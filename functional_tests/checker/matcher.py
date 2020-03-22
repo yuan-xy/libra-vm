@@ -295,8 +295,9 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
     cur = 0
     matches = []
 
-    def lambda0(d):
+    def lambda0(sp):
         nonlocal cur
+        d = sp.inner
         for i in range(cur, len(text)):
             if text[i].find(d.value) != -1:
                 if d.is_positive():

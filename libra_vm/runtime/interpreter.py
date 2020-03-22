@@ -129,6 +129,8 @@ class Interpreter:
         function_name: IdentStr,
         args: List[Value],
     ) -> None:
+        # print(module)
+        # print(function_name)
         interp = Interpreter.new(txn_data, gas_schedule)
         loaded_module = runtime.get_loaded_module(module, context)
         func_idx = loaded_module\

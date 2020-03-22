@@ -78,14 +78,8 @@ class InterpreterContextImpl:
     ) -> None:
         # a resource can be written to an AccessPath if the data does not exists or
         # it was deleted (MoveFrom)
-        try:
-            value = self.borrow_resource(ap, deepcopy(sdef))
-            can_write = value is None
-        except VMException as err:
-            if err.vm_status[0].major_status == StatusCode.MISSING_DATA:
-                can_write = True
-            else:
-                raise
+        value = self.borrow_resource(ap, deepcopy(sdef), tryload=True)
+        can_write = value is None
 
         if can_write:
             new_root = GlobalValue.new(Value.struct_(resource))
@@ -114,12 +108,9 @@ class InterpreterContextImpl:
         ap: AccessPath,
         sdef: StructDef,
     ) -> Tuple[bool, AbstractMemorySize]:
-        try:
-            gref = self.borrow_resource(ap, sdef)
-            if gref is not None:
-                return (True, gref.size())
-        except VMException:
-            pass
+        gref = self.borrow_resource(ap, sdef, tryload=True)
+        if gref is not None:
+            return (True, gref.size())
         return (False, AbstractMemorySize.new(0))
 
 

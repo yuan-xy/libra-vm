@@ -53,10 +53,16 @@ def run_testcase(path: str):
 
 def test_ir_testsuite():
     curdir = dirname(__file__)
-    path = join(curdir, "../../libra/language/ir-testsuite")
+    path = join(curdir, "../../libra/language/ir-testsuite/tests/commands")
     for root, dirs, files in os.walk(path):
         for file in files:
             if(file.endswith(".mvir")):
-                print(file)
-                run_testcase(join(root, file))
+                fullname = join(root, file)
+                print(fullname)
+                run_testcase(fullname)
+                # try:
+                #     run_testcase(join(root, file))
+                #     print("pass")
+                # except Exception:
+                #     print("FAIL")
 

@@ -52,6 +52,7 @@ class ChainState(abc.ABC):
         self,
         ap: AccessPath,
         sdef: StructDef,
+        tryload: bool = False,
     ) -> Optional[GlobalValue]:
         pass
 
@@ -129,9 +130,9 @@ class TransactionExecutionContext(InterpreterContextImpl, ChainState):
         status: VMStatus,
     ) -> TransactionOutput:
         gas_used: Uint64 = txn_data \
-            .max_gas_amount()       \
-            .sub(self.gas_left())   \
-            .mul(txn_data.gas_unit_price()) \
+            .max_gas_amount       \
+            .sub(self.gas_left)   \
+            .mul(txn_data.gas_unit_price) \
             .get()
         write_set = self.make_write_set()
         # record_stats!(observe | TXN_TOTAL_GAS_USAGE | gas_used)
@@ -160,8 +161,11 @@ class TransactionExecutionContext(InterpreterContextImpl, ChainState):
         self,
         ap: AccessPath,
         sdef: StructDef,
+        tryload: bool = False,
     ) -> Optional[GlobalValue]:
-        map_entry = self.data_view.load_data(ap, sdef)
+        map_entry = self.data_view.load_data(ap, sdef, tryload)
+        if map_entry is None:
+            return None
         return map_entry[1]
 
 

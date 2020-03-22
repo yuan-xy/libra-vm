@@ -17,7 +17,7 @@ from libra.language_storage import ModuleId
 from libra.transaction import Module as TransactionModule
 from libra.transaction import Script as TransactionScript
 from libra.transaction import Transaction as LibraTransaction
-from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus
+from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus, TransactionPayload
 from libra.vm_error import StatusCode, VMStatus
 from libra_vm import CompiledModule, CompiledScript, ModuleView
 from libra_vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
@@ -142,7 +142,7 @@ class EvaluationOutput:
         elif self.tag == EvaluationOutput.vStage:
             return format_str("Stage: {}", self.value)
         elif self.tag == EvaluationOutput.vOutput:
-            return self.value
+            return self.value.value.__str__()
         elif self.tag == EvaluationOutput.vError:
             return format_str("Error: {}", self.value)
         elif self.tag == EvaluationOutput.vStatus:
@@ -207,7 +207,7 @@ def fetch_module_dependencies(
 ) -> List[VerifiedModule]:
     idents = [x.module_id() for x in ModuleView.new(module).module_handles()]
     for x in idents:
-        if x.address == module.address() and x.name == '<SELF>':
+        if x.address == module.address() and x.name == module.name():
             idents.remove(x)
     return fetch_dependencies(fexec, idents)
 
@@ -350,7 +350,7 @@ def run_transaction(
         output = outputs.pop()
 
         if output.status.tag == TransactionStatus.Keep:
-            vmstatus = output.status.status
+            vmstatus = output.status.vm_status
             fexec.apply_write_set(output.write_set)
             if vmstatus.major_status == StatusCode.EXECUTED:
                 return output
@@ -417,9 +417,12 @@ def eval_transaction(
 
     log.append(EvaluationOutput.Stage(Stage.Compiler))
     compiler_log = lambda s: log.append(EvaluationOutput.Output(OutputType.CompilerLog(s)))
-
-    parsed_script_or_module =\
-        unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.ins))
+    try:
+        parsed_script_or_module =\
+            unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.ins))
+    except Exception as err:
+        log.append(EvaluationOutput.Error(err))
+        return Status.Failure
 
     compiled_script = parsed_script_or_module.script
     if compiled_script:
@@ -446,8 +449,11 @@ def eval_transaction(
         # stage 3: serializer round trip
         if not transaction.config.is_stage_disabled(Stage.Serializer):
             log.append(EvaluationOutput.Stage(Stage.Serializer))
-            unwrap_or_abort(serialize_and_deserialize_script(compiled_script))
-
+            try:
+                unwrap_or_abort(serialize_and_deserialize_script(compiled_script))
+            except ErrorKind as kind:
+                log.append(EvaluationOutput.Error(kind.value))
+                return Status.Failure
 
         # stage 4: execute the script
         if transaction.config.is_stage_disabled(Stage.Runtime):
@@ -456,12 +462,18 @@ def eval_transaction(
         log.append(EvaluationOutput.Stage(Stage.Runtime))
         script_transaction =\
             make_script_transaction(fexec, transaction.config, compiled_script)
-        txn_output = unwrap_or_abort(run_transaction(fexec, script_transaction))
+
+        try:
+            txn_output = unwrap_or_abort(run_transaction(fexec, script_transaction))
+        except ErrorKind as kind:
+            log.append(EvaluationOutput.Error(kind.value))
+            return Status.Failure
+
         log.append(EvaluationOutput.Output(OutputType.TransactionOutput(
             txn_output,
         )))
     else:
-        compiled_module = parsed_script_or_module.script
+        compiled_module = parsed_script_or_module.module
 
         log.append(EvaluationOutput.Output(OutputType.CompiledModule(
             compiled_module

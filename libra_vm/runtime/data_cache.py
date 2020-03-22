@@ -12,6 +12,7 @@ from typing import List, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy
 import abc
+import traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class BlockDataCache:
         return BlockDataCache(data_view, {})
 
 
-    def get(self, access_path: AccessPath) -> Optional[bytes]:
+    def get(self, access_path: AccessPath, tryload=False) -> Optional[bytes]:
         if access_path in self.data_map:
             return deepcopy(self.data_map[access_path])
         else:
@@ -42,8 +43,9 @@ class BlockDataCache:
             if ret is not None:
                 return ret
             else:
-                logger.critical("[VM] Error getting data from storage for {}", access_path)
-                raise VMException(VMStatus(StatusCode.STORAGE_ERROR))
+                if not tryload:
+                    logger.critical("[VM] Error getting data from storage for {}", access_path)
+                    raise VMException(VMStatus(StatusCode.STORAGE_ERROR))
 
 
     def push_write_set(self, write_set: WriteSet):
@@ -101,7 +103,10 @@ class TransactionDataCache:
             return True
         else:
             ap = AccessPath.code_access_path(m)
-            return ap in self.data_cache
+            try:
+                return self.data_cache.get(ap, tryload=True) is not None
+            except Exception:
+                return False
 
 
     def load_module(self, module: ModuleId) -> bytes:
@@ -138,16 +143,21 @@ class TransactionDataCache:
         self,
         ap: AccessPath,
         sdef: StructDef,
+        tryload: bool = False
     ) -> Optional[Tuple[StructDef, GlobalValue]]:
         if not ap in self.data_map:
-            if ap in self.data_cache.data_map:
-                b = self.data_cache.data_map[ap]
-                res = Value.simple_deserialize(b, Type.Struct(deepcopy(sdef)))
-                breakpoint()
+            try:
+                blob = self.data_cache.get(ap, tryload)
+                res = Value.simple_deserialize(blob, Type('Struct', sdef))
                 gr = GlobalValue.new(res)
-                self.data_map[deepcopy(ap)] = (sdef, gr)
-            else:
-                raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
+                self.data_map[ap] = (sdef, gr)
+            except Exception as err:
+                if tryload:
+                    return None
+                else:
+                    traceback.print_exc()
+                    breakpoint()
+                    raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
 
         return self.data_map[ap]
 

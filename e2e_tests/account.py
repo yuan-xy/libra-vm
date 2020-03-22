@@ -305,6 +305,7 @@ class AccountData:
     def to_resource(self) -> Value:
         # TODO: publish some concept of Account
         coin = Value.struct_(VMStruct.pack([Value.Uint64(self.balance)]))
+        #TTODO: why not use Uint64 directly for coin?
         return Value.struct_(VMStruct.pack([
             Value.byte_array(
                 Address.from_public_key(self.account.pubkey),

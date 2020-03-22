@@ -40,7 +40,6 @@ def consume_token(
     tok: Tok,
 ) -> None:
     if tokens.peek() != tok:
-        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.advance()

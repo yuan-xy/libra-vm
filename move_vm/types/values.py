@@ -20,7 +20,7 @@ from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy
 from libra.rustlib import assert_equal, bail, ensure
-from canoser import Uint8, Uint64, Uint128, RustEnum
+from canoser import Uint8, Uint64, Uint128, RustEnum, Cursor, BoolT, BytesT
 from canoser import Struct as CanoserStruct
 import traceback
 import gc
@@ -228,10 +228,45 @@ class ValueImpl(RustEnum):
 
     @classmethod
     def simple_deserialize(cls, blob: bytes, layout: Type) -> Value:
+        cursor = Cursor(blob)
         try:
-            return cls.deserialize(blob)
+            ret = cls.simple_decode(cursor, layout)
+            if not cursor.is_finished():
+                raise IOError("bytes not all consumed:{}, {}".format(
+                    len(blob), cursor.offset))
         except Exception as err:
             raise VMException(VMStatus(StatusCode.INVALID_DATA).with_message(err))
+
+        return ret
+
+    @classmethod
+    def simple_decode(cls, cursor, layout) -> Value:
+        if layout.Bool:
+            return Value.bool(BoolT.decode(cursor))
+        elif layout.U8:
+            return Value.Uint8(Uint8.decode(cursor))
+        elif layout.U64:
+            return Value.Uint64(Uint64.decode(cursor))
+        elif layout.U128:
+            return Value.Uint128(Uint128.decode(cursor))
+        elif layout.ByteArray:
+            return Value.byte_array(BytesT().decode(cursor))
+        elif layout.Address:
+            return Value.address(Address.decode(cursor))
+
+        elif layout.Struct:
+            fds = layout.value.value.field_definitions
+            fields = []
+            for fd in fds:
+                field = cls.simple_decode(cursor, fd)
+                fields.append(field)
+            return Value.struct_(Struct.pack(fields))
+
+        elif layout.Vector:
+            breakpoint()
+            bail("unimplemented!")
+        else:
+            bail("unreachable!")
 
     @classmethod
     def gas_costtable_to_value(cls, cost_table: CostTable) -> Value:
