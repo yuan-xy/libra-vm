@@ -346,7 +346,6 @@ class LibraVM(VMVerifier, VMExecutor):
         txn: SignatureCheckedTransaction,
     ) -> TransactionOutput:
         txn_data = TransactionMetadata.new(txn.into_inner())
-        verified_payload = self.verify_transaction_impl(txn, state_view, remote_cache)
         # verified_payload = record_stats! {time_hist | TXN_VERIFICATION_TIME_TAKEN | {
         #     self.verify_transaction_impl(txn, state_view, remote_cache)
         # }}
@@ -354,6 +353,7 @@ class LibraVM(VMVerifier, VMExecutor):
             # record_stats! {time_hist | TXN_EXECUTION_TIME_TAKEN | {
 
             # }}
+            verified_payload = self.verify_transaction_impl(txn, state_view, remote_cache)
             result = self.execute_verified_payload(
                     remote_cache,
                     txn_data,
@@ -426,7 +426,6 @@ class LibraVM(VMVerifier, VMExecutor):
             return output
         except Exception as err:
             traceback.print_exc()
-            breakpoint()
             raise
 
     # Run the prologue of a transaction by calling into `PROLOGUE_NAME` function stored
@@ -458,7 +457,8 @@ class LibraVM(VMVerifier, VMExecutor):
                 ],
             )
         except VMException as err:
-            convert_prologue_runtime_error(err.vm_status[0], txn_data.sender)
+            ret = convert_prologue_runtime_error(err.vm_status[0], txn_data.sender)
+            raise VMException(ret)
 
 
 

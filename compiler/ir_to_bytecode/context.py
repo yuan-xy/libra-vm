@@ -353,8 +353,7 @@ class Context:
 
     # Get the identifier pool index, adds it if missing.
     def identifier_index(self, s: str) -> IdentifierIndex:
-        if not isinstance(s, str):
-            breakpoint()
+        assert isinstance(s, str)
         ident = ident_str(s)
         m = self.identifiers
         idx: TableIndex = get_or_add_item_macro(m, ident, ident)

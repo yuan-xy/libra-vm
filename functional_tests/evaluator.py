@@ -308,10 +308,10 @@ def make_script_transaction(
     script = TransactionScript(blob, config.args)
 
     params = get_transaction_parameters(fexec, config)
-    raw = RawTransaction.new_script_tx(
+    raw = RawTransaction(
         params.sender_addr,
         params.sequence_number,
-        script,
+        TransactionPayload('Script', script),
         params.max_gas_amount,
         params.gas_unit_price,
         params.expiration_time,
@@ -329,7 +329,7 @@ def make_module_transaction(
     module = TransactionModule(blob)
     params = get_transaction_parameters(fexec, config)
 
-    raw = RawTransaction.new_tx(
+    raw = RawTransaction(
         params.sender_addr,
         params.sequence_number,
         TransactionPayload('Module', module),

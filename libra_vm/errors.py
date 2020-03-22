@@ -86,7 +86,7 @@ def convert_prologue_runtime_error(err: VMStatus, txn_sender: Address) -> VMStat
         }
         if err.sub_status in adict:
             return adict[err.sub_status]
-    return deepcopy(err)
+    return err
 
 
 def vm_error(location: Location, err: StatusCode) -> VMStatus:
