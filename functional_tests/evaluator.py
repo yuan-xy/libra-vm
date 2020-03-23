@@ -531,8 +531,7 @@ def eval_block_metadata(
         )))
         return Status.Success
     except Exception as err:
-        traceback.print_exc()
-        breakpoint()
+        # traceback.print_exc()
         err = ErrorKind(ErrorKindTag.VerificationError, err)
         log.append(EvaluationOutput.Error(err))
         return Status.Failure

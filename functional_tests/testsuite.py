@@ -49,7 +49,7 @@ def functional_tests(
     lines: List[str] = ins.splitlines()
 
     (config, directives, transactions) = split_input(lines)
-
+    # breakpoint()
     config = GlobalConfig.build(config)
     commands = build_transactions(config, transactions)
 

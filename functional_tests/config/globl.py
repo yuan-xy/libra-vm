@@ -38,9 +38,9 @@ class AccountDefinition:
     # Name of the account. The name is case insensitive.
     name: String
     # The initial balance of the account.
-    balance: Optional[Uint64] = DEFAULT_BALANCE
+    balance: Uint64 = DEFAULT_BALANCE
     # The initial sequence number of the account.
-    sequence_number: Optional[Uint64] = 0
+    sequence_number: Uint64 = 0
     # Special role this account has in the system (if any)
     role: Optional[Role] = None
 
@@ -87,12 +87,12 @@ class Entry:
             if len(v) > 1:
                 balance = Uint64.int_safe(v[1])
             else:
-                balance = None
+                balance = DEFAULT_BALANCE
 
             if len(v) > 2:
                 sequence_number = Uint64.int_safe(v[2])
             else:
-                sequence_number = None
+                sequence_number = 0
 
             if len(v) > 3:
                 role = Role.from_str(v[3])

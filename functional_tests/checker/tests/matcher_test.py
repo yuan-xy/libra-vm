@@ -22,7 +22,7 @@ def err(s):
 def dirs(arr):
     directives = []
     for s in arr:
-        directives.extend([sp.into_inner() for sp in Directive.parse_line(s)])
+        directives.extend([sp for sp in Directive.parse_line(s)])
     return directives
 
 
