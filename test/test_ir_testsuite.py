@@ -59,8 +59,8 @@ def ir_testsuite(subdir: str):
             if(file.endswith(".mvir")):
                 fullname = join(root, file)
                 print(file)
-                # if file == "move_published_resource.mvir":
-                run_testcase(fullname)
+                if file == "empty_structs.mvir":
+                    run_testcase(fullname)
                 # try:
                 #     run_testcase(join(root, file))
                 #     print("pass")

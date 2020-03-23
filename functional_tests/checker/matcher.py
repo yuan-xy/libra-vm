@@ -4,7 +4,7 @@ from functional_tests.evaluator import EvaluationLog, EvaluationOutput
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
-from enum import Enum
+from enum import Enum, IntEnum
 from canoser import Uint64
 
 # This module implements a matcher that checks if an evaluation log matches the
@@ -222,27 +222,29 @@ class Match:
     end: usize
 
 
-# A match error.
-@dataclass
-class MatchError:
-    tag: int
-    value: Any
-
+class METag(IntEnum):
     vNegativeMatch = 1 #(Match),
     vUnmatchedDirectives = 2 #(List[usize]),
     vUnmatchedErrors = 3 #(List[usize]),
 
+# A match error.
+@dataclass
+class MatchError:
+    tag: METag
+    value: Any
+
+
     @classmethod
     def NegativeMatch(cls, v):
-        return cls(cls.vNegativeMatch, v)
+        return cls(METag.vNegativeMatch, v)
 
     @classmethod
     def UnmatchedDirectives(cls, v):
-        return cls(cls.vUnmatchedDirectives, v)
+        return cls(METag.vUnmatchedDirectives, v)
 
     @classmethod
     def UnmatchedErrors(cls, v):
-        return cls(cls.vUnmatchedErrors, v)
+        return cls(METag.vUnmatchedErrors, v)
 
 # The status of a match.
 # Can be either success or failure with errors.
@@ -317,12 +319,11 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
                         matches,
                     )
 
-    prev_d = None
     for d in directives:
-        if prev_d and prev_d.inner == d.inner:
-            cur += 1
+        for i, pd in matches:
+            if pd == d.inner and cur == i:
+                cur += 1    #if directive is the same, new match should match next text.
         ret = lambda0(d)
-        prev_d = d
         if ret is not None:
             return ret
 
