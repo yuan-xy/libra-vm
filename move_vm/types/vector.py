@@ -60,7 +60,7 @@ def pop_arg_front(arguments, t):
 
 def err_vector_elem_ty_mismatch():
     raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
-            .with_message("vector elem type mismatch".to_string()))
+            .with_message("vector elem type mismatch"))
 
 
 def native_empty(
@@ -72,7 +72,7 @@ def native_empty(
     ensure_len(args, 0, "arguments", "empty")
 
     cost = native_gas(cost_table, NativeCostIndex.EMPTY, 1)
-    if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT):
+    if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool'):
         container = Container(ty_args[0].enum_name, [])
     else:
         container = Container('General', [])
@@ -95,8 +95,8 @@ def native_length(
     r = pop_arg_front(args, ContainerRef)
     v = r.borrow().v0
     if type(ty_args[0]) == TypeTag and type(v) == Container:
-        if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
-            and v.value_type == ty_args[0].value_type:
+        if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
+            and v.enum_name == ty_args[0].enum_name:
             length = v.value.__len__()
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
@@ -124,13 +124,14 @@ def native_push_back(
     cost = cost_table.native_cost(NativeCostIndex.PUSH_BACK).total().mul(e.size())
 
     if type(ty_args[0]) == TypeTag and type(v) == Container:
-        if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
-            and v.value_type == ty_args[0].value_type:
-            v.value.append(e.value_as(v.value_type))
+        if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
+            and v.enum_name == ty_args[0].enum_name:
+            v.value.append(e.value)
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
             v.value.append(e)
         else:
+            breakpoint()
             err_vector_elem_ty_mismatch()
     else:
         err_vector_elem_ty_mismatch()
@@ -181,8 +182,8 @@ def native_pop(
         ))
 
     if type(ty_args[0]) == TypeTag and type(v) == Container:
-        if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
-            and v.value_type == ty_args[0].value_type:
+        if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
+            and v.enum_name == ty_args[0].enum_name:
             if v:
                 res = ValueImpl(v.enum_name, v.value.pop())
             else:
@@ -213,8 +214,8 @@ def native_destroy_empty(
     v = args.pop(0).value_as(Container)
 
     if type(ty_args[0]) == TypeTag and type(v) == Container:
-        if ty_args[0].value_type in (Uint8, Uint64, Uint128, BoolT)\
-            and v.value_type == ty_args[0].value_type:
+        if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
+            and v.enum_name == ty_args[0].enum_name:
             length = v.value.__len__()
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
@@ -254,8 +255,8 @@ def native_swap(
                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(INDEX_OUT_OF_BOUNDS),
             )
         #TTODO: why not support Uint8/Uint128 bellow
-        if ty_args[0].value_type in (Uint64, bool)\
-            and v.value_type == ty_args[0].value_type:
+        if ty_args[0].enum_name in ('U64', 'Bool')\
+            and v.enum_name == ty_args[0].enum_name:
             v.swap(idx1, idx2)
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':

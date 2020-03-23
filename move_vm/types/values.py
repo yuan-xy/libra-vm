@@ -877,7 +877,7 @@ class Struct(CanoserStruct):
             return self.v0.value
         else:
             raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
-                                .with_message("not a struct".to_string()))
+                                .with_message("not a struct"))
 
     def simple_serialize(self, layout: StructDef) -> bytes:
         return self.v0.simple_serialize(layout)

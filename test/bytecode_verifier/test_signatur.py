@@ -57,10 +57,10 @@ proptest! {
         actual_violations.sort()
         # The error messages are slightly different from the invalid mutations, so clean these out
         for violation in actual_violations.iter_mut() {
-            violation.set_message("".to_string())
+            violation.set_message("")
         }
         for violation in expected_violations.iter_mut() {
-            violation.set_message("".to_string())
+            violation.set_message("")
         }
         prop_assert_equal(expected_violations, actual_violations)
     }
@@ -86,10 +86,10 @@ proptest! {
         actual_violations.sort()
         # The error messages are slightly different from the invalid mutations, so clean these out
         for violation in actual_violations.iter_mut() {
-            violation.set_message("".to_string())
+            violation.set_message("")
         }
         for violation in expected_violations.iter_mut() {
-            violation.set_message("".to_string())
+            violation.set_message("")
         }
         prop_assert_equal(expected_violations, actual_violations)
     }

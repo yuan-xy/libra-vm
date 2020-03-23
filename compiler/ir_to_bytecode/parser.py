@@ -150,7 +150,7 @@ def parse_cmd_(
 def handle_error(e: ParseError, code_str: str) -> None:
     if isinstance(e, ParseErrorInvalidToken):
         # files = Files.new()
-        # id = files.add(location.file(), code_str.to_string())
+        # id = files.add(location.file(), code_str)
         # lbl = Label.new(id, location.span(), "Invalid Token")
         # error = Diagnostic.new_error("Parser Error", lbl)
         # writer = StandardStream.stderr(ColorChoice.Auto)

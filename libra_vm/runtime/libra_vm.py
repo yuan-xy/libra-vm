@@ -698,7 +698,7 @@ def is_allowed_script(publishing_option, program: bytes) -> bool:
 
 def convert_txn_arg(arg: TransactionArgument) -> Value:
     if arg.U64:
-        return Value.Uint64(arg.value),
+        return Value.Uint64(arg.value)
     elif arg.Address:
         return Value.address(arg.value)
     elif arg.Bool:

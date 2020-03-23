@@ -974,6 +974,8 @@ class Stack:
     # Push a `Value` on the stack if the max stack size has not been reached. Abort execution
     # otherwise.
     def push(self, value: Value) -> None:
+        if not isinstance(value, Value):
+            bail(f"{value} is not a Value class.")
         if self.v0.__len__() < OPERAND_STACK_SIZE_LIMIT:
             self.v0.append(value)
         else:
@@ -992,7 +994,8 @@ class Stack:
             ty = BoolT
         elif ty == bytes:
             ty = BytesT()
-        return self.pop().value_as(ty)
+        value = self.pop()
+        return value.value_as(ty)
 
 
     # Pop n values off the stack.
@@ -1084,6 +1087,8 @@ class Frame:
     # Store a `Value` into a local at the given index. Return an error if the index is
     # out of bounds.
     def store_loc(self, idx: LocalIndex, value: Value) -> None:
+        if not isinstance(value, Value):
+            bail(f"{value} is not a Value class.")
         self.locls.store_loc(idx, value)
 
     # Borrow a local from this frame at the given index. Return an error if the index is

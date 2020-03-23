@@ -1334,7 +1334,7 @@ impl fmt.Display for QualifiedStructIdent {
 
 def format_type_actuals(tys: &[Type]) -> String {
     if tys.is_empty() {
-        "".to_string()
+        ""
     else:
         format!("<{}>", intersperse(tys, ", "))
     }
@@ -1342,7 +1342,7 @@ def format_type_actuals(tys: &[Type]) -> String {
 
 def format_type_formals(formals: &[Tuple[TypeVar, Kind]]) -> String {
     if formals.is_empty() {
-        "".to_string()
+        ""
     else:
         formatted = formals
             .iter()

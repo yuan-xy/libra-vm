@@ -29,6 +29,9 @@ from move_vm.types.type_context import TypeContext
 from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
+import logging
+
+logger = logging.getLogger(__name__)
 
 # An instantiation of the MoveVM.
 # `code_cache` is the top level module cache that holds loaded published modules.
@@ -93,7 +96,7 @@ class VMRuntime:
 
         if not verify_actuals(main.signature(), args):
             raise VMException(VMStatus(StatusCode.TYPE_MISMATCH)\
-                .with_message("Actual Type Mismatch".to_string()))
+                .with_message("Actual Type Mismatch"))
 
         from libra_vm.runtime.interpreter import Interpreter
         Interpreter.entrypoint(context, self, txn_data, gas_schedule, main, args)
