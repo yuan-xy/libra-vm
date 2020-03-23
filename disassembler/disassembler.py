@@ -56,7 +56,7 @@ class Disassembler:
         struct_definition_index: StructDefinitionIndex,
     ) -> StructDefinition:
         if struct_definition_index.v0 >= self.source_mapper.bytecode.struct_defs().__len__():
-            bail("Invalid class definition index supplied when marking struct")
+            bail("Invalid struct definition index supplied when marking struct")
 
         return self.source_mapper.bytecode.struct_def_at(struct_definition_index)
 
@@ -72,7 +72,7 @@ class Disassembler:
 
         struct_def_idx = position(self.source_mapper.bytecode.struct_defs(), lmd)
         if struct_def_idx is None:
-            bail("Unable to find class definition for class field")
+            bail("Unable to find struct definition for struct field")
 
         field_name = self.source_mapper.bytecode.identifier_at(field_def.name)
 
@@ -89,7 +89,7 @@ class Disassembler:
         lmd = lambda struct_def: struct_def.struct_handle == field_def.struct_
         struct_def_idx = position(self.source_mapper.bytecode.struct_defs(), lmd)
         if struct_def_idx is None:
-            bail("Unable to find class definition for class field")
+            bail("Unable to find struct definition for struct field")
 
         struct_source_info = self.source_mapper.source_map.get_struct_source_map(
             StructDefinitionIndex(struct_def_idx))
@@ -429,7 +429,7 @@ class Disassembler:
         )
 
 
-    # The class defs will filter out the structs that we print to only be the ones that are
+    # The struct defs will filter out the structs that we print to only be the ones that are
     # defined in the module in question.
     def disassemble_struct_def(self, struct_def_idx: StructDefinitionIndex) -> str:
         struct_definition = self.get_struct_def(struct_def_idx)

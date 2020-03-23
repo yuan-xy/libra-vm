@@ -59,6 +59,8 @@ def functional_tests(
     if res.status.tag == MatchStatus.vSuccess:
         return
     else:
+        print(log.outputs[-2])
+        print(f"len(directives):{len(directives)} , len(res.matches):{len(res.matches)}")
         errs: List[MatchError] = res.status.value
         bail(errs.__str__())
 

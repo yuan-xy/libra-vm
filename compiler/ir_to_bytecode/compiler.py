@@ -184,7 +184,7 @@ class InferredType:
         elif self.tag == InferredTypeTag.Struct:
             return self.struct
         else:
-            bail("could not infer class type")
+            bail("could not infer struct type")
 
 InferredType.Bool = InferredType(InferredTypeTag.Bool)
 InferredType.U8 = InferredType(InferredTypeTag.U8)
@@ -1045,7 +1045,7 @@ def compile_expression(
             # Check that the fields are specified in order matching the definition.
             (_, _, decl_order) = context.field(sh_idx, field.value)
             if field_order != decl_order:
-                bail("Field {} defined out of order for class {}", field, name)
+                bail("Field {} defined out of order for struct {}", field, name)
 
             compile_expression(context, function_frame, code, e)
 

@@ -616,7 +616,7 @@ class ReferenceImpl(RustEnum):
  **************************************************************************************/
 """
 
-# A reference to a Move class that allows you to take a reference to one of its fields.
+# A reference to a Move struct that allows you to take a reference to one of its fields.
 class StructRef(ContainerRef):
     def borrow_field(self, idx: usize) -> Value:
         return self.borrow_elem(idx)
@@ -956,7 +956,7 @@ def take_unique_ownership(r: RefCell):
  *   serialization:
  *     1) Depending on the specific internal representation, it may be impossible to
  *        reconstruct the layout from a value. For example, one cannot tell if a general
- *        container is a class or a value.
+ *        container is a struct or a value.
  *     2) Even if 1) is not a problem at a certain time, we may change to a different
  *        internal representation that breaks the 1-1 mapping. Extremely speaking, if
  *        we switch to untagged unions one day, none of the type info will be carried

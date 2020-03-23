@@ -306,7 +306,7 @@ class ModuleSourceMap:
         location: Location,
     ) -> None:
         if struct_def_idx.v0 in self.struct_map:
-            bail("Multiple structs at same class definition index encountered when constructing source map")
+            bail("Multiple structs at same struct definition index encountered when constructing source map")
 
         self.struct_map[struct_def_idx.v0] = StructSourceMap(location)
 
@@ -317,7 +317,7 @@ class ModuleSourceMap:
         location: Location,
     ) -> None:
         if struct_def_idx.v0 not in self.struct_map:
-            bail("Tried to add file mapping to undefined class index")
+            bail("Tried to add file mapping to undefined struct index")
 
         struct_entry = self.struct_map[struct_def_idx.v0]
         struct_entry.add_field_location(location)
@@ -329,7 +329,7 @@ class ModuleSourceMap:
         field_idx: FieldDefinitionIndex,
     ) -> Optional[Location]:
         if struct_def_idx.v0 not in self.struct_map:
-            bail("Tried to add file mapping to undefined class index")
+            bail("Tried to add file mapping to undefined struct index")
 
         return self.struct_map[struct_def_idx.v0].get_field_location(field_idx)
 
@@ -341,7 +341,7 @@ class ModuleSourceMap:
         name: SourceName,
     ) -> None:
         if struct_def_idx.v0 not in self.struct_map:
-            bail("Tried to add type_parameters to undefined class index")
+            bail("Tried to add type_parameters to undefined struct index")
 
         struct_entry = self.struct_map[struct_def_idx.v0]
         struct_entry.add_type_parameter(name)

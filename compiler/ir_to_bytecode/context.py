@@ -70,7 +70,7 @@ class CompiledDependency:
             mhandle = dep.module_handle_at(shandle.module)
             mname = dep.identifier_at(mhandle.name)
             sname = dep.identifier_at(shandle.name)
-            # get_or_add_item gets the proper class handle index, as `dep.struct_handles()` is
+            # get_or_add_item gets the proper struct handle index, as `dep.struct_handles()` is
             # properly ordered
             get_or_add_item(structs, (mname, sname))
 
@@ -390,7 +390,7 @@ class Context:
         ))
 
 
-    # Get the class definition index, fails if it is not bound.
+    # Get the struct definition index, fails if it is not bound.
     def struct_definition_index(self, s: StructName) -> StructDefinitionIndex:
         ret = self.struct_defs.get(s)
         if ret is None:
@@ -473,9 +473,9 @@ class Context:
     ) -> StructDefinitionIndex:
         idx = self.struct_defs.__len__()
         if idx > TABLE_MAX_SIZE:
-            bail("too many class definitions {}", s)
+            bail("too many struct definitions {}", s)
 
-        # TODO: Add the decl of the class definition name here
+        # TODO: Add the decl of the struct definition name here
         # need to handle duplicates
         if s not in self.struct_defs:
             self.struct_defs[s] = idx
@@ -523,7 +523,7 @@ class Context:
 
 
 
-    # Given a class handle and a field, adds it to the pool.
+    # Given a struct handle and a field, adds it to the pool.
     def declare_field(
         self,
         s: StructHandleIndex,
@@ -555,21 +555,21 @@ class Context:
 
     def dep_struct_handle(self, s: QualifiedStructIdent) -> Tuple[bool, List[Kind]]:
         if s.module == SELF_MODULE_NAME:
-            bail("Unbound class {}", s)
+            bail("Unbound struct {}", s)
 
         mident = self.module_ident(s.module)
         dep = self.dependency(mident)
         shandle = dep.struct_handle(s)
         if shandle is None:
-            bail("Unbound class {}", s)
+            bail("Unbound struct {}", s)
         else:
             return (shandle.is_nominal_resource, deepcopy(shandle.type_formals))
 
 
 
-    # Given an identifier, find the class handle index.
+    # Given an identifier, find the struct handle index.
     # Creates the handle and adds it to the pool if it it is the *first* time it looks
-    # up the class in a dependency.
+    # up the struct in a dependency.
     def struct_handle_index(self, s: QualifiedStructIdent) -> StructHandleIndex:
         sh = self.structs.get(s)
         if sh is not None:
