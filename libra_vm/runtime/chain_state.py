@@ -58,12 +58,12 @@ class ChainState(abc.ABC):
 
     # Transfer ownership of a resource stored on chain to the VM.
     @abc.abstractmethod
-    def move_resource_from(
+    def move_resource_from_chain(
         self,
         ap: AccessPath,
         sdef: StructDef,
     ) -> Optional[GlobalValue]:
-        pass
+        bail("unimplemented!")
 
     # Publish a module to be stored on chain.
     @abc.abstractmethod
@@ -169,7 +169,7 @@ class TransactionExecutionContext(InterpreterContextImpl, ChainState):
         return map_entry[1]
 
 
-    def move_resource_from(
+    def move_resource_from_chain(
         self,
         ap: AccessPath,
         sdef: StructDef,
@@ -207,6 +207,7 @@ class SystemExecutionContext(TransactionExecutionContext):
         return cls(gas_left, [], TransactionDataCache.new(data_cache))
 
     def deduct_gas(self, _amount: GasUnits):
+        #TTODO: why not deduct_gas in SystemExecutionContext?
         pass
 
     def From(ctx: TransactionExecutionContext) -> SystemExecutionContext:

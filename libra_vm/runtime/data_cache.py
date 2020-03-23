@@ -51,9 +51,11 @@ class BlockDataCache:
     def push_write_set(self, write_set: WriteSet):
         for (ap, write_op) in write_set.write_set:
             if write_op.Value:
-                self.data_map[deepcopy(ap)] = deepcopy(write_op.value)
+                self.data_map[ap] = deepcopy(write_op.value)
             elif write_op.Deletion:
-                self.data_map.remove(ap)
+                # breakpoint()
+                if ap in self.data_map:
+                    self.data_map.pop(ap)
             else:
                 bail("unreachable!")
 
@@ -156,7 +158,7 @@ class TransactionDataCache:
                     return None
                 else:
                     traceback.print_exc()
-                    breakpoint()
+                    # breakpoint()
                     raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
 
         return self.data_map[ap]
@@ -167,7 +169,7 @@ class TransactionDataCache:
         sdef: StructDef,
     ) -> Optional[Tuple[StructDef, GlobalValue]]:
         ret = self.load_data(ap, sdef)
-        self.data_map[ap] = None
+        self.data_map[ap] = None # will be marked WriteOp('Deletion') in make_write_set
         return ret
 
 

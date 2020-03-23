@@ -94,9 +94,8 @@ class InterpreterContextImpl:
 
 
     def move_resource_from(self, ap: AccessPath, sdef: StructDef) -> Value:
-        from libra_vm.runtime.chain_state import ChainState
-        root_value = ChainState.move_resource_from(self, ap, sdef)
-        if root_value is not None:
+        global_val = self.move_resource_from_chain(ap, sdef)
+        if global_val is not None:
             return Value.struct_(global_val.into_owned_struct())
         else:
             raise VMException(vm_error(Location(), StatusCode.DYNAMIC_REFERENCE_ERROR)\
