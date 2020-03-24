@@ -24,6 +24,9 @@ from canoser import Uint8, Uint64, Uint128, RustEnum, Cursor, BoolT, BytesT
 from canoser import Struct as CanoserStruct
 import traceback
 import gc
+import logging
+
+logger = logging.getLogger(__name__)
 
 """
 /***************************************************************************************
@@ -174,7 +177,7 @@ class ValueImpl(RustEnum):
                 return IntegerValue(self.enum_name, self.value)
             else:
                 raise VMException(VMStatus(StatusCode.INTERNAL_TYPE_ERROR)\
-                        .with_message(format_str("cannot cast {:?} to integer", v)))
+                        .with_message(format_str("cannot cast {} to integer", self)))
         elif ty == Reference:
             if self.ContainerRef:
                 return ReferenceImpl('ContainerRef', self.value)
@@ -698,9 +701,16 @@ class Locals(ContainerRefCell):
         try:
             value = v[idx]
             if value.Container:
-                if len(gc.get_referrers(value.value)) > 1:
-                    raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
-                        .with_message("moving container with dangling references"))
+                referrers = gc.get_referrers(value.value)
+                length = len(referrers)
+                if length > 1:
+                    #TTODO: how to get strong_count of value
+                    count = [x['value'] for x in referrers if 'value' in x].count(value.value)
+                    logger.warning(f"moving container with dangling references:{value.value.v0}")
+                    logger.warning(f"get_referrers:{length}, self:{count}")
+                    if length > count:
+                        raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
+                            .with_message("moving container with dangling references"))
             v[idx] = x
             return value
         except IndexError:
