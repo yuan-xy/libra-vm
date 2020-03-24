@@ -158,8 +158,8 @@ class FakeExecutor:
 
 
     # Adds an account to this executor's data store.
-    def add_account_data(self, account_data: AccountData):
-        self.data_store.add_account_data(account_data)
+    def add_account_data(self, name: str, account_data: AccountData):
+        self.data_store.add_account_data(name, account_data)
 
 
     # Adds a module to this executor's data store.

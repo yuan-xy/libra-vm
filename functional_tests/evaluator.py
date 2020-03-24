@@ -235,7 +235,7 @@ def verify_script(
     verified_script = VerifiedScript.new(script)
     errs = verify_script_dependencies(verified_script, deps)
     if errs:
-        raise VerifyException(errs)
+        raise VerifyException(errs, script)
 
     return verified_script
 
@@ -248,7 +248,7 @@ def verify_module(
     verified_module = VerifiedModule.new(module)
     errs = verify_module_dependencies(verified_module, deps)
     if errs:
-        raise VerifyException(errs)
+        raise VerifyException(errs, module)
 
     return verified_module
 
@@ -559,8 +559,8 @@ def eeval(
             VMPublishingOption.Open,
         )
 
-    for data in config.accounts.values():
-        fexec.add_account_data(data)
+    for name, data in config.accounts.items():
+        fexec.add_account_data(name, data)
 
 
     for (idx, command) in enumerate(commands):

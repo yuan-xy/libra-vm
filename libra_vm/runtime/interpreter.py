@@ -511,7 +511,8 @@ class Interpreter:
                     self.binop_bool(IntegerValue.ge)
 
                 elif instruction.tag == Opcodes.ABORT:
-                    # breakpoint()
+                    breakpoint()
+                    #context.data_view.data_cache.data_view.print_account_resource(True)
                     gas_const_instr(context, self, Opcodes.ABORT)
                     error_code = self.operand_stack.pop_as(Uint64)
                     raise VMException(VMStatus(StatusCode.ABORTED).with_sub_status(error_code))

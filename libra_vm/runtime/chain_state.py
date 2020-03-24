@@ -138,7 +138,7 @@ class TransactionExecutionContext(InterpreterContextImpl, ChainState):
         # record_stats!(observe | TXN_TOTAL_GAS_USAGE | gas_used)
         return TransactionOutput(
             write_set,
-            self.events,
+            self.events(),
             gas_used,
             TransactionStatus(TransactionStatus.Keep, status),
         )

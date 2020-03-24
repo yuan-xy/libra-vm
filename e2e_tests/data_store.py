@@ -1,5 +1,6 @@
 from __future__ import annotations
 from e2e_tests.account import AccountData
+from libra import AccountConfig, AccountResource
 from libra_storage.state_view import StateView
 from libra.access_path import AccessPath
 from libra.language_storage import ModuleId
@@ -11,7 +12,7 @@ from libra_vm.errors import *
 from libra_vm import CompiledModule
 from libra_vm.runtime.data_cache import RemoteCache
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Mapping
 
 
@@ -42,6 +43,20 @@ GENESIS_WRITE_SET = load_genesis("../vm_genesis/genesis/genesis.blob")
 @dataclass
 class FakeDataStore(StateView, RemoteCache):
     data: Mapping[AccessPath, bytes]
+    named_accounts: Mapping[str, bytes] = field(default_factory=dict)
+
+    def print_account_resource(self, only_balance=False, show_genesis=False):
+        for ap, blob in self.data.items():
+            if ap.path == AccountConfig.account_resource_path():
+                if ap.address in self.named_accounts or show_genesis:
+                    if ap.address in self.named_accounts:
+                        print(self.named_accounts[ap.address])
+                    print(ap.address.hex())
+                    ar = AccountResource.deserialize(blob)
+                    if only_balance:
+                        print(ar.balance)
+                    else:
+                        print(ar)
 
 
     # Adds a [`WriteSet`] to this data store.
@@ -79,13 +94,14 @@ class FakeDataStore(StateView, RemoteCache):
 
 
     # Adds an [`AccountData`] to this data store.
-    def add_account_data(self, account_data: AccountData):
+    def add_account_data(self, name: str, account_data: AccountData):
         v = account_data.to_resource()
         struct = v.value_as(Struct)
         blob = struct.simple_serialize(AccountData.layout())
         # res = Value.simple_deserialize(blob, Type('Struct',AccountData.layout()))
         # assert res.__str__() == v.__str__()
         self.set(account_data.make_access_path(), blob)
+        self.named_accounts[account_data.account.addr] = name
 
 
     # Adds a [`CompiledModule`] to this data store.
