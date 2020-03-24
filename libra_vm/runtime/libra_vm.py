@@ -328,7 +328,7 @@ class LibraVM(VMVerifier, VMExecutor):
         ts = TransactionStatus.from_vm_status(error_code)
         if ts.tag == TransactionStatus.Keep:
             try:
-                #self.run_epilogue(gas_free_ctx, txn_data)
+                self.run_epilogue(gas_free_ctx, txn_data)
                 return gas_free_ctx.get_transaction_output(txn_data, error_code)
             except VMException as err:
                 traceback.print_exc()

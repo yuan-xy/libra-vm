@@ -488,11 +488,11 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.OR:
                     gas_const_instr(context, self, Opcodes.OR)
-                    self.binop_bool(lambda l, r: l or r)
+                    self.binop_bool(lambda l, r: l or r, BoolT)
 
                 elif instruction.tag == Opcodes.AND:
                     gas_const_instr(context, self, Opcodes.AND)
-                    self.binop_bool(lambda l, r: l and r)
+                    self.binop_bool(lambda l, r: l and r, BoolT)
 
                 elif instruction.tag == Opcodes.LT:
                     gas_const_instr(context, self, Opcodes.LT)
@@ -511,7 +511,7 @@ class Interpreter:
                     self.binop_bool(IntegerValue.ge)
 
                 elif instruction.tag == Opcodes.ABORT:
-                    breakpoint()
+                    # breakpoint()
                     #context.data_view.data_cache.data_view.print_account_resource(True)
                     gas_const_instr(context, self, Opcodes.ABORT)
                     error_code = self.operand_stack.pop_as(Uint64)
@@ -792,7 +792,7 @@ class Interpreter:
     ) -> AbstractMemorySize:
         module = frame.module()
         type_actuals_sig = frame.module().locals_signature_at(type_actuals_idx).v0
-        type_actual_tags = [derive_type_tag(frame.module(), frame.type_actual_tags(), ty)\
+        type_actual_tags = [derive_type_tag(frame.module(), frame.type_actual_tags, ty)\
             for ty in type_actuals_sig]
 
         type_context = TypeContext(frame.type_actuals)

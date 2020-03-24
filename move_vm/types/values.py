@@ -466,7 +466,8 @@ class ContainerRef(RustEnum):
     #Implementation of the Move operation write ref.
     def write_ref(self, v: Value) -> None:
         if v.Container:
-            self.borrow_mut_set(v.value)
+            refmut = self.borrow_mut()
+            refmut.cell.v0 = take_unique_ownership(v.value)
         else:
             status = VMStatus(StatusCode.INTERNAL_TYPE_ERROR).with_message(format_str(
                         "cannot write value {} to container ref {}",
