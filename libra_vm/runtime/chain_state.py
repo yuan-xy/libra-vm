@@ -136,6 +136,7 @@ class TransactionExecutionContext(InterpreterContextImpl, ChainState):
             .mul(txn_data.gas_unit_price) \
             .get()
         write_set = self.make_write_set()
+
         # record_stats!(observe | TXN_TOTAL_GAS_USAGE | gas_used)
         return TransactionOutput(
             write_set,

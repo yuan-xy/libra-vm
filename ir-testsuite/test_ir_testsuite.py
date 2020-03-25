@@ -86,7 +86,6 @@ def test_dereference_tests():
     ir_testsuite('dereference_tests')
 
 def test_discovery():
-    return
     ir_testsuite('discovery')
 
 def test_epilogue():
@@ -183,7 +182,6 @@ def test_transactions():
     ir_testsuite('transactions')
 
 def test_validator_set():
-    return
     ir_testsuite('validator_set')
 
 def test_wallets():

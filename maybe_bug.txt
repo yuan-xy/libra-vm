@@ -1,4 +1,10 @@
 
+reconfiguration_via_network_address_rotation.mvir里的“check: events: []”应该有bug。实际情况是"events:"和"[]"分别匹配的。
+
+此外，输出“events: [], gas_used: 2242”很奇怪，为什么有gas_used被用掉了，但是没有events发生，谁出了gas费用？
+
+
+
 move语言如何处理异常？
 
 matcher的注释里 check 5有误。
