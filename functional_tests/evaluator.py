@@ -19,7 +19,7 @@ from libra.transaction import Script as TransactionScript
 from libra.transaction import Transaction as LibraTransaction
 from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus, TransactionPayload
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import CompiledModule, CompiledScript, ModuleView
+from libra_vm import CompiledModule, CompiledScript, ModuleView, VMException
 from libra_vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
 from dataclasses import dataclass, field
 from libra.rustlib import usize, bail, flatten, format_str
@@ -216,8 +216,10 @@ def fetch_dependencies(
     fexec: FakeExecutor,
     idents: List[ModuleId],
 ) -> List[VerifiedModule]:
-    # idents.into_inner().
-    return flatten([fetch_dependency(fexec, ident) for ident in idents])
+    try:
+        return flatten([fetch_dependency(fexec, ident) for ident in idents])
+    except Exception as err:
+        raise VerifyException(VMStatus(StatusCode.MISSING_DEPENDENCY), None)
 
 
 def fetch_dependency(fexec: FakeExecutor, ident: ModuleId) -> Optional[VerifiedModule]:
@@ -421,6 +423,7 @@ def eval_transaction(
         parsed_script_or_module =\
             unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.ins))
     except Exception as err:
+        traceback.print_exc()
         log.append(EvaluationOutput.Error(err))
         return Status.Failure
 
@@ -435,15 +438,23 @@ def eval_transaction(
             return Status.Success
 
         log.append(EvaluationOutput.Stage(Stage.Verifier))
-        deps = fetch_script_dependencies(fexec, compiled_script)
+        verify_errs = []
+
+        try:
+            deps = fetch_script_dependencies(fexec, compiled_script)
+        except VerifyException as error:
+            deps = []
+            verify_errs.extend(error.vm_status)
+
         try:
             compiled_script = verify_script(compiled_script, deps).into_inner()
         except VerifyException as error:
-            errs = error.vm_status
-            for err in errs:
-                err = ErrorKind.VerificationError(err)
-                log.append(EvaluationOutput.Error(err))
+            verify_errs.extend(error.vm_status)
 
+        if verify_errs:
+            # for err in verify_errs:
+            err = ErrorKind.VerificationError(verify_errs)
+            log.append(EvaluationOutput.Error(verify_errs))
             return Status.Failure
 
         # stage 3: serializer round trip
@@ -465,8 +476,9 @@ def eval_transaction(
 
         try:
             txn_output = unwrap_or_abort(run_transaction(fexec, script_transaction))
-        except ErrorKind as kind:
-            log.append(EvaluationOutput.Error(kind.value))
+        except Exception as err:
+            traceback.print_exc()
+            log.append(EvaluationOutput.Error(err))
             return Status.Failure
 
         log.append(EvaluationOutput.Output(OutputType.TransactionOutput(
@@ -488,7 +500,7 @@ def eval_transaction(
 
         try:
             compiled_module = verify_module(compiled_module, deps).into_inner()
-        except VerifyException as error:
+        except VMException as error:
             errs = error.vm_status
             for err in errs:
                 err = ErrorKind.VerificationError(err)
@@ -508,7 +520,13 @@ def eval_transaction(
         log.append(EvaluationOutput.Stage(Stage.Runtime))
         module_transaction =\
             make_module_transaction(fexec, transaction.config, compiled_module)
-        txn_output = unwrap_or_abort(run_transaction(fexec, module_transaction))
+
+        try:
+            txn_output = unwrap_or_abort(run_transaction(fexec, module_transaction))
+        except Exception as err:
+            log.append(EvaluationOutput.Error(err))
+            return Status.Failure
+
         log.append(EvaluationOutput.Output(OutputType.TransactionOutput(
             txn_output
         )))

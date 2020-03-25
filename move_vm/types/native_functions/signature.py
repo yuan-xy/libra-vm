@@ -2,16 +2,18 @@ from __future__ import annotations
 from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
 from move_vm.types.native_functions.primitive_helpers import check_arg_number
 from move_vm.types.values import Value
-from libra_vm.vm_exception import VMException
-from libra_vm.gas_schedule import CostTable, NativeCostIndex
+from libra_vm.vm_exception import VMException, VMExceptionBase
+from libra_vm.gas_schedule import CostTable, NativeCostIndex, GasUnits
 from libra.crypto.ed25519 import ED25519_SIGNATURE_LENGTH
 from libra.hasher import HashValue, new_sha3_256
 from libra.language_storage import TypeTag
 from libra.vm_error import StatusCode, VMStatus
 from canoser import Uint64, Uint32
-from libra.rustlib import usize
+from libra.rustlib import usize, flatten
 from typing import List, Tuple, Optional, Mapping
 from nacl.signing import VerifyKey
+from dataclasses import dataclass
+import nacl
 import traceback
 
 BITMAP_SIZE: usize = 32
@@ -99,13 +101,17 @@ def ed25519_threshold_signature_verification(
     message: ByteArray,
     cost_table: CostTable,
 ) -> NativeResult:
-    return NativeResult.ok(GasUnits.new(0), [Value.bool(True)]) #TODO: ed25519_threshold_signature_verification
-#     bitvec = BitVec.from_bytes(bitmap.as_bytes())
+    #TTODO: ed25519_threshold_signature_verification
 
-#     num_of_sigs = match sanity_check(&bitvec, &signatures, &public_keys, cost_table) {
-#         sig_count => sig_count,
-#         Err(result) => return result,
-#     }
+    bitvec = flatten([bin(int(x, 16))[2:].ljust(4, '0') for x in bitmap.hex()])
+    try:
+        num_of_sigs = sanity_check(bitvec, signatures, public_keys, cost_table)
+    except NativeException as err:
+        return err.result
+
+    return NativeResult.ok(GasUnits.new(0), [Value.Uint64(num_of_sigs)])
+
+
 #     cost = native_gas(
 #         cost_table,
 #         NativeCostIndex.ED25519_THRESHOLD_VERIFY,
@@ -204,84 +210,87 @@ def ed25519_threshold_signature_verification(
 #     keys_and_signatures
 # }
 
-# # Check for correct input sizes and return the number of submitted signatures iff everything is
-# # valid.
-# def sanity_check(
-#     bitmap: &BitList[Uint32],
-#     signatures: &ByteArray,
-#     pubkeys: &ByteArray,
-#     cost_table: &CostTable,
-# ) -> std.result.Uint64, NativeResult {
-#     bitmap_len = bitmap.__len__()
-#     signatures_len = signatures.__len__()
-#     public_keys_len = pubkeys.__len__()
+# Check for correct input sizes and return the number of submitted signatures iff everything is
+# valid.
+def sanity_check(
+    bitmap: List,
+    signatures: bytes,
+    pubkeys: bytes,
+    cost_table: CostTable,
+) -> Uint64:
+    bitmap_len = bitmap.__len__()
+    signatures_len = signatures.__len__()
+    public_keys_len = pubkeys.__len__()
 
-#     cost = native_gas(
-#         cost_table,
-#         NativeCostIndex.ED25519_THRESHOLD_VERIFY,
-#         bitmap_len + signatures_len + public_keys_len,
-#     )
+    cost = native_gas(
+        cost_table,
+        NativeCostIndex.ED25519_THRESHOLD_VERIFY,
+        bitmap_len + signatures_len + public_keys_len,
+    )
 
-#     # Ensure a BITMAP_SIZE bitmap.
-#     if bitmap_len != BITMAP_SIZE {
-#         # Invalid bitmap length
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                 .with_sub_status(INVALID_BITMAP_LENGTH_FAILURE),
-#         ))
-#     }
+    # Ensure a BITMAP_SIZE bitmap.
+    if bitmap_len != BITMAP_SIZE:
+        # Invalid bitmap length
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\
+                .with_sub_status(INVALID_BITMAP_LENGTH_FAILURE),
+        ))
 
-#     bitmap_last_bit_set: usize = 0; # This is fine as we expect at least one set bit.
-#     bitmap_count_ones: usize = 0
-#     for (i, bit) in bitmap.iter().enumerate() {
-#         if bit {
-#             bitmap_count_ones += 1
-#             bitmap_last_bit_set = i
-#         }
-#     }
-#     if bitmap_count_ones == 0 {
-#         # Bitmap is all zeros
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(ZERO_BITMAP_FAILURE),
-#         ))
-#     }
-#     # Ensure we have as many signatures as the number of set bits in bitmap.
-#     if bitmap_count_ones * 64 != signatures_len {
-#         # Mismatch between Bitmap Hamming weight and number of signatures
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                 .with_sub_status(SIGNATURE_SIZE_FAILURE),
-#         ))
-#     }
-#     # Ensure that we have at least as many keys as the index of the last set bit in bitmap.
-#     if public_keys_len < 32 * (bitmap_last_bit_set + 1) {
-#         # Bitmap points to a non-existent key
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                 .with_sub_status(BITMAP_PUBLIC_KEY_SIZE_FAILURE),
-#         ))
-#     }
-#     # Ensure no more than BITMAP_SIZE keys.
-#     if public_keys_len > 32 * BITMAP_SIZE {
-#         # Length of bytes of concatenated keys exceeds the maximum allowed
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                 .with_sub_status(OVERSIZED_PUBLIC_KEY_SIZE_FAILURE),
-#         ))
-#     }
-#     # Ensure bytearray for keys is a multiple of 32 bytes.
-#     if public_keys_len % 32 != 0 {
-#         # Concatenated Ed25519 public keys should be a multiple of 32 bytes
-#         return Err(NativeResult.err(
-#             cost,
-#             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                 .with_sub_status(INVALID_PUBLIC_KEY_SIZE_FAILURE),
-#         ))
-#     }
-#     bitmap_count_ones
-# }
+    bitmap_last_bit_set: usize = 0; # This is fine as we expect at least one set bit.
+    bitmap_count_ones: usize = 0
+    for (i, bit) in enumerate(bitmap):
+        if bit == '1':
+            bitmap_count_ones += 1
+            bitmap_last_bit_set = i
+
+    if bitmap_count_ones == 0:
+        # Bitmap is all zeros
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(ZERO_BITMAP_FAILURE),
+        ))
+
+    # Ensure we have as many signatures as the number of set bits in bitmap.
+    if bitmap_count_ones * 64 != signatures_len:
+        # Mismatch between Bitmap Hamming weight and number of signatures
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\
+                .with_sub_status(SIGNATURE_SIZE_FAILURE),
+        ))
+
+    # Ensure that we have at least as many keys as the index of the last set bit in bitmap.
+    if public_keys_len < 32 * (bitmap_last_bit_set + 1):
+        # Bitmap points to a non-existent key
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\
+                .with_sub_status(BITMAP_PUBLIC_KEY_SIZE_FAILURE),
+        ))
+
+    # Ensure no more than BITMAP_SIZE keys.
+    if public_keys_len > 32 * BITMAP_SIZE:
+        # Length of bytes of concatenated keys exceeds the maximum allowed
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
+                .with_sub_status(OVERSIZED_PUBLIC_KEY_SIZE_FAILURE),
+        ))
+
+    # Ensure bytearray for keys is a multiple of 32 bytes.
+    if public_keys_len % 32 != 0:
+        # Concatenated Ed25519 public keys should be a multiple of 32 bytes
+        raise NativeException(NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
+                .with_sub_status(INVALID_PUBLIC_KEY_SIZE_FAILURE),
+        ))
+
+    return bitmap_count_ones
+
+
+
+@dataclass
+class NativeException(VMExceptionBase):
+    result: NativeResult

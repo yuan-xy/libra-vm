@@ -9,7 +9,7 @@ from typing import List, Optional, Mapping, Tuple
 from dataclasses import dataclass
 from pygraph.classes.digraph import digraph
 from pygraph.algorithms.accessibility import mutual_accessibility
-
+from libra.rustlib import format_str
 
 # This implements an algorithm that detects loops during the instantiation of generics.
 #
@@ -33,6 +33,12 @@ class Node:
 
     def __hash__(self):
         return (self.v0.v0, self.v1).__hash__()
+
+    def __lt__(self, other):
+        if self.v0.v0 == other.v0.v0:
+            return self.v1 < other.v1
+        else:
+            return self.v0.v0 < other.v0.v0
 
 # Data attached to each edge. Indicating the type of the edge.
 @dataclass
@@ -246,7 +252,11 @@ class InstantiationLoopChecker:
 
 
     def get_edge_data(self, eg: EdgeInGraph) -> Edge:
-        return self.graph.edge_attributes(eg)['data']
+        arr = self.graph.edge_attributes(eg)
+        for name, edge in arr:
+            if name =='data':
+                return edge
+        return None
 
 
     def verify(self) -> List[VMStatus]:
@@ -255,8 +265,10 @@ class InstantiationLoopChecker:
 
         def lambda0(nodes, edges):
             msg_edges = [self.format_edge(eg) for eg in edges \
-                if self.get_edge_data(eg).tag == Edge.TYCONAPP].join(", ")
-            msg_nodes = [self.format_node(x) for x in nodes].join(", ")
+                if self.get_edge_data(eg).tag == Edge.TYCONAPP]
+            msg_edges = ", ".join(msg_edges)
+            msg_nodes = [self.format_node(x) for x in nodes]
+            msg_nodes = ", ".join(msg_nodes)
             msg = format_str(
                 "edges with constructors: [{}], nodes: [{}]",
                 msg_edges, msg_nodes

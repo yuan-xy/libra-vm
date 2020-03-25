@@ -155,6 +155,7 @@ class ValueImpl(RustEnum):
         if type(self) != type(other):
             raise VMException(VMStatus(StatusCode.INTERNAL_TYPE_ERROR))
         if self.value_type != other.value_type:
+            breakpoint()
             status = VMStatus(StatusCode.INTERNAL_TYPE_ERROR).with_message(format_str(
                 "cannot compare values: {}, {}", self.value_type, other.value_type))
             raise VMException(status)
@@ -821,7 +822,7 @@ class IntegerValue(RustEnum):
 
 
     def shl_checked(self, n_bits: Uint8) -> IntegerValue:
-        if n_bits > self.value_type.byte_lens * 8:
+        if n_bits >= self.value_type.byte_lens * 8:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
         try:
             return IntegerValue(self.enum_name, (self.value << n_bits) % (self.value_type.max_value+1))
@@ -829,7 +830,7 @@ class IntegerValue(RustEnum):
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
 
     def shr_checked(self, n_bits: Uint8) -> IntegerValue:
-        if n_bits > self.value_type.byte_lens * 8:
+        if n_bits >= self.value_type.byte_lens * 8:
             raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR))
         try:
             return IntegerValue(self.enum_name, self.value >> n_bits)

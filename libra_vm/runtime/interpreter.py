@@ -695,10 +695,15 @@ class Interpreter:
 
             result =\
                 native_function.dispatch(type_actual_tags, arguments, self.gas_schedule)
+
             gas_consume(context, result.cost)
-            if result.result:
+            if isinstance(result.result, list):
                 for value in result.result:
                     self.operand_stack.push(value)
+            elif isinstance(result.result, VMStatus):
+                raise VMException(result.result)
+            else:
+                bail("unreachable!")
 
 
 

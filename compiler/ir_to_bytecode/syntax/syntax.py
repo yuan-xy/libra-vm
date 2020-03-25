@@ -79,7 +79,8 @@ def parse_name(
     tokens: Lexer,
 ) -> str:
     if tokens.peek() != Tok.NameValue:
-        breakpoint()
+        #get_resource_internal_bypass.mvir
+        #breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
     name = tokens.content()
     tokens.advance()
@@ -1334,21 +1335,21 @@ def parse_storage_location(
         tokens.advance()
         if tokens.peek() == Tok.LParen:
             consume_token(tokens, Tok.LParen)
-            i = Uint8.from_str(tokens.content())
+            i = Uint8.int_safe(tokens.content())
             consume_token(tokens, Tok.U64Value)
             consume_token(tokens, Tok.RParen)
         else:
             # RET without brackets; use RET(0)
             i = 0
 
-        base = StorageLocation.Ret(i)
+        base = StorageLocationRet(i)
 
     elif tk == Tok.TxnSender:
         tokens.advance()
-        base = StorageLocation.TxnSenderAddress
+        base = StorageLocationTxnSenderAddress
 
     elif tk == Tok.AddressValue:
-        base = StorageLocation.Address(parse_account_address(tokens))
+        base = StorageLocationAddress(parse_account_address(tokens))
 
     elif tk == Tok.Global:
         consume_token(tokens, Tok.Global)
@@ -1359,13 +1360,13 @@ def parse_storage_location(
         consume_token(tokens, Tok.LParen)
         address = parse_storage_location(tokens)
         consume_token(tokens, Tok.RParen)
-        base = StorageLocation.GlobalResource(
+        base = StorageLocationGlobalResource(
             type_,
             type_actuals,
             address,
         )
     else:
-        base = StorageLocation.Formal(parse_name(tokens)),
+        base = StorageLocationFormal(parse_name(tokens)),
 
 
     # parsed the storage location base. now parse its fields and indices (if any)
@@ -1387,7 +1388,7 @@ def parse_storage_location(
     if not fields_and_indices:
         return base
     else:
-        return StorageLocation.AccessPath(
+        return StorageLocationAccessPath(
             base,
             fields_and_indices,
         )
@@ -1406,7 +1407,7 @@ def parse_unary_spec_exp(
         Tok.U128Value,
         Tok.ByteArrayValue,
     ]:
-        return SpecExp.Constant(parse_copyable_val(tokens).value)
+        return SpecExpConstant(parse_copyable_val(tokens).value)
 
     elif tk == Tok.GlobalExists:
         consume_token(tokens, Tok.GlobalExists)
@@ -1417,7 +1418,7 @@ def parse_unary_spec_exp(
         consume_token(tokens, Tok.LParen)
         address = parse_storage_location(tokens)
         consume_token(tokens, Tok.RParen)
-        return SpecExp.GlobalExists(
+        return SpecExpGlobalExists(
             type_,
             type_actuals,
             address,
@@ -1426,24 +1427,24 @@ def parse_unary_spec_exp(
     elif tk == Tok.Star:
         tokens.advance()
         stloc = parse_storage_location(tokens)
-        return SpecExp.Dereference(stloc)
+        return SpecExpDereference(stloc)
 
     elif tk == Tok.Amp:
         tokens.advance()
         stloc = parse_storage_location(tokens)
-        return SpecExp.Reference(stloc)
+        return SpecExpReference(stloc)
 
     elif tk == Tok.Exclaim:
         tokens.advance()
         exp = parse_unary_spec_exp(tokens)
-        return SpecExp.Not(exp)
+        return SpecExpNot(exp)
 
     elif tk == Tok.Old:
         tokens.advance()
         consume_token(tokens, Tok.LParen)
         exp = parse_spec_exp(tokens)
         consume_token(tokens, Tok.RParen)
-        return SpecExp.Old(exp)
+        return SpecExpOld(exp)
 
     elif tk == Tok.NameValue:
         try:
@@ -1451,7 +1452,7 @@ def parse_unary_spec_exp(
         except Exception as err:
             nextt = None
         if nextt is None or nextt != Tok.LParen:
-            return SpecExp.StorageLocation(parse_storage_location(tokens))
+            return SpecExpStorageLocation(parse_storage_location(tokens))
         else:
             name = parse_name(tokens)
             args = []
@@ -1465,9 +1466,9 @@ def parse_unary_spec_exp(
                 consume_token(tokens, Tok.Comma)
 
             consume_token(tokens, Tok.RParen)
-            return SpecExp.Call(name, args)
+            return SpecExpCall((name, args))
     else:
-        return SpecExp.StorageLocation(parse_storage_location(tokens))
+        return SpecExpStorageLocation(parse_storage_location(tokens))
 
 
 def parse_rhs_of_spec_exp(
@@ -1498,14 +1499,14 @@ def parse_rhs_of_spec_exp(
         # TODO: Implement IFF
         if op_token == Tok.EqualEqualGreater:
             # Syntactic sugar: p ==> c ~~~> !p || c
-            result = SpecExp.Binop(
-                SpecExp.Not(result),
+            result = SpecExpBinop((
+                SpecExpNot(result),
                 BinOp.Or,
                 rhs,
-            )
+            ))
         elif op_token == Tok.ColonEqual:
             # it's an update expr
-            result = SpecExp.Update(result, rhs)
+            result = SpecExpUpdate((result, rhs))
         else:
             op_map = {
                 Tok.EqualEqual: BinOp.Eq,
@@ -1530,7 +1531,7 @@ def parse_rhs_of_spec_exp(
                 op = op_map[op_token]
             else:
                 bail("Unexpected token that is not a binary operator")
-            result = SpecExp.Binop(result, op, rhs)
+            result = SpecExpBinop((result, op, rhs))
 
     return result
 
@@ -1555,19 +1556,19 @@ def parse_spec_condition(
 
     if tk == Tok.AbortsIf:
         tokens.advance()
-        retval = Condition_.AbortsIf(parse_spec_exp(tokens))
+        retval = Condition_(Condition_.AbortsIf, parse_spec_exp(tokens))
 
     elif tk == Tok.Ensures:
         tokens.advance()
-        retval = Condition_.Ensures(parse_spec_exp(tokens))
+        retval = Condition_(Condition_.Ensures, parse_spec_exp(tokens))
 
     elif tk == Tok.Requires:
         tokens.advance()
-        retval = Condition_.Requires(parse_spec_exp(tokens))
+        retval = Condition_(Condition_.Requires, parse_spec_exp(tokens))
 
     elif tk == Tok.SucceedsIf:
         tokens.advance()
-        retval = Condition_.SucceedsIf(parse_spec_exp(tokens))
+        retval = Condition_(Condition_.SucceedsIf, parse_spec_exp(tokens))
 
     else:
         tokens.spec_mode = False
@@ -1647,7 +1648,7 @@ def parse_synthetic_(
 ) -> SyntheticDefinition_:
     consume_token(tokens, Tok.Synthetic)
     field = parse_field(tokens)
-    istr = field.value.as_inner()
+    istr = field.value
     name = istr
     consume_token(tokens, Tok.Colon)
     type_ = parse_type(tokens)
@@ -1970,7 +1971,7 @@ def parse_import_alias(
 ) -> ModuleName:
     consume_token(tokens, Tok.As)
     alias = parse_module_name(tokens)
-    if alias.as_inner() == SELF_MODULE_NAME:
+    if alias == SELF_MODULE_NAME:
         bail(
             "Invalid use of reserved module alias '{}'",
             SELF_MODULE_NAME

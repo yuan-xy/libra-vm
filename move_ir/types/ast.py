@@ -102,6 +102,9 @@ class QualifiedModuleIdent:
     # Address that this module is published under
     address: Address
 
+    def __str__(self):
+        return f"{self.address}.{self.name}"
+
     def __hash__(self):
         return (self.name, self.address).__hash__()
 
@@ -256,6 +259,9 @@ class QualifiedStructIdent:
     # Name for the struct class. Should be unique among structs published under the same
     # module+address
     name: StructName
+
+    def __str__(self):
+        return f"{self.module}.{self.name}"
 
     def __hash__(self):
         return (self.module, self.name).__hash__()
@@ -1820,7 +1826,7 @@ class SpecExpCall(SpecExp):
 
 
 # A specification directive to be verified
-@classmethod
+@dataclass
 class Condition_:
     tag: int
     value: SpecExp

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from libra.vm_error import StatusCode, VMStatus
 from libra_vm.errors import verification_error
-from libra_vm import ModuleAccess, IndexKind
+from libra_vm import ModuleAccess, IndexKind, VMException
 from libra_vm.internals import ModuleIndex
 from libra_vm.views import StructDefinitionView
 from libra_vm.file_format import CompiledModule, StructDefinitionIndex, StructHandleIndex, TableIndex
@@ -24,12 +24,16 @@ class RecursiveStructDefChecker:
     def verify(self) -> List[VMStatus]:
         graph_builder = StructDefGraphBuilder.new(self.module)
 
-        graph = graph_builder.build()
+        try:
+            graph = graph_builder.build()
+        except TypeError:
+            raise VMException(VMStatus(StatusCode.MISSING_DEPENDENCY))
 
         # toposort is iterative while petgraph.algo.is_cyclic_directed is recursive. Prefer
         # the iterative solution here as this code may be dealing with untrusted data.
-        if find_cycle(graph):
-            sd_idx = graph[cycle.node_id()]
+        arr =find_cycle(graph)
+        if arr:
+            sd_idx = arr[0]
             return [verification_error(
                 IndexKind.StructDefinition,
                 sd_idx.into_index(),

@@ -156,8 +156,8 @@ def native_borrow(
     if idx >= v.__len__():
         return NativeResult.err(
             cost,
-            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR.with_sub_status(INDEX_OUT_OF_BOUNDS),
-        ))
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(INDEX_OUT_OF_BOUNDS),
+        )
 
     v = r.borrow_elem(idx)
     return NativeResult.ok(cost, [v])
@@ -178,8 +178,8 @@ def native_pop(
     def err_pop_empty_vec():
         return NativeResult.err(
             cost,
-            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR.with_sub_status(POP_EMPTY_VEC),
-        ))
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(POP_EMPTY_VEC),
+        )
 
     if type(ty_args[0]) == TypeTag and type(v) == Container:
         if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
@@ -228,10 +228,10 @@ def native_destroy_empty(
     if length < 1:
         return NativeResult.ok(cost, [])
     else:
-        NativeResult.err(
+        return NativeResult.err(
             cost,
-            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR.with_sub_status(DESTROY_NON_EMPTY_VEC),
-        ))
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(DESTROY_NON_EMPTY_VEC),
+        )
 
 
 def native_swap(
@@ -257,10 +257,14 @@ def native_swap(
         #TTODO: why not support Uint8/Uint128 bellow
         if ty_args[0].enum_name in ('U64', 'Bool')\
             and v.enum_name == ty_args[0].enum_name:
-            v.swap(idx1, idx2)
+            tmp = v.value[idx1]
+            v.value[idx1] = v.value[idx2]
+            v.value[idx2] = tmp
         elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
             and v.enum_name == 'General':
-            v.swap(idx1, idx2)
+            tmp = v.value[idx1]
+            v.value[idx1] = v.value[idx2]
+            v.value[idx2] = tmp
         else:
             err_vector_elem_ty_mismatch()
     else:

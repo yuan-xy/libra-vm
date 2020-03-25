@@ -28,8 +28,10 @@ def resolve_native_function(
     module: ModuleId,
     function_name: IdentStr,
 ) -> Optional[NativeFunction]:
-    return NATIVE_FUNCTION_MAP[module][function_name]
-
+    try:
+        return NATIVE_FUNCTION_MAP[module][function_name]
+    except KeyError:
+        return None
 
 
 def add_native_function(m, addr, module, name, dis, args, ret, kinds=[]):

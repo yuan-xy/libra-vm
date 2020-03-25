@@ -295,15 +295,24 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
     # Convert each entry of the evaluation log into a string, which will be later matched against.
     text = [x.__str__() for x in log.outputs]
     cur = 0
+    cur_pos = (cur, 0)
     matches = []
 
     def lambda0(sp):
         nonlocal cur
+        nonlocal cur_pos
         d = sp.inner
         for i in range(cur, len(text)):
-            if text[i].find(d.value) != -1:
+            if cur_pos[0] == i:
+                from_idx = cur_pos[1]
+            else:
+                from_idx = 0
+            pos = text[i][from_idx:].find(d.value)
+            if pos != -1:
                 if d.is_positive():
                     cur = i
+                    cur_pos = (cur, from_idx + pos + len(d.value))
+                    print(cur_pos)
                     matches.append((i, d))
                     return None
                 else:
@@ -320,9 +329,9 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
                     )
 
     for d in directives:
-        for i, pd in matches:
-            if pd == d.inner and cur == i:
-                cur += 1    #if directive is the same, new match should match next text.
+        # for i, pd in matches:
+        #     if pd == d.inner and cur == i:
+        #         cur += 1    #if directive is the same, new match should match next text.
         ret = lambda0(d)
         if ret is not None:
             return ret

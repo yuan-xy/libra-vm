@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import List, Set, Mapping, Iterable, Optional, Tuple
 from dataclasses import dataclass
 import abc
-from libra.rustlib import flatten
+from libra.rustlib import flatten, format_str
 from libra.vm_error import StatusCode, VMStatus
 from libra_vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
 from libra_vm.errors import append_err_info
@@ -90,7 +90,7 @@ class SignatureChecker:
                     ty = self.module.type_signature_at(field_def.signature)
 
                     for err in check_signature_no_refs(context, ty.v0):
-                        append_err_info(
+                        err2 = append_err_info(
                             append_err_info(
                                 append_err_info(
                                     VMStatus(StatusCode.INVALID_FIELD_DEF).append(err),
@@ -103,7 +103,7 @@ class SignatureChecker:
                             IndexKind.StructDefinition,
                             struct_def_idx,
                         )
-                        ret.append(err)
+                        ret.append(err2)
         return ret
 
 
