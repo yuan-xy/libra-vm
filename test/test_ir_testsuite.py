@@ -61,26 +61,7 @@ def ir_testsuite(subdir: str):
                 print(file)
                 if file == "option.mvir":
                     continue
-                if file == "threshold_signature_ed25519_bad_msg.mvir":
-                    continue
-                if file == "threshold_signature_ed25519_bad_pk.mvir":
-                    continue
-                if file == "threshold_signature_ed25519_bad_sig.mvir":
-                    continue
-                if file == "threshold_signature_ed25519_no_matching_pk.mvir":
-                    continue
-                # if file == "vector_double_borrow_mut.mvir":
-                #     continue
-                # if file == "vector_pop_after_borrow.mvir":
-                #     run_testcase(fullname)
-
                 run_testcase(fullname)
-
-                # try:
-                #     run_testcase(join(root, file))
-                #     print("pass")
-                # except Exception:
-                #     print("FAIL")
 
 
 def test_block():

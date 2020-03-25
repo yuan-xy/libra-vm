@@ -101,114 +101,66 @@ def ed25519_threshold_signature_verification(
     message: ByteArray,
     cost_table: CostTable,
 ) -> NativeResult:
-    #TTODO: ed25519_threshold_signature_verification
-
-    bitvec = flatten([bin(int(x, 16))[2:].ljust(4, '0') for x in bitmap.hex()])
+    bitvec = flatten([bin(x)[2:].rjust(8, '0') for x in bitmap])
     try:
         num_of_sigs = sanity_check(bitvec, signatures, public_keys, cost_table)
     except NativeException as err:
         return err.result
 
-    return NativeResult.ok(GasUnits.new(0), [Value.Uint64(num_of_sigs)])
+    cost = native_gas(
+        cost_table,
+        NativeCostIndex.ED25519_THRESHOLD_VERIFY,
+        num_of_sigs * message.__len__(),
+    )
+
+    chunks, chunk_size = len(signatures), 64
+    sig_chunks = [signatures[i:i+chunk_size] for i in range(0, chunks, chunk_size)]
+
+    chunks, chunk_size = len(public_keys), 32
+    key_chunks = [public_keys[i:i+chunk_size] for i in range(0, chunks, chunk_size)]
+
+    keys_and_signatures = matching_keys_and_signatures(num_of_sigs, bitvec, sig_chunks, key_chunks)
+
+    if len(message) != HashValue.LENGTH:
+        status = VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(DEFAULT_ERROR_CODE)
+        return NativeResult.err(cost, status)
+
+    try:
+        for (pubkey, sig) in keys_and_signatures:
+            pk = VerifyKey(bytes(pubkey))
+            pk.verify(message, sig)
+
+        return NativeResult.ok(cost, [Value.Uint64(num_of_sigs)])
+    except nacl.exceptions.BadSignatureError:
+        return NativeResult.err(
+            cost,
+            VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\
+                .with_sub_status(SIGNATURE_VERIFICATION_FAILURE),
+        )
 
 
-#     cost = native_gas(
-#         cost_table,
-#         NativeCostIndex.ED25519_THRESHOLD_VERIFY,
-#         num_of_sigs as usize * message.__len__(),
-#     )
+def matching_keys_and_signatures(
+    num_of_sigs: Uint64,
+    bitmap: List,
+    signatures: List[Ed25519Signature],
+    public_keys: List[Ed25519PublicKey],
+) -> List[Tuple[Ed25519PublicKey, Ed25519Signature]]:
+    sig_index = 0
+    keys_and_signatures = []
 
-#     sig_chunks: .std.result.List[_, _] = signatures
-#         .as_bytes()
-#         .chunks(64)
-#         .map(Ed25519Signature.try_from)
-#         .collect()
+    for (key_index, bit) in enumerate(bitmap):
+        if bit == '1':
+            keys_and_signatures.append((
+                # unwrap() will always succeed because we already did the sanity check.
+                public_keys[key_index],
+                signatures[sig_index],
+            ))
+            sig_index += 1
+            if sig_index == num_of_sigs:
+                break
 
-#     match sig_chunks {
-#         signatures => {
-#             key_chunks: .std.result.List[_, _] = public_keys
-#                 .as_bytes()
-#                 .chunks(32)
-#                 .map(Ed25519PublicKey.try_from)
-#                 .collect()
+    return keys_and_signatures
 
-#             match key_chunks {
-#                 keys => {
-#                     keys_and_signatures =
-#                         matching_keys_and_signatures(num_of_sigs, bitvec, signatures, keys)
-#                     hash_value = match HashValue.from_slice(message.as_bytes()) {
-#                         Err(_) => {
-#                             return NativeResult.err(
-#                                 cost,
-#                                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                                     .with_sub_status(DEFAULT_ERROR_CODE),
-#                             )
-#                         }
-#                         hash_value => hash_value,
-#                     }
-#                     match Ed25519Signature.batch_verify_signatures(
-#                         &hash_value,
-#                         keys_and_signatures,
-#                     ) {
-#                         () => NativeResult.ok(cost, [Value.Uint64(num_of_sigs)]),
-#                         Err(_) =>
-#                         # Batch verification failed
-#                         {
-#                             NativeResult.err(
-#                                 cost,
-#                                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                                     .with_sub_status(SIGNATURE_VERIFICATION_FAILURE),
-#                             )
-#                         }
-#                     }
-#                 }
-#                 Err(_) =>
-#                 # Key deserialization error
-#                 {
-#                     NativeResult.err(
-#                         cost,
-#                         VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                             .with_sub_status(PUBLIC_KEY_DESERIALIZATION_FAILURE),
-#                     )
-#                 }
-#             }
-#         }
-#         Err(_) =>
-#         # Signature deserialization error
-#         {
-#             NativeResult.err(
-#                 cost,
-#                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)
-#                     .with_sub_status(SIGNATURE_DESERIALIZATION_FAILURE),
-#             )
-#         }
-#     }
-# }
-
-# def matching_keys_and_signatures(
-#     num_of_sigs: Uint64,
-#     bitmap: BitVec,
-#     signatures: List[Ed25519Signature],
-#     public_keys: List[Ed25519PublicKey],
-# ) -> List[(Ed25519PublicKey, Ed25519Signature)] {
-#     sig_index = 0
-#     keys_and_signatures: List[(Ed25519PublicKey, Ed25519Signature)] =
-#         Vec.with_capacity(num_of_sigs as usize)
-#     for (key_index, bit) in bitmap.iter().enumerate() {
-#         if bit {
-#             keys_and_signatures.push((
-#                 # unwrap() will always succeed because we already did the sanity check.
-#                 public_keys.get(key_index).clone(),
-#                 signatures.get(sig_index).clone(),
-#             ))
-#             sig_index += 1
-#             if sig_index == num_of_sigs as usize {
-#                 break
-#             }
-#         }
-#     }
-#     keys_and_signatures
-# }
 
 # Check for correct input sizes and return the number of submitted signatures iff everything is
 # valid.
