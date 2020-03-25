@@ -59,8 +59,6 @@ def ir_testsuite(subdir: str):
             if(file.endswith(".mvir")):
                 fullname = join(root, file)
                 print(file)
-                if file == "option.mvir":
-                    continue
                 run_testcase(fullname)
 
 

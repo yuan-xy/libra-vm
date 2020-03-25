@@ -41,7 +41,7 @@ def do_verify_module(module: CompiledModule, deps: List[VerifiedModule]) -> Veri
     try:
         verified_module = VerifiedModule.new(module)
     except VerifyException as err:
-        print_errors_and_exit(err.status)
+        print_errors_and_exit(err.vm_status)
     errors = verify_module_dependencies(verified_module, deps)
     if errors:
         print_errors_and_exit(errors)

@@ -149,7 +149,12 @@ class InstantiationLoopChecker:
             self.graph.add_node(node_from)
         if not self.graph.has_node(node_to):
             self.graph.add_node(node_to)
-        self.graph.add_edge((node_from, node_to), attrs = [('data',edge)])
+
+        if self.graph.has_edge((node_from, node_to)):
+            if edge.tag == Edge.TYCONAPP:
+                self.graph.add_edge_attributes((node_from, node_to), attrs = [('data',edge)])
+        else:
+            self.graph.add_edge((node_from, node_to), attrs = [('data',edge)])
 
 
     # Helper of 'def build_graph' that inspects a function call. If type parameters of the caller

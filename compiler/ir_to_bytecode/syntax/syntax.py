@@ -1085,7 +1085,6 @@ def parse_kind(tokens: Lexer) -> Kind:
     elif tk == Tok.Unrestricted:
         k = Kind.Unrestricted
     else:
-        breakpoint()
         raise ParseErrorInvalidToken(current_token_loc(tokens))
 
     tokens.advance()

@@ -487,6 +487,20 @@ class SignatureToken:
     typeParameter : TypeParameterIndex = None
     vector_type: SignatureToken = None
 
+    def __str__(self):
+        value = None
+        if self.tag == SerializedType.STRUCT:
+            value = self.struct
+        if self.tag == SerializedType.MUTABLE_REFERENCE or self.tag == SerializedType.REFERENCE:
+            value = self.reference
+        if self.tag == SerializedType.VECTOR:
+            value = self.vector_type
+        if self.tag == SerializedType.TYPE_PARAMETER:
+            value = self.typeParameter
+        return "SignatureToken({}: {})".format(self.tag.name, value)
+
+    def __repr__(self):
+        return self.__str__()
 
     def check_type_parameters(self, type_formals_len: usize) -> List[VMStatus]:
         if self.tag == SerializedType.STRUCT:
