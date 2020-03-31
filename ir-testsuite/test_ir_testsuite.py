@@ -54,6 +54,7 @@ def run_testcase(path: str):
 def ir_testsuite(subdir: str):
     curdir = dirname(__file__)
     path = join(curdir, "../../libra/language/ir-testsuite/tests", subdir)
+    print(f"====={path}")
     for root, dirs, files in os.walk(path):
         for file in files:
             if(file.endswith(".mvir")):

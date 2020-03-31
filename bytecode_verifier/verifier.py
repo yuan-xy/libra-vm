@@ -235,7 +235,7 @@ def verify_main_signature(script: CompiledScript) -> List[VMStatus]:
     return []
 
 
-# Verification of a module in isolation (using `VerifiedModule.new`) trusts that class and
+# Verification of a module in isolation (using `VerifiedModule.new`) trusts that struct and
 # function handles not implemented in the module are declared correctly. The following procedure
 # justifies this trust by checking that these declarations match the definitions in the module
 # dependencies. Each dependency of 'module' is looked up in 'dependencies'.  If not found, an

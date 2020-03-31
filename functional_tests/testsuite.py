@@ -5,7 +5,7 @@ from functional_tests.config.globl import Config as GlobalConfig
 from functional_tests.evaluator import eeval
 from functional_tests.preprocessor import build_transactions, split_input
 from pathlib import Path
-
+from libra.rustlib import bail
 
 char = str
 
