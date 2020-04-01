@@ -75,6 +75,7 @@ def native_empty(
 
     cost = native_gas(cost_table, NativeCostIndex.EMPTY, 1)
     if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool'):
+        breakpoint()
         container = Container(ty_args[0].enum_name, [])
     else:
         container = Container('General', [])

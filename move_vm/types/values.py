@@ -103,7 +103,7 @@ class ValueImpl(RustEnum):
 
     @classmethod
     def vector_u8(cls, x: bytes) -> ValueImpl:
-        return ValueImpl.new_container(Container('U8', x))
+        return ValueImpl.new_container(Container('U8', bytearray(x)))
 
 
     @classmethod
@@ -209,6 +209,12 @@ class ValueImpl(RustEnum):
         elif ty == StructRef:
             ref = self.cast(ContainerRef)
             return StructRef(ref.enum_name, ref.value)
+        elif isinstance(ty, BytesT):
+            if self.Container and self.value.v0.U8:
+                return bytes(self.value.v0.value)
+            else:
+                raise VMException(VMStatus(StatusCode.INTERNAL_TYPE_ERROR)\
+                    .with_message(format_str("cannot cast {:?} to vector<u8>", v,)))
         else:
             raise VMException(VMStatus(StatusCode.INTERNAL_TYPE_ERROR).with_message(format_str(
                             "cannot cast {} to {}",
@@ -335,7 +341,7 @@ ValueInvalid = ValueImpl('Invalid')
 class Container(RustEnum):
     _enums = [
         ('General', [ValueImpl]),
-        ('U8', [Uint8]),
+        ('U8', bytearray),
         ('U64', [Uint64]),
         ('U128', [Uint128]),
         ('Bool', [bool])
