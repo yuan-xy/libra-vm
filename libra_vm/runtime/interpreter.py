@@ -331,14 +331,14 @@ class Interpreter:
 
                 elif instruction.tag == Opcodes.LD_BYTEARRAY:
                     idx = instruction.value
-                    byte_array = frame.module().byte_array_at(idx)
+                    v = frame.module().byte_array_at(idx)
                     gas_instr(context,
                         self,
                         Opcodes.LD_BYTEARRAY,
-                        AbstractMemorySize.new(byte_array.__len__())
+                        AbstractMemorySize.new(v.__len__())
                     )
                     self.operand_stack\
-                        .push(Value.byte_array(bytes(byte_array)))
+                        .push(Value.vector_u8(bytes(v)))
 
                 elif instruction.tag == Opcodes.LD_TRUE:
                     gas_const_instr(context, self, Opcodes.LD_TRUE)

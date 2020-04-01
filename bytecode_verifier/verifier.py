@@ -8,6 +8,7 @@ from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
+from libra_vm import signature_token_help
 
 from move_vm.types.native_functions.dispatch import NativeFunction
 from move_vm.types.native_structs import resolve_native_struct
@@ -229,7 +230,7 @@ def verify_main_signature(script: CompiledScript) -> List[VMStatus]:
         return [VMStatus(StatusCode.INVALID_MAIN_FUNCTION_SIGNATURE)]
 
     for arg_type in function_signature.arg_types:
-        if not arg_type.is_primitive():
+        if not (arg_type.is_primitive() or arg_type == signature_token_help.VectorU8):
             return [VMStatus(StatusCode.INVALID_MAIN_FUNCTION_SIGNATURE)]
 
     return []

@@ -1337,7 +1337,7 @@ class ModuleAccess(abc.ABC):
         return self.as_module().as_inner().identifiers[idx.into_index()]
 
 
-    def byte_array_at(self, idx: ByteArrayPoolIndex) -> bytearray:
+    def byte_array_at(self, idx: ByteArrayPoolIndex) -> bytes:
         return self.as_module().as_inner().byte_array_pool[idx.into_index()]
 
 
@@ -1486,7 +1486,7 @@ class ScriptAccess(abc.ABC):
         return self.as_script().as_inner().identifiers[idx.into_index()]
 
 
-    def byte_array_at(self, idx: ByteArrayPoolIndex) -> bytearray:
+    def byte_array_at(self, idx: ByteArrayPoolIndex) -> bytes:
         return self.as_script().as_inner().byte_array_pool[idx.into_index()]
 
 

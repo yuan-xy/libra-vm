@@ -243,7 +243,7 @@ def create_and_initialize_main_accounts(
             gas_schedule,
             interpreter_context,
             txn_data,
-            [Value.byte_array(genesis_auth_key)],
+            [Value.vector_u8(genesis_auth_key)],
         )
 
     # Bump the sequence number for the Association account. If we don't do this and a
@@ -387,22 +387,22 @@ def initialize_validators(
                 validator_txn_data,
                 [
                     # consensus_pubkey
-                    Value.byte_array(validator_keys.consensus_public_key),
+                    Value.vector_u8(validator_keys.consensus_public_key),
 
                     # network_signing_pubkey
-                    Value.byte_array(validator_keys.network_signing_public_key),
+                    Value.vector_u8(validator_keys.network_signing_public_key),
 
                     # validator_network_identity_pubkey
-                    Value.byte_array(discovery_info.validator_network_identity_pubkey),
+                    Value.vector_u8(discovery_info.validator_network_identity_pubkey),
 
                     # validator_network_address placeholder
-                    Value.byte_array(discovery_info.validator_network_address),
+                    Value.vector_u8(discovery_info.validator_network_address),
 
                     # fullnodes_network_identity_pubkey placeholder
-                    Value.byte_array(discovery_info.fullnodes_network_identity_pubkey),
+                    Value.vector_u8(discovery_info.fullnodes_network_identity_pubkey),
 
                     # fullnodes_network_address placeholder
-                    Value.byte_array(discovery_info.fullnodes_network_address),
+                    Value.vector_u8(discovery_info.fullnodes_network_address),
                 ],
             )
 

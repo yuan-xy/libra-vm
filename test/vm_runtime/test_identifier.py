@@ -2,6 +2,7 @@ from libra_vm.runtime.identifier import resource_storage_key
 from libra_vm.file_format import ModuleAccess
 from libra_vm.file_format import CompiledModule, StructDefinitionIndex, TableIndex
 from libra.language_storage import ModuleId, StructTag
+from stdlib import build_stdlib_map
 import os, json
 from os import listdir
 from os.path import isfile, join, abspath, dirname
@@ -23,19 +24,7 @@ def identifier_serializer_roundtrip(module):
 
 
 def test_std_module():
-    curdir = dirname(__file__)
-    sdir = join(curdir, "../../stdlib/modules")
-    mvs = [f for f in listdir(sdir) if f.endswith(".mv")]
-    for mv in mvs:
-        filename = abspath(join(sdir, mv))
-        do_test_module(filename)
-
-def do_test_module(filename):
-    print(filename)
-    with open(filename, 'r') as file:
-        amap = json.load(file)
-        code = bytes(amap['code'])
-        obj = CompiledModule.deserialize(code)
-        identifier_serializer_roundtrip(obj)
-
+    for file, module in build_stdlib_map().items():
+        print(file)
+        identifier_serializer_roundtrip(module)
 

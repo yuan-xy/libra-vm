@@ -289,13 +289,14 @@ class AccountData:
 
 
     def layout() -> StructDef:
+        VectorU8 = Type('Vector', Type('U8'))
         return StructDef.new([
-            Type('ByteArray'),
+            VectorU8,
             Type('Struct', StructDef.new([Type('U64')])),
             Type('Bool'),
             Type('Bool'),
-            Type('Struct', StructDef.new([Type('U64'), Type('ByteArray')])),
-            Type('Struct', StructDef.new([Type('U64'), Type('ByteArray')])),
+            Type('Struct', StructDef.new([Type('U64'), VectorU8])),
+            Type('Struct', StructDef.new([Type('U64'), VectorU8])),
             Type('U64'),
             Type('Struct', StructDef.new([Type('U64')])),
         ])
@@ -307,7 +308,7 @@ class AccountData:
         coin = Value.struct_(VMStruct.pack([Value.Uint64(self.balance)]))
         #TTODO: why not use Uint64 directly for coin?
         return Value.struct_(VMStruct.pack([
-            Value.byte_array(
+            Value.vector_u8(
                 Address.from_public_key(self.account.pubkey),
             ),
             coin,
@@ -315,11 +316,11 @@ class AccountData:
             Value.bool(self.delegated_withdrawal_capability),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.received_events.count),
-                Value.byte_array(self.received_events.key),
+                Value.vector_u8(self.received_events.key),
             ])),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.sent_events.count),
-                Value.byte_array(self.sent_events.key),
+                Value.vector_u8(self.sent_events.key),
             ])),
             Value.Uint64(self.sequence_number),
             Value.struct_(VMStruct.pack([Value.Uint64(self.event_generator)])),

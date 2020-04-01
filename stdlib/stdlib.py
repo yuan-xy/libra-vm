@@ -4,39 +4,37 @@ import os, json
 from os import listdir
 from os.path import isfile, join, abspath, dirname
 from typing import List, Mapping
+from canoser import Struct
+
+class VecVecU8(Struct):
+    _fields = [('modules', [bytes])]
+
+def parse_stdlib_file() -> List[bytes]:
+    curdir = dirname(__file__)
+    filename = join(curdir, "./staged/stdlib.mv")
+    with open(filename, 'rb') as file:
+        code = file.read()
+        return VecVecU8.deserialize(code).modules
 
 def build_stdlib() -> List[VerifiedModule]:
-    ret = []
-    curdir = dirname(__file__)
-    sdir = join(curdir, "./modules")
-    mvs = [f for f in listdir(sdir) if f.endswith(".mv")]
-    for mv in mvs:
-        filename = abspath(join(sdir, mv))
-        with open(filename, 'r') as file:
-            amap = json.load(file)
-            code = bytes(amap['code'])
-            obj = CompiledModule.deserialize(code)
-            ret.append(VerifiedModule.new(obj))
-    return ret
+    modules = parse_stdlib_file()
+    cms = [CompiledModule.deserialize(x) for x in modules]
+    return [VerifiedModule.new(x) for x in cms]
 
 
-ANNOTATED_STDLIB = build_stdlib()
+STAGED_MOVELANG_STDLIB = build_stdlib()
 
 def stdlib_modules()  -> List[VerifiedModule]:
-    return ANNOTATED_STDLIB
+    return STAGED_MOVELANG_STDLIB
 
 
 def build_stdlib_map() -> Mapping[str, CompiledModule]:
     ret = {}
-    curdir = dirname(__file__)
-    sdir = join(curdir, "./modules")
-    mvs = [f for f in listdir(sdir) if f.endswith(".mv")]
-    for mv in mvs:
-        filename = abspath(join(sdir, mv))
-        with open(filename, 'r') as file:
-            amap = json.load(file)
-            code = bytes(amap['code'])
-            obj = CompiledModule.deserialize(code)
-            ret[filename] = obj
+    modules = parse_stdlib_file()
+    cms = [CompiledModule.deserialize(x) for x in modules]
+    for v in cms:
+        ret[v.name()] = v
     return ret
+
+
 

@@ -58,9 +58,11 @@ def ensure_len(v, expected_len, atype, fn):
 def pop_arg_front(arguments, t):
     return arguments.pop(0).value_as(t)
 
-def err_vector_elem_ty_mismatch():
+def err_vector_elem_ty_mismatch(tag, val):
     raise VMException(VMStatus(StatusCode.UNKNOWN_INVARIANT_VIOLATION_ERROR)\
-            .with_message("vector elem type mismatch"))
+            .with_message("vector elem type mismatch -- expected {}, got {}".format(
+                tag, val
+            )))
 
 
 def native_empty(
@@ -102,9 +104,9 @@ def native_length(
             and v.enum_name == 'General':
             length = v.value.__len__()
         else:
-            err_vector_elem_ty_mismatch()
+            err_vector_elem_ty_mismatch(ty_args[0], v)
     else:
-        err_vector_elem_ty_mismatch()
+        err_vector_elem_ty_mismatch(ty_args[0], v)
 
     return NativeResult.ok(cost, [Value.Uint64(length)])
 
@@ -132,9 +134,9 @@ def native_push_back(
             v.value.append(e)
         else:
             breakpoint()
-            err_vector_elem_ty_mismatch()
+            err_vector_elem_ty_mismatch(ty_args[0], v)
     else:
-        err_vector_elem_ty_mismatch()
+        err_vector_elem_ty_mismatch(ty_args[0], v)
 
     return NativeResult.ok(cost, [])
 
@@ -195,9 +197,9 @@ def native_pop(
             else:
                 return err_pop_empty_vec()
         else:
-            err_vector_elem_ty_mismatch()
+            err_vector_elem_ty_mismatch(ty_args[0], v)
     else:
-        err_vector_elem_ty_mismatch()
+        err_vector_elem_ty_mismatch(ty_args[0], v)
 
     return NativeResult.ok(cost, [res])
 
@@ -221,9 +223,9 @@ def native_destroy_empty(
             and v.enum_name == 'General':
             length = v.value.__len__()
         else:
-            err_vector_elem_ty_mismatch()
+            err_vector_elem_ty_mismatch(ty_args[0], v)
     else:
-        err_vector_elem_ty_mismatch()
+        err_vector_elem_ty_mismatch(ty_args[0], v)
 
     if length < 1:
         return NativeResult.ok(cost, [])
@@ -254,8 +256,7 @@ def native_swap(
                 cost,
                 VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(INDEX_OUT_OF_BOUNDS),
             )
-        #TTODO: why not support Uint8/Uint128 bellow
-        if ty_args[0].enum_name in ('U64', 'Bool')\
+        if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
             and v.enum_name == ty_args[0].enum_name:
             tmp = v.value[idx1]
             v.value[idx1] = v.value[idx2]
@@ -266,9 +267,9 @@ def native_swap(
             v.value[idx1] = v.value[idx2]
             v.value[idx2] = tmp
         else:
-            err_vector_elem_ty_mismatch()
+            err_vector_elem_ty_mismatch(ty_args[0], v)
     else:
-        err_vector_elem_ty_mismatch()
+        err_vector_elem_ty_mismatch(ty_args[0], v)
 
     return NativeResult.ok(cost, [])
 

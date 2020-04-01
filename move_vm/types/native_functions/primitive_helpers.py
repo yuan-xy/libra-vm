@@ -32,7 +32,7 @@ def native_bytearray_concat(
         NativeCostIndex.BYTEARRAY_CONCAT,
         return_val.__len__(),
     )
-    return_values = [Value.byte_array(return_val)]
+    return_values = [Value.vector_u8(return_val)]
     return NativeResult.ok(cost, return_values)
 
 
@@ -50,7 +50,7 @@ def native_address_to_bytes(
         NativeCostIndex.ADDRESS_TO_BYTES,
         return_val.__len__(),
     )
-    return_values = [Value.byte_array(return_val)]
+    return_values = [Value.vector_u8(return_val)]
     return NativeResult.ok(cost, return_values)
 
 
@@ -64,6 +64,6 @@ def native_Uint64_to_bytes(
     return_val = arg.to_bytes(8, byteorder="little", signed=False)
 
     cost = native_gas(cost_table, NativeCostIndex.U64_TO_BYTES, return_val.__len__())
-    return_values = [Value.byte_array(return_val)]
+    return_values = [Value.vector_u8(return_val)]
     return NativeResult.ok(cost, return_values)
 

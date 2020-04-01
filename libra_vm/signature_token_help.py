@@ -7,7 +7,6 @@ BOOL = SignatureToken(SerializedType.BOOL)
 U8 = SignatureToken(SerializedType.U8)
 U64 = SignatureToken(SerializedType.U64)
 U128 = SignatureToken(SerializedType.U128)
-BYTEARRAY = SignatureToken(SerializedType.BYTEARRAY)
 ADDRESS = SignatureToken(SerializedType.ADDRESS)
 
 def Struct(struct : Tuple[StructHandleIndex, List[SignatureToken]], opt=None) -> SignatureToken:
@@ -28,4 +27,6 @@ def TypeParameter(idx : Uint16) -> SignatureToken:
 
 def Vector(vector_type: SignatureToken) -> SignatureToken:
     return SignatureToken(SerializedType.VECTOR, vector_type=vector_type)
+
+VectorU8 = Vector(U8)
 

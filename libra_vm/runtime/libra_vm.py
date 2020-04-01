@@ -407,8 +407,8 @@ class LibraVM(VMVerifier, VMExecutor):
 
         args = [
             Value.Uint64(block_metadata.timestamp_usecs),
-            Value.byte_array(block_metadata.id),
-            Value.byte_array(MapT(Address, BytesT).encode(block_metadata.previous_block_votes)),
+            Value.vector_u8(block_metadata.id),
+            Value.vector_u8(MapT(Address, BytesT).encode(block_metadata.previous_block_votes)),
             Value.address(block_metadata.proposer),
         ]
         try:
@@ -450,7 +450,7 @@ class LibraVM(VMVerifier, VMExecutor):
                 txn_data,
                 [
                     Value.Uint64(txn_sequence_number),
-                    Value.byte_array(txn_public_key),
+                    Value.vector_u8(txn_public_key),
                     Value.Uint64(txn_gas_price),
                     Value.Uint64(txn_max_gas_units),
                     Value.Uint64(txn_expiration_time),
@@ -704,7 +704,7 @@ def convert_txn_arg(arg: TransactionArgument) -> Value:
     elif arg.Bool:
         return Value.bool(arg.value)
     elif arg.ByteArray:
-        return Value.byte_array(arg.value)
+        return Value.vector_u8(arg.value)
     else:
         bail("unreachable!")
 

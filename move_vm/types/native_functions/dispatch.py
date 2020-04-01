@@ -71,23 +71,23 @@ add_native_function_to_map(
     "Hash",
     "sha2_256",
     hashf.native_sha2_256,
-    [BYTEARRAY],
-    [BYTEARRAY]
+    [VectorU8],
+    [VectorU8]
 )
 
 add_native_function_to_map(
     "Hash",
     "sha3_256",
     hashf.native_sha3_256,
-    [BYTEARRAY],
-    [BYTEARRAY]
+    [VectorU8],
+    [VectorU8]
 )
 
 add_native_function_to_map(
     "Signature",
     "ed25519_verify",
     signature.native_ed25519_signature_verification,
-    [BYTEARRAY, BYTEARRAY, BYTEARRAY],
+    [VectorU8, VectorU8, VectorU8],
     [BOOL]
 )
 
@@ -95,7 +95,7 @@ add_native_function_to_map(
     "Signature",
     "ed25519_threshold_verify",
     signature.native_ed25519_threshold_signature_verification,
-    [BYTEARRAY, BYTEARRAY, BYTEARRAY, BYTEARRAY],
+    [VectorU8, VectorU8, VectorU8, VectorU8],
     [U64]
 )
 
@@ -104,7 +104,7 @@ add_native_function_to_map(
     "address_to_bytes",
     primitive_helpers.native_address_to_bytes,
     [ADDRESS],
-    [BYTEARRAY]
+    [VectorU8]
 )
 
 add_native_function_to_map(
@@ -112,15 +112,15 @@ add_native_function_to_map(
     "u64_to_bytes",
     primitive_helpers.native_Uint64_to_bytes,
     [U64],
-    [BYTEARRAY]
+    [VectorU8]
 )
 
 add_native_function_to_map(
     "BytearrayUtil",
     "bytearray_concat",
     primitive_helpers.native_bytearray_concat,
-    [BYTEARRAY, BYTEARRAY],
-    [BYTEARRAY]
+    [VectorU8, VectorU8],
+    [VectorU8]
 )
 
 add_native_function_to_map2(
@@ -229,7 +229,7 @@ add_native_function_to_map2(
     "write_to_event_store",
     gen_lambda("write_to_event_store does not have a native implementation"),
     [Kind.Unrestricted],
-    [BYTEARRAY, U64, TypeParameter(0)],
+    [VectorU8, U64, TypeParameter(0)],
     []
 )
 

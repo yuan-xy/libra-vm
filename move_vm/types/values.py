@@ -14,7 +14,7 @@ from libra_vm.gas_schedule import (
     words_in, AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, NativeCostIndex,
     CONST_SIZE, REFERENCE_SIZE, STRUCT_SIZE, add_lambda
     )
-#from libra_vm.signature_token_help import *
+from libra_vm.signature_token_help import VectorU8
 from libra_vm.vm_exception import VMException
 from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
@@ -76,6 +76,8 @@ class ValueImpl(RustEnum):
             return self.Address
         elif sig.tag == SerializedType.BYTEARRAY:
             return self.ByteArray
+        elif sig == VectorU8:
+            return self.Container and self.value.v0.U8
         else:
             return False
 
@@ -98,6 +100,10 @@ class ValueImpl(RustEnum):
     @classmethod
     def byte_array(cls, x: ByteArray) -> ValueImpl:
         return ValueImpl('ByteArray', x)
+
+    @classmethod
+    def vector_u8(cls, x: bytes) -> ValueImpl:
+        return ValueImpl.new_container(Container('U8', x))
 
 
     @classmethod
@@ -167,6 +173,7 @@ class ValueImpl(RustEnum):
             return self.value.equals(other.value)
 
     def cast(self, ty):
+        #TTODO: cast to vec<u8> or bytes ?
         if self.is_primitive() and self.value_type == ty:
             return self.value
         elif ty == ContainerRef and self.value_type == ty:
@@ -254,7 +261,7 @@ class ValueImpl(RustEnum):
         elif layout.U128:
             return Value.Uint128(Uint128.decode(cursor))
         elif layout.ByteArray:
-            return Value.byte_array(BytesT().decode(cursor))
+            return Value.vector_u8(BytesT().decode(cursor))
         elif layout.Address:
             return Value.address(Address.decode(cursor))
 

@@ -191,7 +191,7 @@ class VMModuleCache:
         elif tok.tag == SerializedType.U128:
             return Type('U128')
         elif tok.tag == SerializedType.BYTEARRAY:
-            return Type('ByteArray')
+            return Type('Vector', Type('U8'))
         elif tok.tag == SerializedType.ADDRESS:
             return Type('Address')
         elif tok.tag == SerializedType.VECTOR:

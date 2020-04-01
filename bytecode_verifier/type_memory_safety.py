@@ -414,7 +414,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
         elif tag == Opcodes.LD_BYTEARRAY:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.BYTEARRAY,
+                signature= signature_token_help.VectorU8,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
 
@@ -970,7 +970,7 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
 
         elif tag == Opcodes.GET_TXN_PUBLIC_KEY:
             self.stack.append(TypedAbstractValue(
-                signature= signature_token_help.BYTEARRAY,
+                signature= signature_token_help.VectorU8,
                 value= AbstractValue.Value(Kind.Unrestricted),
             ))
         else:
