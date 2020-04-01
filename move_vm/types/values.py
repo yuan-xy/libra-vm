@@ -281,11 +281,14 @@ class ValueImpl(RustEnum):
 
         elif layout.Vector:
             size = Uint32.decode(cursor)
+            if layout.value.enum_name == 'U8':
+                return ValueImpl.vector_u8(cursor.read_bytes(size))
+
             arr = []
             for _i in range(size):
                 arr.append(ValueImpl.simple_decode(cursor, layout.value))
 
-            if layout.value.enum_name in ['U8', 'U64', 'U128', 'Bool']:
+            if layout.value.enum_name in ['U64', 'U128', 'Bool']:
                 return ValueImpl.new_container(Container(layout.value.enum_name, arr))
             else:
                 return ValueImpl.new_container(Container('General', arr))

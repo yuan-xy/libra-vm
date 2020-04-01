@@ -1,0 +1,70 @@
+import 0x0.Vector;
+
+main() {
+  let vec: vector<u8>;
+  let other_vec: vector<u8>;
+
+  vec = Vector.empty<u8>();
+  other_vec = Vector.empty<u8>();
+
+  assert(Vector.is_empty<u8>(&vec), 0);
+  assert(Vector.is_empty<u8>(&other_vec), 2);
+
+  // Appending empty with empty is empty
+  Vector.append<u8>(&mut vec, move(other_vec));
+  assert(Vector.is_empty<u8>(&vec), 3);
+
+  other_vec = Vector.empty<u8>();
+
+  // Appending one vector onto another respects order.
+  // Empty lhs, non-empty rhs case
+  Vector.push_back<u8>(&mut other_vec, 0u8);
+  Vector.push_back<u8>(&mut other_vec, 1u8);
+  Vector.push_back<u8>(&mut other_vec, 2u8);
+  Vector.push_back<u8>(&mut other_vec, 3u8);
+  Vector.append<u8>(&mut vec, move(other_vec));
+  assert(!Vector.is_empty<u8>(&vec), 4);
+  assert(Vector.length<u8>(&vec) == 4, 5);
+  assert(*Vector.borrow<u8>(&vec, 0) == 0u8, 6);
+  assert(*Vector.borrow<u8>(&vec, 1) == 1u8, 7);
+  assert(*Vector.borrow<u8>(&vec, 2) == 2u8, 8);
+  assert(*Vector.borrow<u8>(&vec, 3) == 3u8, 9);
+
+  other_vec = Vector.empty<u8>();
+
+  // Clear out vec, and put it back into other_vec.
+  Vector.append<u8>(&mut other_vec, move(vec));
+  assert(!Vector.is_empty<u8>(&other_vec), 10);
+  assert(Vector.length<u8>(&other_vec) == 4, 11);
+  assert(*Vector.borrow<u8>(&other_vec, 0) == 0u8, 12);
+  assert(*Vector.borrow<u8>(&other_vec, 1) == 1u8, 13);
+  assert(*Vector.borrow<u8>(&other_vec, 2) == 2u8, 14);
+  assert(*Vector.borrow<u8>(&other_vec, 3) == 3u8, 15);
+
+  vec = Vector.empty<u8>();
+
+  // non-empty lhs, non-empty rhs case
+  Vector.push_back<u8>(&mut vec, 42u8);
+  Vector.append<u8>(&mut vec, move(other_vec));
+  assert(!Vector.is_empty<u8>(&vec), 16);
+  assert(Vector.length<u8>(&vec) == 5, 17);
+  assert(*Vector.borrow<u8>(&vec, 0) == 42u8, 18);
+  assert(*Vector.borrow<u8>(&vec, 1) == 0u8, 19);
+  assert(*Vector.borrow<u8>(&vec, 2) == 1u8, 20);
+  assert(*Vector.borrow<u8>(&vec, 3) == 2u8, 21);
+  assert(*Vector.borrow<u8>(&vec, 4) == 3u8, 22);
+
+  other_vec = Vector.empty<u8>();
+
+  // non-empty lhs, empty rhs case
+  Vector.append<u8>(&mut vec, move(other_vec));
+  assert(!Vector.is_empty<u8>(&vec), 23);
+  assert(Vector.length<u8>(&vec) == 5, 24);
+  assert(*Vector.borrow<u8>(&vec, 0) == 42u8, 25);
+  assert(*Vector.borrow<u8>(&vec, 1) == 0u8, 26);
+  assert(*Vector.borrow<u8>(&vec, 2) == 1u8, 27);
+  assert(*Vector.borrow<u8>(&vec, 3) == 2u8, 28);
+  assert(*Vector.borrow<u8>(&vec, 4) == 3u8, 29);
+
+  return;
+}

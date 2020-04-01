@@ -830,6 +830,8 @@ class Interpreter:
         struct_def: StructDef,
     ) -> AbstractMemorySize:
         (exists, mem_size) = context.resource_exists(ap, struct_def)
+        # if not exists:
+        #     breakpoint()
         self.operand_stack.push(Value('Bool', exists))
         return mem_size
 

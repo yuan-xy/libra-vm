@@ -51,9 +51,11 @@ def run_testcase(path: str):
     testsuite.functional_tests(compiler, path)
 
 
-def ir_testsuite(subdir: str):
+def ir_testsuite(subdir: str, basedir: str = None):
+    if basedir is None:
+        basedir = "../../libra/language/ir-testsuite/tests"
     curdir = dirname(__file__)
-    path = join(curdir, "../../libra/language/ir-testsuite/tests", subdir)
+    path = join(curdir, basedir, subdir)
     print(f"====={path}")
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -62,6 +64,9 @@ def ir_testsuite(subdir: str):
                 print(file)
                 run_testcase(fullname)
 
+
+def test_local_case():
+    ir_testsuite('./', './')
 
 def test_block():
     ir_testsuite('block')
