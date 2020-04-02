@@ -429,17 +429,17 @@ class Interpreter:
                 elif instruction.tag == Opcodes.CAST_U8:
                     gas_const_instr(context, self, Opcodes.CAST_U8)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint8(integer_value.into(Uint8)))
+                    self.operand_stack.push(Value.Uint8(integer_value.cast(Uint8)))
 
                 elif instruction.tag == Opcodes.CAST_U64:
                     gas_const_instr(context, self, Opcodes.CAST_U64)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint64(integer_value.into(Uint64)))
+                    self.operand_stack.push(Value.Uint64(integer_value.cast(Uint64)))
 
                 elif instruction.tag == Opcodes.CAST_U128:
                     gas_const_instr(context, self, Opcodes.CAST_U128)
                     integer_value = self.operand_stack.pop_as(IntegerValue)
-                    self.operand_stack.push(Value.Uint128(integer_value.into(Uint128)))
+                    self.operand_stack.push(Value.Uint128(integer_value.cast(Uint128)))
 
                     # Arithmetic Operations
                 elif instruction.tag == Opcodes.ADD:

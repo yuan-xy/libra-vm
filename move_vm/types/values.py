@@ -763,13 +763,6 @@ class IntegerValue(RustEnum):
         ('U128', Uint128),
     ]
 
-    def cast(self, ty):
-        if self.value_type == ty:
-            return self.value
-        else:
-            raise VMException(VMStatus(StatusCode.INTERNAL_TYPE_ERROR)\
-                .with_message(format_str("cannot cast {} to {}", self.value_type, ty)))
-
     def value_as(self, ty):
         return self.cast(ty)
 
@@ -889,6 +882,15 @@ class IntegerValue(RustEnum):
 
     def into(self, ty) -> int:
         return self.value % (ty.max_value+1)
+
+    def cast(self, ty) -> int:
+        if self.value_type == ty:
+            return self.value
+        elif self.value <= ty.max_value:
+            return self.value
+        else:
+            raise VMException(VMStatus(StatusCode.ARITHMETIC_ERROR)\
+                .with_message(format_str("cannot cast {} to {}", self.value_type, ty)))
 
 
 # A Move struct.
