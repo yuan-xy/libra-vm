@@ -167,7 +167,6 @@ class FunctionSourceMap:
         function_handle = module.function_handle_at(function_def.function)
         function_signature = module.function_signature_at(function_handle.signature)
         function_code = function_def.code
-        locls = module.locals_signature_at(function_code.locals)
 
         # Generate names for each type parameter
         for i in range(function_signature.type_formals.__len__()):
@@ -175,9 +174,11 @@ class FunctionSourceMap:
             self.add_type_parameter((name, deepcopy(default_loc)))
 
         # Generate names for each local of the function
-        for i in range(locls.v0.__len__()):
-            name = f"loc{i}"
-            self.add_local_mapping((name, deepcopy(default_loc)))
+        if not function_def.is_native():
+            locls = module.locals_signature_at(function_code.locals)
+            for i in range(locls.v0.__len__()):
+                name = f"loc{i}"
+                self.add_local_mapping((name, deepcopy(default_loc)))
 
         # We just need to insert the code map at the 0'th index since we represent this with a
         # segment map
