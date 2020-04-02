@@ -1,8 +1,8 @@
 from __future__ import annotations
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import *
-from libra_vm.file_format import *
-from libra_vm.file_format_common import *
+from vm.vm_exception import VMException
+from vm.errors import *
+from vm.file_format import *
+from vm.file_format_common import *
 from libra.account_address import ADDRESS_LENGTH
 from libra.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus

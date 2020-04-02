@@ -1,5 +1,5 @@
 from move_vm.types.values import *
-from libra_vm.errors import *
+from vm.errors import *
 import pytest
 
 def test_lcls():

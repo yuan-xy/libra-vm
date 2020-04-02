@@ -1,4 +1,4 @@
-from libra_vm import IndexKind
+from vm import IndexKind
 from libra import Address
 from libra.transaction import TransactionStatus
 from libra.vm_error import StatusCode, VMStatus

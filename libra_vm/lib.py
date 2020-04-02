@@ -1,74 +1,137 @@
-from __future__ import annotations
-from enum import IntEnum
+import abc
+from libra_storage.state_view import StateView
+from libra.transaction import SignedTransaction, Transaction, TransactionOutput
+from libra.vm_error import VMStatus
+from typing import List, Optional, Any
 
-# Represents a kind of index -- useful for error messages.
-class IndexKind(IntEnum):
-    ModuleHandle=0,
-    StructHandle=1,
-    FunctionHandle=2,
-    StructDefinition=3,
-    FieldDefinition=4,
-    FunctionDefinition=5,
-    TypeSignature=6,
-    FunctionSignature=7,
-    LocalsSignature=8,
-    Identifier=9,
-    ByteArrayPool=10,
-    AddressPool=11,
-    LocalPool=12,
-    CodeDefinition=13,
-    TypeParameter=14,
+# # The VM runtime
+#
+# ## Transaction flow
+#
+# This is the path taken to process a single transaction.
+#
+# ```text
+#                   SignedTransaction
+#                            +
+#                            |
+# +--------------------------|-------------------+
+# | Validate  +--------------+--------------+    |
+# |           |                             |    |
+# |           |       check signature       |    |
+# |           |                             |    |
+# |           +--------------+--------------+    |
+# |                          |                   |
+# |                          |                   |
+# |                          v                   |
+# |           +--------------+--------------+    |
+# |           |                             |    |
+# |           |      check size and gas     |    |
+# |           |                             |    +---------------------------------+
+# |           +--------------+--------------+    |         validation error        |
+# |                          |                   |                                 |
+# |                          |                   |                                 |
+# |                          v                   |                                 |
+# |           +--------------+--------------+    |                                 |
+# |           |                             |    |                                 |
+# |           |         run prologue        |    |                                 |
+# |           |                             |    |                                 |
+# |           +--------------+--------------+    |                                 |
+# |                          |                   |                                 |
+# +--------------------------|-------------------+                                 |
+#                            |                                                     |
+# +--------------------------|-------------------+                                 |
+# |                          v                   |                                 |
+# |  Verify   +--------------+--------------+    |                                 |
+# |           |                             |    |                                 |
+# |           |     deserialize script,     |    |                                 |
+# |           |     verify arguments        |    |                                 |
+# |           |                             |    |                                 |
+# |           +--------------+--------------+    |                                 |
+# |                          |                   |                                 |
+# |                          |                   |                                 v
+# |                          v                   |                    +----------------+------+
+# |           +--------------+--------------+    |                    |                       |
+# |           |                             |    +------------------->+ discard, no write set |
+# |           |     deserialize modules     |    | verification error |                       |
+# |           |                             |    |                    +----------------+------+
+# |           +--------------+--------------+    |                                 ^
+# |                          |                   |                                 |
+# |                          |                   |                                 |
+# |                          v                   |                                 |
+# |           +--------------+--------------+    |                                 |
+# |           |                             |    |                                 |
+# |           | verify scripts and modules  |    |                                 |
+# |           |                             |    |                                 |
+# |           +--------------+--------------+    |                                 |
+# |                          |                   |                                 |
+# +--------------------------|-------------------+                                 |
+#                            |                                                     |
+# +--------------------------|-------------------+                                 |
+# |                          v                   |                                 |
+# | Execute   +--------------+--------------+    |                                 |
+# |           |                             |    |                                 |
+# |           |        execute main         |    |                                 |
+# |           |                             |    |                                 |
+# |           +--------------+--------------+    |                                 |
+# |                          |                   |                                 |
+# |      success or failure  |                   |                                 |
+# |                          v                   |                                 |
+# |           +--------------+--------------+    |                                 |
+# |           |                             |    +---------------------------------+
+# |           |        run epilogue         |    | invariant violation (internal panic)
+# |           |                             |    |
+# |           +--------------+--------------+    |
+# |                          |                   |
+# |                          |                   |
+# |                          v                   |
+# |           +--------------+--------------+    |                    +-----------------------+
+# |           |                             |    | execution failure  |                       |
+# |           |       make write set        +------------------------>+ keep, only charge gas |
+# |           |                             |    |                    |                       |
+# |           +--------------+--------------+    |                    +-----------------------+
+# |                          |                   |
+# +--------------------------|-------------------+
+#                            |
+#                            v
+#             +--------------+--------------+
+#             |                             |
+#             |  keep, transaction executed |
+#             |        + gas charged        |
+#             |                             |
+#             +-----------------------------+
+# ```
 
+
+
+
+# This trait describes the VM's verification interfaces.
+class VMVerifier(abc.ABC):
+    # Executes the prologue of the Libra Account and verifies that the transaction is valid.
+    # only. Returns `None` if the transaction was validated, or Some(VMStatus) if the transaction
+    # was unable to be validated with status `VMStatus`.
+    @abc.abstractmethod
+    def validate_transaction(
+        self,
+        transaction: SignedTransaction,
+        state_view: StateView,
+    ) -> Optional[VMStatus]:
+        pass
+
+
+# This trait describes the VM's execution interface.
+class VMExecutor(abc.ABC):
+    # NOTE: At the moment there are no persistent caches that live past the end of a block (that's
+    # why execute_block doesn't take self.)
+    # There are some cache invalidation issues around transactions publishing code that need to be
+    # sorted out before that's possible.
+
+    # Executes a block of transactions and returns output for each one of them.
     @classmethod
-    def variants(cls) ->  List[IndexKind]:
-        # XXX ensure this list stays up to date!
-        return [
-            IndexKind.ByteArrayPool,
-            IndexKind.ModuleHandle,
-            IndexKind.StructHandle,
-            IndexKind.FunctionHandle,
-            IndexKind.StructDefinition,
-            IndexKind.FieldDefinition,
-            IndexKind.FunctionDefinition,
-            IndexKind.TypeSignature,
-            IndexKind.FunctionSignature,
-            IndexKind.LocalsSignature,
-            IndexKind.Identifier,
-            IndexKind.AddressPool,
-            IndexKind.LocalPool,
-            IndexKind.CodeDefinition,
-            IndexKind.TypeParameter,
-        ]
-
-
-    def __str__(self):
-        desc = {
-            IndexKind.ModuleHandle : "module handle",
-            IndexKind.StructHandle : "class handle",
-            IndexKind.FunctionHandle : "function handle",
-            IndexKind.StructDefinition : "class definition",
-            IndexKind.FieldDefinition : "field definition",
-            IndexKind.FunctionDefinition : "function definition",
-            IndexKind.TypeSignature : "type signature",
-            IndexKind.FunctionSignature : "function signature",
-            IndexKind.LocalsSignature : "locals signature",
-            IndexKind.Identifier : "identifier",
-            IndexKind.ByteArrayPool : "byte_array pool",
-            IndexKind.AddressPool : "address pool",
-            IndexKind.LocalPool : "local pool",
-            IndexKind.CodeDefinition : "code definition pool",
-            IndexKind.TypeParameter : "type parameter",
-        }
-        return desc[self]
-
-
-# TODO: is this outdated
-# Represents the kind of a signature token.
-class SignatureTokenKind(IntEnum):
-    # Any sort of owned value that isn't an array (Integer, Bool, Struct etc).
-    Value=0,
-    # A reference.
-    Reference=1,
-    # A mutable reference.
-    MutableReference=2,
+    @abc.abstractmethod
+    def execute_block(cls,
+        transactions: List[Transaction],
+        config: Any,
+        state_view: StateView,
+    ) -> List[TransactionOutput]:
+        pass
 

@@ -1,5 +1,5 @@
-from libra_vm.file_format_common import *
-from libra_vm.file_format import *
+from vm.file_format_common import *
+from vm.file_format import *
 from libra.rustlib import *
 import pytest
 

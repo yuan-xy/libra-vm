@@ -2,11 +2,11 @@ from stdlib import stdlib_modules, build_stdlib_map
 from bytecode_verifier import UnusedEntryChecker
 from libra.identifier import Identifier
 from libra.vm_error import StatusCode
-from libra_vm.file_format import (
+from vm.file_format import (
     CompiledModule, FieldDefinition, IdentifierIndex, LocalsSignature, ModuleHandleIndex,
     SignatureToken, StructHandle, StructHandleIndex, TypeSignature, TypeSignatureIndex
     )
-from libra_vm.file_format_common import SerializedType
+from vm.file_format_common import SerializedType
 
 def test_unused_locals_signature():
 

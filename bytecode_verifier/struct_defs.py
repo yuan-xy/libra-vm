@@ -1,10 +1,10 @@
 from __future__ import annotations
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.errors import verification_error
-from libra_vm import ModuleAccess, IndexKind, VMException
-from libra_vm.internals import ModuleIndex
-from libra_vm.views import StructDefinitionView
-from libra_vm.file_format import CompiledModule, StructDefinitionIndex, StructHandleIndex, TableIndex
+from vm.errors import verification_error
+from vm import ModuleAccess, IndexKind, VMException
+from vm.internals import ModuleIndex
+from vm.views import StructDefinitionView
+from vm.file_format import CompiledModule, StructDefinitionIndex, StructHandleIndex, TableIndex
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Callable, Any, Tuple
 

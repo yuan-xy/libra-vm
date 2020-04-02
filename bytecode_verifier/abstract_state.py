@@ -6,11 +6,11 @@ from typing import List, Any, Optional, Mapping, Set, Union
 from dataclasses import dataclass
 from copy import deepcopy
 from enum import IntEnum
-from libra_vm.file_format import (
+from vm.file_format import (
         CompiledModule, FieldDefinitionIndex, Kind, LocalIndex, SignatureToken,
         StructDefinitionIndex,
     )
-from libra_vm.views import FunctionDefinitionView, ViewInternals
+from vm.views import FunctionDefinitionView, ViewInternals
 from libra.rustlib import assert_true
 
 checked_assume = assert_true

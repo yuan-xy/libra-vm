@@ -8,15 +8,15 @@ from libra.account_address import Address, ADDRESS_LENGTH
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.language_storage import ModuleId, TypeTag, StructTag
 from libra.vm_error import StatusCode, VMStatus, SubStatus
-from libra_vm.errors import *
-from libra_vm.file_format import SignatureToken
-from libra_vm.file_format_common import SerializedType
-from libra_vm.gas_schedule import (
+from vm.errors import *
+from vm.file_format import SignatureToken
+from vm.file_format_common import SerializedType
+from vm.gas_schedule import (
     words_in, AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, NativeCostIndex,
     CONST_SIZE, REFERENCE_SIZE, STRUCT_SIZE
     )
-#from libra_vm.signature_token_help import *
-from libra_vm.vm_exception import VMException
+#from vm.signature_token_help import *
+from vm.vm_exception import VMException
 from typing import List, Tuple, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy

@@ -3,12 +3,12 @@ from compiler.bytecode_source_map.source_map import FunctionSourceMap, SourceNam
 from compiler.bytecode_source_map.mapping import SourceMapping
 from bytecode_verifier.control_flow_graph import ControlFlowGraph, VMControlFlowGraph
 from move_core.types.identifier import IdentStr
-from libra_vm.file_format import (
+from vm.file_format import (
         ModuleAccess, Bytecode, FieldDefinitionIndex, FunctionDefinition, FunctionDefinitionIndex,
         FunctionSignature, Kind, LocalsSignature, LocalsSignatureIndex, SignatureToken,
         StructDefinition, StructDefinitionIndex, StructFieldInformation, TableIndex, TypeSignature,
     )
-from libra_vm.file_format_common import SerializedNativeStructFlag, SerializedType, Opcodes
+from vm.file_format_common import SerializedNativeStructFlag, SerializedType, Opcodes
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize, position, format_str

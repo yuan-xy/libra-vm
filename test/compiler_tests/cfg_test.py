@@ -1,6 +1,6 @@
 from .testutils import *
-from libra_vm.file_format import *
-from libra_vm import Opcodes, ScriptAccess
+from vm.file_format import *
+from vm import Opcodes, ScriptAccess
 from bytecode_verifier.control_flow_graph import ControlFlowGraph, VMControlFlowGraph
 import pytest
 

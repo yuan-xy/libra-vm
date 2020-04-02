@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .testutils import *
-from libra_vm.file_format import *
-from libra_vm import Opcodes
+from vm.file_format import *
+from vm import Opcodes
 import pytest
 
 

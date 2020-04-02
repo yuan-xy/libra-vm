@@ -9,26 +9,26 @@ from libra.language_storage import ModuleId, StructTag, TypeTag
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, StatusType, VMStatus
 
-from libra_vm.runtime.counters import *
+from libra_vm.counters import *
 from move_vm.runtime.interpreter_context import InterpreterContext
 from move_vm.runtime.gas_meter import *
 from move_vm.types.identifier import create_access_path, resource_storage_key
 from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from move_vm.runtime.runtime import VMRuntime
 from move_vm.runtime.move_vm import MoveVM
-from libra_vm.runtime.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
-from libra_vm.vm_exception import VMException, VMExceptionBase
-from libra_vm.errors import *
-from libra_vm.file_format import (
+from libra_vm.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
+from vm.vm_exception import VMException, VMExceptionBase
+from vm.errors import *
+from vm.file_format import (
     Bytecode, FunctionHandleIndex, LocalIndex, LocalsSignatureIndex, SignatureToken,
     StructDefinitionIndex, ModuleAccess
     )
-from libra_vm.gas_schedule import (
+from vm.gas_schedule import (
     calculate_intrinsic_gas, AbstractMemorySize, CostTable, GasAlgebra, GasCarrier,
     NativeCostIndex
     )
-from libra_vm.file_format_common import Opcodes, SerializedType
-from libra_vm.transaction_metadata import TransactionMetadata
+from vm.file_format_common import Opcodes, SerializedType
+from vm.transaction_metadata import TransactionMetadata
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.native_functions.dispatch import NativeFunction
 from move_vm.types.type_context import TypeContext

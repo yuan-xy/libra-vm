@@ -2,8 +2,8 @@ from __future__ import annotations
 from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
 from move_vm.types.native_functions.primitive_helpers import check_arg_number
 from move_vm.types.values import Value
-from libra_vm.vm_exception import VMException, VMExceptionBase
-from libra_vm.gas_schedule import CostTable, NativeCostIndex, GasUnits
+from vm.vm_exception import VMException, VMExceptionBase
+from vm.gas_schedule import CostTable, NativeCostIndex, GasUnits
 from libra.crypto.ed25519 import ED25519_SIGNATURE_LENGTH
 from libra.hasher import HashValue, new_sha3_256
 from libra.language_storage import TypeTag

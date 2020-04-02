@@ -1,8 +1,8 @@
 from __future__ import annotations
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.errors import verification_error
-from libra_vm.file_format import CompiledModule
-from libra_vm import ModuleView, IndexKind
+from vm.errors import verification_error
+from vm.file_format import CompiledModule
+from vm import ModuleView, IndexKind
 from libra.rustlib import usize
 from dataclasses import dataclass
 

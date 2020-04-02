@@ -1,5 +1,5 @@
 import abc
-from libra_vm.lib import IndexKind
+from vm.lib import IndexKind
 from libra.rustlib import usize
 
 # Types meant for use by other parts of this crate, and by other crates that are designed to

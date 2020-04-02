@@ -13,10 +13,10 @@ from libra.validator_set import ValidatorSet
 from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure, bail, usize
 from stdlib import stdlib_modules
-from libra_vm import CompiledModule
+from vm import CompiledModule
 from vm_genesis.main import rust_validator_set
 from vm_genesis.lib import make_placeholder_discovery_set, GENESIS_KEYPAIR, encode_genesis_transaction_with_validator_and_modules
-from libra_vm.runtime import LibraVM, VMExecutor, VMVerifier
+from libra_vm import LibraVM, VMExecutor, VMVerifier
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
 from enum import Enum

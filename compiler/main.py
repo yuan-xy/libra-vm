@@ -12,7 +12,7 @@ from libra import AccessPath, Address
 from libra.transaction import Script, Module
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules
-from libra_vm.file_format import CompiledModule #, CompiledProgram, CompiledScript
+from vm.file_format import CompiledModule #, CompiledProgram, CompiledScript
 from typing import List, Tuple
 
 

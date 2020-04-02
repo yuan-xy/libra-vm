@@ -16,16 +16,16 @@ from libra.validator_set import ValidatorSet
 from libra.crypto.ed25519 import generate_genesis_keypair, generate_keypair, Ed25519PrivateKey, Ed25519PublicKey
 from libra.rustlib import assert_equal, bail
 from stdlib import stdlib_modules
-from libra_vm.vm_exception import VMException
-from libra_vm.file_format import ModuleAccess
-from libra_vm.gas_schedule import CostTable, GasAlgebra, GasUnits
-from libra_vm.file_format_common import Opcodes
-from libra_vm.transaction_metadata import TransactionMetadata
+from vm.vm_exception import VMException
+from vm.file_format import ModuleAccess
+from vm.gas_schedule import CostTable, GasAlgebra, GasUnits
+from vm.file_format_common import Opcodes
+from vm.transaction_metadata import TransactionMetadata
 from move_vm.types.chain_state import ChainState
 from move_vm.state.execution_context import TransactionExecutionContext
 from move_vm.state.data_cache import BlockDataCache
 from move_vm.runtime.move_vm import MoveVM
-from libra_vm.runtime.system_module_names import *
+from libra_vm.system_module_names import *
 from move_vm.types.values import Value
 from multiaddr import Multiaddr
 

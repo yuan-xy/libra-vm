@@ -2,14 +2,14 @@ from __future__ import annotations
 from bytecode_verifier import VerifiedModule
 from libra.identifier import IdentStr, Identifier
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.file_format import (
+from vm.file_format import (
     Bytecode, CodeUnit, FunctionDefinitionIndex, FunctionHandle, FunctionSignature,
     CompiledModule, FieldDefinitionIndex, StructDefinitionIndex,
     StructFieldInformation, TableIndex,
     ModuleAccess
     )
-from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
-from libra_vm.internals import ModuleIndex
+from vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
+from vm.internals import ModuleIndex
 from move_vm.types.loaded_data import StructDef
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass

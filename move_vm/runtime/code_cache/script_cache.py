@@ -10,9 +10,9 @@ from libra.transaction import SCRIPT_HASH_LENGTH
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import vm_error, Location, VMResult
-from libra_vm.file_format import CompiledScript, ScriptAccess
+from vm.vm_exception import VMException
+from vm.errors import vm_error, Location, VMResult
+from vm.file_format import CompiledScript, ScriptAccess
 from typing import List, Optional, Mapping
 from dataclasses import dataclass, field
 import logging

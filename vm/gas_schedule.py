@@ -1,9 +1,9 @@
 from __future__ import annotations
-from libra_vm.file_format import (
+from vm.file_format import (
     AddressPoolIndex, ByteArrayPoolIndex, Bytecode, FieldDefinitionIndex, FunctionHandleIndex,
     StructDefinitionIndex, NO_TYPE_ACTUALS, NUMBER_OF_NATIVE_FUNCTIONS
     )
-from libra_vm.file_format_common import Opcodes
+from vm.file_format_common import Opcodes
 from libra.identifier import Identifier
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.rustlib import ensure, bail

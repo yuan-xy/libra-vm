@@ -1,8 +1,8 @@
 from __future__ import annotations
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import *
-from libra_vm.file_format import *
-from libra_vm.file_format_common import *
+from vm.vm_exception import VMException
+from vm.errors import *
+from vm.file_format import *
+from vm.file_format_common import *
 from libra.account_address import Address
 from libra.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
@@ -504,7 +504,7 @@ class CommonSerializer:
         binary: BinaryData,
         tables: Any,
     ):
-        from libra_vm.deserializer import CommonTablesProxy
+        from vm.deserializer import CommonTablesProxy
         tables = CommonTablesProxy(tables)
         self.serialize_module_handles(binary, tables.get_module_handles())
         self.serialize_struct_handles(binary, tables.get_struct_handles())

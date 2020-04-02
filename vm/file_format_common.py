@@ -3,7 +3,7 @@ from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field
 from typing import List, Optional
-from libra_vm.vm_exception import VMException
+from vm.vm_exception import VMException
 
 # Constants for the binary format.
 #

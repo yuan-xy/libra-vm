@@ -4,9 +4,9 @@ from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus, SubStatus as sub_status
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.values import GlobalValue, Value, Struct
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import *
-from libra_vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasUnits
+from vm.vm_exception import VMException
+from vm.errors import *
+from vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasUnits
 from typing import List, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy

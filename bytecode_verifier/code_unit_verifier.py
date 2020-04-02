@@ -3,9 +3,9 @@ from bytecode_verifier.acquires_list_verifier import AcquiresVerifier
 from bytecode_verifier.stack_usage_verifier import StackUsageVerifier
 from bytecode_verifier.type_memory_safety import TypeAndMemorySafetyAnalysis
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.errors import append_err_info
-from libra_vm.file_format import CompiledModule, FunctionDefinition
-from libra_vm import IndexKind, ModuleAccess
+from vm.errors import append_err_info
+from vm.file_format import CompiledModule, FunctionDefinition
+from vm import IndexKind, ModuleAccess
 from typing import List, Optional
 from dataclasses import dataclass
 from libra.rustlib import flatten

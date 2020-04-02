@@ -1,11 +1,11 @@
 from libra.vm_error import StatusCode, VMStatus
 
-from libra_vm.errors import verification_error
-from libra_vm.file_format import (
+from vm.errors import verification_error
+from vm.file_format import (
         CompiledModule, FieldDefinitionIndex, FunctionHandleIndex, ModuleHandleIndex,
         StructFieldInformation, StructHandleIndex, TableIndex
     )
-from libra_vm import IndexKind, ModuleAccess, SerializedNativeStructFlag
+from vm import IndexKind, ModuleAccess, SerializedNativeStructFlag
 from typing import List, Optional
 from libra.rustlib import usize
 from dataclasses import dataclass

@@ -7,8 +7,8 @@ from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.values import GlobalValue, Value
-from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
+from vm.transaction_metadata import TransactionMetadata
+from vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
 from typing import List, Optional, Mapping
 import abc
 

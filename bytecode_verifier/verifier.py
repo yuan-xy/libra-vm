@@ -8,16 +8,16 @@ from bytecode_verifier.struct_defs import RecursiveStructDefChecker
 
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import signature_token_help
+from vm import signature_token_help
 
 from move_vm.types.native_functions.dispatch import NativeFunction
 from move_vm.types.native_structs import resolve_native_struct
 
-from libra_vm import ModuleAccess, ScriptAccess, IndexKind, Resolver
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import append_err_info, verification_error
-from libra_vm.file_format import CompiledModule, CompiledProgram, CompiledScript
-from libra_vm.views import ModuleView, ViewInternals
+from vm import ModuleAccess, ScriptAccess, IndexKind, Resolver
+from vm.vm_exception import VMException
+from vm.errors import append_err_info, verification_error
+from vm.file_format import CompiledModule, CompiledProgram, CompiledScript
+from vm.views import ModuleView, ViewInternals
 from typing import List, Optional, Mapping
 from libra.vm_error import StatusCode, VMStatus
 from dataclasses import dataclass

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from move_vm.runtime.interpreter_context import InterpreterContextImpl
-# from libra_vm.runtime.counters import *
+# from libra_vm.counters import *
 from move_vm.state.data_cache import RemoteCache, TransactionDataCache
 from libra.access_path import AccessPath
 from libra.contract_event import ContractEvent
@@ -11,9 +11,9 @@ from libra.transaction.write_set import WriteOp, WriteSet
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.chain_state import ChainState
 from move_vm.types.values import GlobalValue, Value
-from libra_vm import VMException
-from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
+from vm import VMException
+from vm.transaction_metadata import TransactionMetadata
+from vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
 from typing import List, Optional, Mapping
 from dataclasses import dataclass
 import abc

@@ -8,8 +8,8 @@ from libra.transaction import Transaction, TransactionPayload
 from libra.transaction.write_set import WriteOp, WriteSet
 from move_vm.types.values import Struct
 
-from libra_vm.errors import *
-from libra_vm import CompiledModule
+from vm.errors import *
+from vm import CompiledModule
 from move_vm.state.data_cache import RemoteCache
 from pathlib import Path
 from dataclasses import dataclass, field

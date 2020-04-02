@@ -1,7 +1,7 @@
 from __future__ import annotations
 from compiler.bytecode_source_map.marking import MarkedSourceMapping
 from compiler.bytecode_source_map.source_map import ModuleSourceMap
-from libra_vm.file_format import CompiledModule, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
 

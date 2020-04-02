@@ -1,7 +1,7 @@
-from libra_vm.file_format import CompiledModule, CompiledScript
-from libra_vm.file_format_common import *
+from vm.file_format import CompiledModule, CompiledScript
+from vm.file_format_common import *
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.vm_exception import VMException
+from vm.vm_exception import VMException
 import pytest
 
 def test_malformed_1():

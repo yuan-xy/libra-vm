@@ -1,9 +1,9 @@
 from __future__ import annotations
-from libra_vm.lib import IndexKind, SignatureTokenKind
-from libra_vm.file_format_common import Opcodes, SerializedType, BinaryData, SerializedNativeStructFlag
-from libra_vm.internals import ModuleIndex
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import bounds_error
+from vm.lib import IndexKind, SignatureTokenKind
+from vm.file_format_common import Opcodes, SerializedType, BinaryData, SerializedNativeStructFlag
+from vm.internals import ModuleIndex
+from vm.vm_exception import VMException
+from vm.errors import bounds_error
 from libra.account_address import Address
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
@@ -524,7 +524,7 @@ class SignatureToken:
 
     def check_struct_handles(self, struct_handles: List[StructHandle]) -> List[VMStatus]:
         if self.tag == SerializedType.STRUCT:
-            from libra_vm.check_bounds import check_bounds_impl
+            from vm.check_bounds import check_bounds_impl
             (idx, type_actuals) = self.struct
             errors = [ty.check_struct_handles(struct_handles) for ty in type_actuals]
             opte = check_bounds_impl(struct_handles, idx)
@@ -1269,7 +1269,7 @@ class Bytecode:
 
 
 
-from libra_vm.internals import ModuleIndex
+from vm.internals import ModuleIndex
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 import abc
@@ -1642,7 +1642,7 @@ class CompiledScriptMut:
 
     def serialize(self) -> bytes:
         binary_data = BinaryData()
-        from libra_vm.serializer import ScriptSerializer
+        from vm.serializer import ScriptSerializer
         ser = ScriptSerializer.new(1, 0)
         temp = BinaryData()
         ser.serialize(temp, self)
@@ -1653,7 +1653,7 @@ class CompiledScriptMut:
     # exposed as a public function to enable testing the deserializer
     @classmethod
     def deserialize_no_check_bounds(cls, binary: bytes) -> CompiledScriptMut:
-        from libra_vm.deserializer import deserialize_compiled_script
+        from vm.deserializer import deserialize_compiled_script
         return deserialize_compiled_script(binary)
 
     # Converts this instance into `CompiledScript` after verifying it for basic internal
@@ -1811,7 +1811,7 @@ class CompiledModuleMut:
 
     def serialize(self) -> bytes:
         binary_data = BinaryData()
-        from libra_vm.serializer import ModuleSerializer
+        from vm.serializer import ModuleSerializer
         ser = ModuleSerializer.new(1, 0)
         temp = BinaryData()
         ser.serialize(temp, self)
@@ -1823,7 +1823,7 @@ class CompiledModuleMut:
     # exposed as a public function to enable testing the deserializer
     @classmethod
     def deserialize_no_check_bounds(cls, binary: bytes) -> CompiledModuleMut:
-        from libra_vm.deserializer import deserialize_compiled_module
+        from vm.deserializer import deserialize_compiled_module
         return deserialize_compiled_module(binary)
 
 
@@ -1859,7 +1859,7 @@ class CompiledModuleMut:
     # Converts this instance into `CompiledModule` after verifying it for basic internal
     # consistency. This includes bounds checks but no others.
     def freeze(self) -> CompiledModule:
-        from libra_vm.check_bounds import BoundsChecker
+        from vm.check_bounds import BoundsChecker
         errors = BoundsChecker(self).verify()
         if not errors:
             return CompiledModule(self)

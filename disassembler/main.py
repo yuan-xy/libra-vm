@@ -7,7 +7,7 @@ from compiler.bytecode_source_map.mapping import SourceMapping
 from compiler.bytecode_source_map.utils import module_source_map_from_file, remap_owned_loc_to_loc, OwnedLoc
 from disassembler import Disassembler, DisassemblerOptions
 from move_ir.types.location import Spanned
-from libra_vm.file_format import CompiledModule, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from typing import List, Tuple
 
 

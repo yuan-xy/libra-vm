@@ -1,12 +1,12 @@
-from libra_vm.errors import append_err_info, bounds_error, bytecode_offset_err, verification_error
-from libra_vm.file_format import (
+from vm.errors import append_err_info, bounds_error, bytecode_offset_err, verification_error
+from vm.file_format import (
     Bytecode, CodeUnit, CompiledModuleMut, FieldDefinition, FunctionDefinition, FunctionHandle,
     FunctionSignature, Kind, LocalsSignature, LocalsSignatureIndex, ModuleHandle,
     SignatureToken, StructDefinition, StructFieldInformation, StructHandle, TypeSignature
 )
-from libra_vm.file_format_common import *
-from libra_vm.internals import ModuleIndex
-from libra_vm.lib import IndexKind
+from vm.file_format_common import *
+from vm.internals import ModuleIndex
+from vm.lib import IndexKind
 from libra.vm_error import StatusCode, VMStatus
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, Iterable, Any

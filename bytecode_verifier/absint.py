@@ -1,8 +1,8 @@
 from __future__ import annotations
 from bytecode_verifier.control_flow_graph import BlockId, ControlFlowGraph
-from libra_vm.views import FunctionDefinitionView
-from libra_vm.file_format import Bytecode, CompiledModule
-from libra_vm import Opcodes
+from vm.views import FunctionDefinitionView
+from vm.file_format import Bytecode, CompiledModule
+from vm import Opcodes
 from libra.rustlib import bail
 from typing import List, Any, Optional, Mapping
 from dataclasses import dataclass

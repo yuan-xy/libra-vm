@@ -4,14 +4,14 @@ from compiler.bytecode_source_map.source_map import ModuleSourceMap
 from move_core.types.identifier import IdentStr, Identifier
 from move_ir.types.ast import *
 from move_ir.types.location import *
-from libra_vm.file_format import (
+from vm.file_format import (
         AddressPoolIndex, ByteArrayPoolIndex, CodeOffset, FieldDefinitionIndex,
         FunctionDefinitionIndex, FunctionHandle, FunctionHandleIndex, FunctionSignature,
         FunctionSignatureIndex, IdentifierIndex, Kind, LocalsSignature, LocalsSignatureIndex,
         ModuleHandle, ModuleHandleIndex, SignatureToken, StructDefinitionIndex, StructHandle,
         StructHandleIndex, TableIndex, TypeSignature, TypeSignatureIndex, ModuleAccess
     )
-from libra_vm import signature_token_help
+from vm import signature_token_help
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize

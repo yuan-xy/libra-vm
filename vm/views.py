@@ -1,13 +1,13 @@
 from __future__ import annotations
-from libra_vm.file_format import ModuleAccess
-from libra_vm.file_format import (
+from vm.file_format import ModuleAccess
+from vm.file_format import (
     CodeUnit, CompiledModule, FieldDefinition, FunctionDefinition, FunctionHandle,
     FunctionSignature, Kind, LocalIndex, LocalsSignature, ModuleHandle, SignatureToken,
     StructDefinition, StructDefinitionIndex, StructFieldInformation, StructHandle,
     StructHandleIndex, TypeSignature
     )
-from libra_vm.file_format_common import SerializedType, SerializedNativeStructFlag
-from libra_vm.lib import SignatureTokenKind
+from vm.file_format_common import SerializedType, SerializedNativeStructFlag
+from vm.lib import SignatureTokenKind
 from libra.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag
 from typing import List, Set, Optional, Tuple, Mapping, Any

@@ -6,8 +6,8 @@ from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet, WriteSetMut
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.values import GlobalValue, Value
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import *
+from vm.vm_exception import VMException
+from vm.errors import *
 from typing import List, Optional, Mapping
 from dataclasses import dataclass
 from copy import deepcopy

@@ -1,8 +1,8 @@
 from libra.access_path import AccessPath, Accesses
 from libra.account_address import Address
 from libra.language_storage import ResourceKey, StructTag, TypeTag
-from libra_vm.file_format import ModuleAccess
-from libra_vm.file_format import StructDefinitionIndex
+from vm.file_format import ModuleAccess
+from vm.file_format import StructDefinitionIndex
 from typing import List
 
 # A bunch of helper functions to fetch the storage key for move resources and values.

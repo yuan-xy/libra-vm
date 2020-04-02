@@ -1,5 +1,5 @@
 from bytecode_verifier import DuplicationChecker
-from libra_vm.file_format import CompiledModule
+from vm.file_format import CompiledModule
 from stdlib import stdlib_modules, build_stdlib_map
 
 def test_valid_duplication():

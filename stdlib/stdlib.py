@@ -1,4 +1,4 @@
-from libra_vm.file_format import CompiledScript, CompiledModule
+from vm.file_format import CompiledScript, CompiledModule
 from bytecode_verifier import VerifiedModule
 import os, json
 from os import listdir

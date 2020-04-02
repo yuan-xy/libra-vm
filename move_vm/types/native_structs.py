@@ -1,6 +1,6 @@
 from __future__ import annotations
 from move_vm.types.loaded_data import Type
-from libra_vm.file_format import Kind, StructHandleIndex
+from vm.file_format import Kind, StructHandleIndex
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId

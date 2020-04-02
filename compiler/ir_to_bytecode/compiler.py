@@ -8,13 +8,13 @@ from move_ir.types.ast import *
 from move_ir.types.ast import Bytecode as IRBytecode
 from move_ir.types.ast import Bytecode_ as IRBytecode_
 from move_ir.types.location import *
-from libra_vm.file_format import (
+from vm.file_format import (
         self_module_name, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut, CompiledProgram,
         CompiledScript, CompiledScriptMut, FieldDefinition, FieldDefinitionIndex,
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
         StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
     )
-from libra_vm import signature_token_help, VMException
+from vm import signature_token_help, VMException
 from typing import List, Optional, Tuple, Mapping
 from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize

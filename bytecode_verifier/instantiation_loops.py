@@ -1,7 +1,7 @@
 from __future__ import annotations
-from libra_vm import SerializedType, Opcodes
+from vm import SerializedType, Opcodes
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.file_format import (
+from vm.file_format import (
         Bytecode, CompiledModule, FunctionDefinition, FunctionDefinitionIndex, FunctionHandleIndex,
         LocalsSignatureIndex, SignatureToken, TypeParameterIndex, ModuleAccess
     )

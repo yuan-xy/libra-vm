@@ -13,18 +13,18 @@ from libra.language_storage import ModuleId
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, SubStatus, VMStatus
 
-# from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
-# from libra_vm.runtime.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
+# from libra_vm.system_module_names import GAS_SCHEDULE_MODULE
+# from libra_vm.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
 
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import verification_error, vm_error, Location, VMResult, format_str
-from libra_vm.file_format import (
+from vm.vm_exception import VMException
+from vm.errors import verification_error, vm_error, Location, VMResult, format_str
+from vm.file_format import (
     FunctionHandleIndex, FunctionSignature, SignatureToken, StructDefinitionIndex,
     ModuleAccess, CompiledModule, IndexKind
     )
-from libra_vm.gas_schedule import CostTable, GAS_SCHEDULE_NAME
-from libra_vm.file_format_common import Opcodes
-from libra_vm.transaction_metadata import TransactionMetadata
+from vm.gas_schedule import CostTable, GAS_SCHEDULE_NAME
+from vm.file_format_common import Opcodes
+from vm.transaction_metadata import TransactionMetadata
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.type_context import TypeContext
 from move_vm.types.values import Value

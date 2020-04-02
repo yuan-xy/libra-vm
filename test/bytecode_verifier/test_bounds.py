@@ -1,7 +1,7 @@
-from libra_vm.check_bounds import BoundsChecker
-from libra_vm.file_format import *
-from libra_vm.file_format_common import Opcodes
-from libra_vm.signature_token_help import *
+from vm.check_bounds import BoundsChecker
+from vm.file_format import *
+from vm.file_format_common import Opcodes
+from vm.signature_token_help import *
 from libra.rustlib import *
 import pytest
 

@@ -2,11 +2,11 @@ from __future__ import annotations
 from move_vm.types.identifier import create_access_path, resource_storage_key
 from move_vm.types.chain_state import ChainState
 from move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
-from libra_vm.runtime.counters import *
+from libra_vm.counters import *
 from move_vm.state.data_cache import BlockDataCache, RemoteCache, RemoteStorage
 from move_vm.runtime.move_vm import MoveVM
-from libra_vm.runtime.lib import VMVerifier, VMExecutor
-from libra_vm.runtime.system_module_names import *
+from libra_vm.lib import VMVerifier, VMExecutor
+from libra_vm.system_module_names import *
 from libra_storage.state_view import StateView
 from bytecode_verifier import VerifiedModule
 from libra import Address
@@ -20,13 +20,13 @@ from libra.transaction import (
     )
 from libra.vm_error import StatusCode, SubStatus, VMStatus
 from libra.transaction import WriteSet
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import convert_prologue_runtime_error, format_str
-from libra_vm.gas_schedule import (
+from vm.vm_exception import VMException
+from vm.errors import convert_prologue_runtime_error, format_str
+from vm.gas_schedule import (
     AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, GAS_SCHEDULE_NAME,
     MAXIMUM_NUMBER_OF_GAS_UNITS, MAX_PRICE_PER_GAS_UNIT, MIN_PRICE_PER_GAS_UNIT, calculate_intrinsic_gas
 )
-from libra_vm.transaction_metadata import TransactionMetadata
+from vm.transaction_metadata import TransactionMetadata
 from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Union

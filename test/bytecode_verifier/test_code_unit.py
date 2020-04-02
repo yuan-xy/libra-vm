@@ -1,7 +1,7 @@
 from bytecode_verifier import CodeUnitVerifier
 from libra.vm_error import StatusCode
-from libra_vm.file_format import *
-from libra_vm.file_format_common import Opcodes
+from vm.file_format import *
+from vm.file_format_common import Opcodes
 from libra.rustlib import assert_equal
 
 

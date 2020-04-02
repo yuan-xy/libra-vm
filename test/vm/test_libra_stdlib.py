@@ -1,4 +1,4 @@
-from libra_vm.file_format import CompiledScript, CompiledModule
+from vm.file_format import CompiledScript, CompiledModule
 from stdlib import parse_stdlib_file
 from libra.transaction import Script
 import os, json

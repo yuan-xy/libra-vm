@@ -1,7 +1,7 @@
 from __future__ import annotations
 from bytecode_verifier import VerifiedModule
 from libra.account_address import Address
-from libra_vm.file_format import CompiledModule, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from typing import List, Optional, Callable
 from dataclasses import dataclass
 import abc

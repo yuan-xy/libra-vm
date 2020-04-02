@@ -6,7 +6,7 @@ from libra.account_address import Address
 from libra.transaction import Script, TransactionArgument
 from move_ir.types.location import Loc
 from stdlib import stdlib_modules
-from libra_vm.file_format import CompiledModule, CompiledProgram, CompiledScript
+from vm.file_format import CompiledModule, CompiledProgram, CompiledScript
 from dataclasses import dataclass
 from typing import List, Tuple
 

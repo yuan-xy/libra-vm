@@ -1,4 +1,4 @@
-from libra_vm import *
+from vm import *
 from move_vm.state.data_cache import RemoteCache, BlockDataCache
 from move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
 from move_vm.runtime.code_cache import VMModuleCache
@@ -11,12 +11,12 @@ from libra.account_address import Address
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus, StatusType
 
-from libra_vm.file_format import *
-from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
-from libra_vm.gas_schedule import GasAlgebra, GasUnits
+from vm.file_format import *
+from vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
+from vm.gas_schedule import GasAlgebra, GasUnits
 from move_vm.types.loaded_data import StructDef, Type
 from typing import List, Optional, Mapping
-from libra_vm import signature_token_help
+from vm import signature_token_help
 from dataclasses import dataclass, field
 from libra.rustlib import *
 import pytest

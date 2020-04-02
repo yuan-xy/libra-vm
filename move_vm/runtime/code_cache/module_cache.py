@@ -5,14 +5,14 @@ from bytecode_verifier import VerifiedModule
 
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.vm_exception import VMException
-from libra_vm.errors import *
-from libra_vm.file_format import (
+from vm.vm_exception import VMException
+from vm.errors import *
+from vm.file_format import (
         FunctionHandleIndex, SignatureToken, StructDefinitionIndex, StructFieldInformation,
         StructHandleIndex, CompiledModule, ModuleAccess
     )
-from libra_vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
-from libra_vm.views import FunctionHandleView, StructHandleView
+from vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
+from vm.views import FunctionHandleView, StructHandleView
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.native_structs import resolve_native_struct
 from move_vm.types.type_context import TypeContext

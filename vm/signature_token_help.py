@@ -1,5 +1,5 @@
-from libra_vm.file_format_common import SerializedType
-from libra_vm.file_format import SignatureToken, StructHandleIndex
+from vm.file_format_common import SerializedType
+from vm.file_format import SignatureToken, StructHandleIndex
 from typing import List, Tuple, Optional
 from canoser import Uint16
 

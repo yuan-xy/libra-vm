@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm import SerializedType
+from vm import SerializedType
 from compiler.ir_to_bytecode.syntax.parse_error import ParseErrorInvalidToken
 from compiler.ir_to_bytecode.syntax.lexer import *
 from move_ir.types.codespan import ByteIndex, Span

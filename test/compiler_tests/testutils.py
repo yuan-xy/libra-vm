@@ -5,7 +5,7 @@ from compiler.ir_to_bytecode.parser import parse_module, parse_program
 from libra.account_address import Address
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules#, StdLibOptions
-from libra_vm.file_format import CompiledModule, CompiledScript, ScriptAccess
+from vm.file_format import CompiledModule, CompiledScript, ScriptAccess
 from libra.rustlib import *
 import traceback
 

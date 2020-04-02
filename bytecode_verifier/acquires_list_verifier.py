@@ -1,8 +1,8 @@
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import ModuleAccess, Opcodes
-from libra_vm.errors import err_at_offset
-from libra_vm.file_format import Bytecode, CompiledModule, FunctionDefinition, StructDefinitionIndex
-from libra_vm.views import FunctionDefinitionView, ModuleView, StructDefinitionView, ViewInternals
+from vm import ModuleAccess, Opcodes
+from vm.errors import err_at_offset
+from vm.file_format import Bytecode, CompiledModule, FunctionDefinition, StructDefinitionIndex
+from vm.views import FunctionDefinitionView, ModuleView, StructDefinitionView, ViewInternals
 from libra.rustlib import usize
 from typing import List, Any, Optional, Mapping, Set
 from dataclasses import dataclass

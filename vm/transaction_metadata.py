@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasPrice, GasUnits
+from vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasPrice, GasUnits
 from libra import Address, SignedTransaction
 from libra.crypto.ed25519 import Ed25519PublicKey, generate_genesis_keypair
 from canoser import Struct, Uint64, BytesT

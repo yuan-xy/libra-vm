@@ -7,14 +7,14 @@
  *
  **************************************************************************************/
 
-from libra_vm.file_format import (
+from vm.file_format import (
         AddressPoolIndex, ByteArrayPoolIndex, CompiledModule, CompiledModuleMut, CompiledScript,
         FieldDefinition, FieldDefinitionIndex, FunctionDefinition, FunctionDefinitionIndex,
         FunctionHandle, FunctionHandleIndex, FunctionSignature, FunctionSignatureIndex,
         IdentifierIndex, LocalsSignature, LocalsSignatureIndex, MemberCount, ModuleHandle,
         ModuleHandleIndex, StructDefinition, StructDefinitionIndex, StructHandle,
         StructHandleIndex, TypeSignature, TypeSignatureIndex)
-from libra_vm.internals import ModuleIndex
+from vm.internals import ModuleIndex
 from libra import Address
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId

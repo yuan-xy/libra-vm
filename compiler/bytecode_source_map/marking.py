@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra_vm.file_format import(
+from vm.file_format import(
     CodeOffset, FieldDefinitionIndex, FunctionDefinitionIndex, StructDefinitionIndex, TableIndex
 )
 from typing import List, Optional, Any, Union, Tuple, Mapping

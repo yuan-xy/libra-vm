@@ -19,8 +19,8 @@ from libra.transaction import Script as TransactionScript
 from libra.transaction import Transaction as LibraTransaction
 from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus, TransactionPayload
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import CompiledModule, CompiledScript, ModuleView, VMException
-from libra_vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
+from vm import CompiledModule, CompiledScript, ModuleView, VMException
+from vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
 from dataclasses import dataclass, field
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union

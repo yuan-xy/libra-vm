@@ -1,8 +1,8 @@
 from __future__ import annotations
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.errors import verification_error
-from libra_vm.file_format import Bytecode, CompiledModule, StructFieldInformation, ModuleAccess
-from libra_vm import IndexKind, Opcodes, SerializedNativeStructFlag
+from vm.errors import verification_error
+from vm.file_format import Bytecode, CompiledModule, StructFieldInformation, ModuleAccess
+from vm import IndexKind, Opcodes, SerializedNativeStructFlag
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Callable, Any, Tuple
 from libra.rustlib import flatten

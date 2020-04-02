@@ -151,7 +151,7 @@ def diff_tx(old_tx, tx):
         #     ear = AccountResource.deserialize(ew[1].value)
         #     assert oar == ear
         # if idx == 21:
-        #     from libra_vm.gas_schedule import CostTable
+        #     from vm.gas_schedule import CostTable
         #     from vm_genesis.genesis_gas_schedule import init_cost_table
         #     cost_table = init_cost_table()
         #     orig_table = CostTable.deserialize(ow[1].value)

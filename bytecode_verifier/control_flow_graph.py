@@ -1,6 +1,6 @@
 from __future__ import annotations
 # This module defines the control-flow graph uses for bytecode verification.
-from libra_vm.file_format import Bytecode, CodeOffset
+from vm.file_format import Bytecode, CodeOffset
 from typing import List, Set, Mapping, Iterable, Optional
 from libra.rustlib import assert_equal, bail
 from dataclasses import dataclass

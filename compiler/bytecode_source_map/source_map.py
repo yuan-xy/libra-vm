@@ -3,12 +3,12 @@ from libra.account_address import Address
 from move_core.types.identifier import Identifier
 from move_ir.types.ast import ModuleName, QualifiedModuleIdent
 from move_ir.types.codespan import Span
-from libra_vm.file_format import (
+from vm.file_format import (
         AddressPoolIndex, CodeOffset, CompiledModule, CompiledScript, FieldDefinitionIndex,
         FunctionDefinition, FunctionDefinitionIndex, IdentifierIndex, StructDefinition,
         StructDefinitionIndex, TableIndex,
     )
-from libra_vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
+from vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
 from typing import List, Optional, Any, Union, Tuple, Dict
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json

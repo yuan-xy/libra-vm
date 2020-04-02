@@ -9,9 +9,9 @@ from libra.account_address import Address, ADDRESS_LENGTH
 from libra.identifier import Identifier
 from libra.vm_error import StatusCode
 
-from libra_vm.file_format import *
-from libra_vm.signature_token_help import *
-from libra_vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
+from vm.file_format import *
+from vm.signature_token_help import *
+from vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
 
 
 def test_reference_of_reference():

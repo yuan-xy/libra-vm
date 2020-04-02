@@ -3,8 +3,8 @@ from move_ir.types.location import *
 from libra.account_address import Address
 from libra.language_storage import ModuleId
 from move_core.types.identifier import Identifier
-from libra_vm.file_format import CodeUnit
-from libra_vm.file_format_common import Opcodes, SerializedType
+from vm.file_format import CodeUnit
+from vm.file_format_common import Opcodes, SerializedType
 from typing import List, Optional, Any, Union, Tuple
 from dataclasses import dataclass
 from enum import IntEnum

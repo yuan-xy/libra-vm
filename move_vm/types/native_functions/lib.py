@@ -7,12 +7,12 @@ from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm.errors import VMResult
-from libra_vm.file_format import FunctionSignature, Kind, SignatureToken, StructHandleIndex
-from libra_vm.file_format_common import SerializedType
-from libra_vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, NativeCostIndex
-from libra_vm.signature_token_help import *
-from libra_vm.vm_exception import VMException
+from vm.errors import VMResult
+from vm.file_format import FunctionSignature, Kind, SignatureToken, StructHandleIndex
+from vm.file_format_common import SerializedType
+from vm.gas_schedule import AbstractMemorySize, CostTable, GasAlgebra, GasCarrier, GasUnits, NativeCostIndex
+from vm.signature_token_help import *
+from vm.vm_exception import VMException
 from typing import List, Tuple, Optional, Mapping
 from canoser import BoolT, BytesT
 from dataclasses import dataclass

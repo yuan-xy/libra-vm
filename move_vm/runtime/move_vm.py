@@ -7,9 +7,9 @@ from move_vm.runtime.loaded_data import LoadedModule
 from move_vm.runtime.runtime import VMRuntime
 from bytecode_verifier import VerifiedModule
 
-from libra_vm.gas_schedule import CostTable
-from libra_vm.file_format_common import Opcodes
-from libra_vm.transaction_metadata import TransactionMetadata
+from vm.gas_schedule import CostTable
+from vm.file_format_common import Opcodes
+from vm.transaction_metadata import TransactionMetadata
 from move_vm.types.loaded_data import StructDef
 from move_vm.types.values import Value
 from dataclasses import dataclass

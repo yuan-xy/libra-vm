@@ -4,9 +4,9 @@ from dataclasses import dataclass
 import abc
 from libra.rustlib import flatten, format_str
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
-from libra_vm.errors import append_err_info
-from libra_vm.file_format import (
+from vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
+from vm.errors import append_err_info
+from vm.file_format import (
         Bytecode, CompiledModule, Kind, SignatureToken, StructFieldInformation, StructHandle,
         TypeSignature,
     )

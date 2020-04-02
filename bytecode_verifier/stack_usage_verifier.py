@@ -4,10 +4,10 @@ from dataclasses import dataclass
 import abc
 from bytecode_verifier import BlockId, ControlFlowGraph, VMControlFlowGraph
 from libra.vm_error import StatusCode, VMStatus
-from libra_vm import ModuleAccess, Opcodes
-from libra_vm.errors import err_at_offset
-from libra_vm.file_format import Bytecode, CompiledModule, FunctionDefinition, StructFieldInformation
-from libra_vm.views import FunctionDefinitionView
+from vm import ModuleAccess, Opcodes
+from vm.errors import err_at_offset
+from vm.file_format import Bytecode, CompiledModule, FunctionDefinition, StructFieldInformation
+from vm.views import FunctionDefinitionView
 
 # This module implements a checker for verifying that basic blocks in the bytecode instruction
 # sequence of a function use the evaluation stack in a balanced manner. Every basic block,

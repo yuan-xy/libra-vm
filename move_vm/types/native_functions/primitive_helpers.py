@@ -1,8 +1,8 @@
 from __future__ import annotations
 from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
 from move_vm.types.values import Value
-from libra_vm.vm_exception import VMException
-from libra_vm.gas_schedule import CostTable, NativeCostIndex
+from vm.vm_exception import VMException
+from vm.gas_schedule import CostTable, NativeCostIndex
 from libra.account_address import Address
 from libra.language_storage import TypeTag
 from libra.vm_error import StatusCode, VMStatus

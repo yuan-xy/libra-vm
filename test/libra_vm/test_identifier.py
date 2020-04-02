@@ -1,6 +1,6 @@
 from move_vm.types.identifier import resource_storage_key
-from libra_vm.file_format import ModuleAccess
-from libra_vm.file_format import CompiledModule, StructDefinitionIndex, TableIndex
+from vm.file_format import ModuleAccess
+from vm.file_format import CompiledModule, StructDefinitionIndex, TableIndex
 from libra.language_storage import ModuleId, StructTag
 from stdlib import build_stdlib_map
 import os, json

@@ -1,6 +1,6 @@
 from __future__ import annotations
-from libra_vm import ModuleAccess, SerializedType
-from libra_vm.file_format import (
+from vm import ModuleAccess, SerializedType
+from vm.file_format import (
     AddressPoolIndex, FunctionSignature, IdentifierIndex, ModuleHandle, ModuleHandleIndex,
     SignatureToken, StructHandle, StructHandleIndex
     )

@@ -3,7 +3,7 @@ from bytecode_source_map.source_map import ModuleSourceMap
 from compiler.ir_to_bytecode.compiler import compile_module
 from compiler.ir_to_bytecode.parser import parse_module
 from libra.account_address import Address
-from libra_vm import ModuleAccess, CompiledModule
+from vm import ModuleAccess, CompiledModule
 
 
 def read_to_string(path):

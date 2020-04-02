@@ -9,14 +9,14 @@ from bytecode_verifier.ref_id import RefID
 
 from libra.vm_error import StatusCode, VMStatus
 
-from libra_vm.errors import err_at_offset, format_str
-from libra_vm import signature_token_help
-from libra_vm import SerializedType, Opcodes
-from libra_vm.file_format import (
+from vm.errors import err_at_offset, format_str
+from vm import signature_token_help
+from vm import SerializedType, Opcodes
+from vm.file_format import (
         Bytecode, CompiledModule, FieldDefinitionIndex, FunctionDefinition, Kind, LocalIndex,
         LocalsSignatureIndex, SignatureToken, StructDefinitionIndex, ModuleAccess
     )
-from libra_vm.views import (
+from vm.views import (
         FunctionDefinitionView, FunctionSignatureView, LocalsSignatureView, ModuleView,
         SignatureTokenView, StructDefinitionView, ViewInternals,
     )
