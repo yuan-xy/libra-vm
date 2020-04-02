@@ -11,7 +11,7 @@ class ParseErrorInvalidToken(ParseError):
     location: Any
 
     def __str__(self):
-        return f"Invalid token at {self.location}"
+        return f"Invalid Token at {self.location}"
 
 
 @dataclass
