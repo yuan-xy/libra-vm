@@ -1,6 +1,6 @@
 from __future__ import annotations
-from libra_vm.runtime.execution_context import InterpreterContext
-from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
+from move_vm.runtime.interpreter_context import InterpreterContext
+from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from bytecode_verifier import VerifiedModule
 
 from libra.language_storage import ModuleId

@@ -1,7 +1,7 @@
 from __future__ import annotations
-from libra_vm.runtime.code_cache.module_cache import load_and_verify_module_id
-from libra_vm.runtime.execution_context import InterpreterContext
-from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
+from move_vm.runtime.code_cache.module_cache import load_and_verify_module_id
+from move_vm.runtime.interpreter_context import InterpreterContext
+from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 
 from bytecode_verifier import verify_script_dependencies, VerifiedScript
 

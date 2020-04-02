@@ -1,9 +1,10 @@
 from __future__ import annotations
-from libra_vm.runtime.identifier import create_access_path, resource_storage_key
-from libra_vm.runtime.chain_state import ChainState, SystemExecutionContext, TransactionExecutionContext
+from move_vm.types.identifier import create_access_path, resource_storage_key
+from move_vm.types.chain_state import ChainState
+from move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
 from libra_vm.runtime.counters import *
-from libra_vm.runtime.data_cache import BlockDataCache, RemoteCache, RemoteStorage
-from libra_vm.runtime.move_vm import MoveVM
+from move_vm.state.data_cache import BlockDataCache, RemoteCache, RemoteStorage
+from move_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.lib import VMVerifier, VMExecutor
 from libra_vm.runtime.system_module_names import *
 from libra_storage.state_view import StateView

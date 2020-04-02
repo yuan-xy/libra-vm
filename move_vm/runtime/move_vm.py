@@ -2,9 +2,9 @@ from __future__ import annotations
 from libra.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
 
-from libra_vm.runtime.chain_state import ChainState
-from libra_vm.runtime.loaded_data import LoadedModule
-from libra_vm.runtime.runtime import VMRuntime
+from move_vm.types.chain_state import ChainState
+from move_vm.runtime.loaded_data import LoadedModule
+from move_vm.runtime.runtime import VMRuntime
 from bytecode_verifier import VerifiedModule
 
 from libra_vm.gas_schedule import CostTable

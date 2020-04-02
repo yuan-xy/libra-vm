@@ -4,9 +4,9 @@ from libra_vm.file_format import (
     )
 from libra_vm.file_format_common import Opcodes
 from libra_vm.gas_schedule import CostTable, GasCost, GAS_SCHEDULE_NAME, MAXIMUM_NUMBER_OF_GAS_UNITS
-from libra_vm.runtime.chain_state import TransactionExecutionContext
-from libra_vm.runtime.data_cache import RemoteCache
-from libra_vm.runtime.move_vm import MoveVM
+from move_vm.state.execution_context import TransactionExecutionContext
+from move_vm.state.data_cache import RemoteCache
+from move_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
 from move_vm.types.loaded_data import Type
 from move_vm.types.values import Value

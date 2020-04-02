@@ -21,9 +21,10 @@ from libra_vm.file_format import ModuleAccess
 from libra_vm.gas_schedule import CostTable, GasAlgebra, GasUnits
 from libra_vm.file_format_common import Opcodes
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime.chain_state import ChainState, TransactionExecutionContext
-from libra_vm.runtime.data_cache import BlockDataCache
-from libra_vm.runtime.move_vm import MoveVM
+from move_vm.types.chain_state import ChainState
+from move_vm.state.execution_context import TransactionExecutionContext
+from move_vm.state.data_cache import BlockDataCache
+from move_vm.runtime.move_vm import MoveVM
 from libra_vm.runtime.system_module_names import *
 from move_vm.types.values import Value
 from multiaddr import Multiaddr

@@ -11,9 +11,9 @@ from bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView, EmptyStateView
 from libra_vm.gas_schedule import CostTable, GasAlgebra, GasUnits
 from libra_vm.transaction_metadata import TransactionMetadata
-from libra_vm.runtime.chain_state import TransactionExecutionContext
-from libra_vm.runtime.data_cache import BlockDataCache
-from libra_vm.runtime.move_vm import MoveVM
+from move_vm.state.execution_context import TransactionExecutionContext
+from move_vm.state.data_cache import BlockDataCache
+from move_vm.runtime.move_vm import MoveVM
 from canoser import Uint8
 from typing import List, Optional
 import cProfile

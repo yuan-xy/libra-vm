@@ -1,12 +1,11 @@
 from __future__ import annotations
-from libra_vm.runtime.identifier import create_access_path, resource_storage_key
-from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
-from libra_vm.runtime.code_cache import VMModuleCache, ScriptCache
-from libra_vm.runtime.data_cache import RemoteCache
-from libra_vm.runtime.execution_context import InterpreterContext
-#from libra_vm.runtime.interpreter import Interpreter
-from libra_vm.runtime.loaded_data import FunctionReference, LoadedModule
-from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
+from move_vm.types.identifier import create_access_path, resource_storage_key
+from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
+from move_vm.runtime.code_cache import VMModuleCache, ScriptCache
+from move_vm.state.data_cache import RemoteCache
+from move_vm.runtime.interpreter_context import InterpreterContext
+#from move_vm.runtime.interpreter import Interpreter
+from move_vm.runtime.loaded_data import FunctionReference, LoadedModule
 from bytecode_verifier import VerifiedModule
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.identifier import IdentStr, Identifier
@@ -14,7 +13,9 @@ from libra.language_storage import ModuleId
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, SubStatus, VMStatus
 
-from libra_vm.runtime.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
+# from libra_vm.runtime.system_module_names import GAS_SCHEDULE_MODULE
+# from libra_vm.runtime.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
+
 from libra_vm.vm_exception import VMException
 from libra_vm.errors import verification_error, vm_error, Location, VMResult, format_str
 from libra_vm.file_format import (
@@ -98,7 +99,7 @@ class VMRuntime:
             raise VMException(VMStatus(StatusCode.TYPE_MISMATCH)\
                 .with_message("Actual Type Mismatch"))
 
-        from libra_vm.runtime.interpreter import Interpreter
+        from move_vm.runtime.interpreter import Interpreter
         Interpreter.entrypoint(context, self, txn_data, gas_schedule, main, args)
 
 
@@ -111,7 +112,7 @@ class VMRuntime:
         function_name: IdentStr,
         args: List[Value],
     ) -> None:
-        from libra_vm.runtime.interpreter import Interpreter
+        from move_vm.runtime.interpreter import Interpreter
         Interpreter.execute_function(
             context,
             self,

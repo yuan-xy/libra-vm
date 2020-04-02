@@ -1,8 +1,8 @@
 from libra_vm import *
-from libra_vm.runtime.data_cache import RemoteCache, BlockDataCache
-from libra_vm.runtime.chain_state import SystemExecutionContext, TransactionExecutionContext
-from libra_vm.runtime.code_cache import VMModuleCache
-from libra_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
+from move_vm.state.data_cache import RemoteCache, BlockDataCache
+from move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
+from move_vm.runtime.code_cache import VMModuleCache
+from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from bytecode_verifier import VerifiedModule, VerifiedScript
 #use compiler.Compiler
 from libra_storage.state_view import StateView

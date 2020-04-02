@@ -10,7 +10,7 @@ from move_vm.types.values import Struct
 
 from libra_vm.errors import *
 from libra_vm import CompiledModule
-from libra_vm.runtime.data_cache import RemoteCache
+from move_vm.state.data_cache import RemoteCache
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Mapping

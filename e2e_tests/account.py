@@ -9,7 +9,7 @@ from move_vm.types.values import Struct as VMStruct
 from move_vm.types.values import Value
 from libra.crypto.ed25519 import *
 from vm_genesis.lib import GENESIS_KEYPAIR
-from libra_vm.runtime.identifier import create_access_path
+from move_vm.types.identifier import create_access_path
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
 
