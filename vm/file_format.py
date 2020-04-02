@@ -5,7 +5,7 @@ from vm.internals import ModuleIndex
 from vm.vm_exception import VMException
 from vm.errors import bounds_error
 from libra.account_address import Address
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure, bail, usize, flatten

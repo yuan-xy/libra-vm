@@ -4,7 +4,7 @@ from vm.file_format import (
     StructDefinitionIndex, NO_TYPE_ACTUALS, NUMBER_OF_NATIVE_FUNCTIONS
     )
 from vm.file_format_common import Opcodes
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.rustlib import ensure, bail
 from canoser import Uint64, Uint8, Struct

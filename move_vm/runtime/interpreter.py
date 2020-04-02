@@ -4,7 +4,7 @@ from libra.account_address import Address
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.contract_event import ContractEvent
 from libra.event import EventKey
-from libra.identifier import IdentStr
+from move_core.types.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag, TypeTag
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, StatusType, VMStatus

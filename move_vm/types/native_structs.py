@@ -2,7 +2,7 @@ from __future__ import annotations
 from move_vm.types.loaded_data import Type
 from vm.file_format import Kind, StructHandleIndex
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from canoser import RustEnum, Struct
 from typing import List, Mapping, Optional

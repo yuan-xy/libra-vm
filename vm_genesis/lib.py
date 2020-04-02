@@ -8,7 +8,7 @@ from libra.account_address import Address
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.contract_event import ContractEvent
 from libra.event import EventKey
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.transaction import ChangeSet, RawTransaction, SignatureCheckedTransaction
 from libra.discovery_info import DiscoveryInfo
 from libra.discovery_set import DiscoverySet

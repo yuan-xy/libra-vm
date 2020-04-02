@@ -8,7 +8,7 @@ from move_vm.runtime.interpreter_context import InterpreterContext
 from move_vm.runtime.loaded_data import FunctionReference, LoadedModule
 from bytecode_verifier import VerifiedModule
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, SubStatus, VMStatus

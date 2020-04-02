@@ -5,7 +5,7 @@ from vm.file_format import (
     SignatureToken, StructHandle, StructHandleIndex
     )
 from libra.account_address import Address
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
 from typing import List, Set, Optional, Tuple, Mapping, Any
 from dataclasses import dataclass

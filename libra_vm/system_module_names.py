@@ -1,5 +1,5 @@
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.language_storage import ModuleId
 
 # Names of modules and functions used by Libra System.

@@ -6,7 +6,7 @@ from bytecode_verifier import VerifiedModule
 #     FieldRefMutation,
 # }
 from libra.account_address import Address, ADDRESS_LENGTH
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode
 
 from vm.file_format import *

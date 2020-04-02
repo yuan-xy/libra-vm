@@ -1,5 +1,5 @@
 from __future__ import annotations
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
 
 from move_vm.types.chain_state import ChainState

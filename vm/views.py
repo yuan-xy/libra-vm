@@ -8,7 +8,7 @@ from vm.file_format import (
     )
 from vm.file_format_common import SerializedType, SerializedNativeStructFlag
 from vm.lib import SignatureTokenKind
-from libra.identifier import IdentStr
+from move_core.types.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag
 from typing import List, Set, Optional, Tuple, Mapping, Any
 from dataclasses import dataclass

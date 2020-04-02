@@ -1,6 +1,6 @@
 from __future__ import annotations
 from bytecode_verifier import VerifiedModule
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.vm_error import StatusCode, VMStatus
 from vm.file_format import (
     Bytecode, CodeUnit, FunctionDefinitionIndex, FunctionHandle, FunctionSignature,

@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from libra.access_path import AccessPath
 from libra.account_address import Address
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
 from bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView, EmptyStateView

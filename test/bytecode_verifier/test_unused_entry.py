@@ -1,6 +1,6 @@
 from stdlib import stdlib_modules, build_stdlib_map
 from bytecode_verifier import UnusedEntryChecker
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode
 from vm.file_format import (
     CompiledModule, FieldDefinition, IdentifierIndex, LocalsSignature, ModuleHandleIndex,

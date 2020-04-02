@@ -16,7 +16,7 @@ from vm.file_format import (
         StructHandleIndex, TypeSignature, TypeSignatureIndex)
 from vm.internals import ModuleIndex
 from libra import Address
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 import abc

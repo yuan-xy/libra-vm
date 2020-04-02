@@ -6,7 +6,7 @@ import move_vm.types.vector as vector
 from move_vm.types.native_structs import resolve_native_struct
 from libra.account_address import Address
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
-from libra.identifier import IdentStr, Identifier
+from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus
 from vm.errors import VMResult

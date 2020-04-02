@@ -4,7 +4,7 @@ from vm.errors import *
 from vm.file_format import *
 from vm.file_format_common import *
 from libra.account_address import Address
-from libra.identifier import Identifier
+from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure
 from canoser import Cursor, Uint8, Uint16, Uint32, Uint64, Uint128
