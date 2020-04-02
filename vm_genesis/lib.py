@@ -207,7 +207,7 @@ def create_and_initialize_main_accounts(
         )
 
     move_vm.execute_function(
-            LIBRA_SYSTEM_MODULE,
+            LIBRA_BLOCK_MODULE,
             INITIALIZE_BLOCK,
             gas_schedule,
             interpreter_context,
@@ -267,7 +267,7 @@ def create_and_initialize_main_accounts(
 
     txn_data.sender = AccountConfig.transaction_fee_address_bytes()
     move_vm.execute_function(
-            LIBRA_SYSTEM_MODULE,
+            TRANSACTION_FEE_MODULE,
             INITIALIZE_TXN_FEES,
             gas_schedule,
             interpreter_context,
@@ -434,7 +434,6 @@ def reconfigure(
     interpreter_context: TransactionExecutionContext,
 ) -> None:
     txn_data = TransactionMetadata.default()
-    txn_data.sender = AccountConfig.validator_set_address_bytes()
 
     # TODO: Direct write set transactions cannot specify emitted events, so this currently
     # will not work.

@@ -140,7 +140,7 @@ def split_input(
 
         elif command.tag == RawCommand.vBlockMetadata:
             entries = command.value
-            entry = BlockEntry.from_str(line)
+            entry = BlockEntry.try_parse(line)
             if entry:
                 entries.append(entry)
                 continue

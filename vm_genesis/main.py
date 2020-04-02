@@ -145,21 +145,21 @@ def diff_tx(old_tx, tx):
         assert oe == ee
     assert len(old_cs.write_set.write_set) == len(cs.write_set.write_set)
     for idx, (ow, ew) in enumerate(zip(old_cs.write_set.write_set, cs.write_set.write_set)):
-        if idx == 20:
-            from libra import AccountResource
-            oar = AccountResource.deserialize(ow[1].value)
-            ear = AccountResource.deserialize(ew[1].value)
-            assert oar == ear
-        if idx == 21:
-            from libra_vm.gas_schedule import CostTable
-            from vm_genesis.genesis_gas_schedule import init_cost_table
-            cost_table = init_cost_table()
-            orig_table = CostTable.deserialize(ow[1].value)
-            for (g0, g1) in zip(orig_table.instruction_table, cost_table.instruction_table):
-                assert g0 == g1
-            assert cost_table.instruction_table == orig_table.instruction_table
-            assert cost_table.native_table == orig_table.native_table
-            assert cost_table.serialize() == ew[1].value
+        # if idx == 20:
+        #     from libra import AccountResource
+        #     oar = AccountResource.deserialize(ow[1].value)
+        #     ear = AccountResource.deserialize(ew[1].value)
+        #     assert oar == ear
+        # if idx == 21:
+        #     from libra_vm.gas_schedule import CostTable
+        #     from vm_genesis.genesis_gas_schedule import init_cost_table
+        #     cost_table = init_cost_table()
+        #     orig_table = CostTable.deserialize(ow[1].value)
+        #     for (g0, g1) in zip(orig_table.instruction_table, cost_table.instruction_table):
+        #         assert g0 == g1
+        #     assert cost_table.instruction_table == orig_table.instruction_table
+        #     assert cost_table.native_table == orig_table.native_table
+        #     assert cost_table.serialize() == ew[1].value
         assert ow[0] == ew[0]
         if ow != ew:
             print(idx)

@@ -42,10 +42,20 @@ LIBRA_SYSTEM_MODULE = ModuleId(
         "LibraSystem",
     )
 
+LIBRA_BLOCK_MODULE = ModuleId(
+        CORE_CODE_ADDRESS,
+        "LibraBlock",
+    )
+
 # The ModuleId for the gas schedule module
 GAS_SCHEDULE_MODULE = ModuleId(
         CORE_CODE_ADDRESS,
         "GasSchedule",
+    )
+
+TRANSACTION_FEE_MODULE = ModuleId(
+        CORE_CODE_ADDRESS,
+        "TransactionFee",
     )
 
 # Names for special functions and structs

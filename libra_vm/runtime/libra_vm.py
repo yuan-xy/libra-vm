@@ -413,7 +413,7 @@ class LibraVM(VMVerifier, VMExecutor):
         ]
         try:
             self.move_vm.execute_function(
-                LIBRA_SYSTEM_MODULE,
+                LIBRA_BLOCK_MODULE,
                 BLOCK_PROLOGUE,
                 gas_schedule,
                 interpreter_context,
