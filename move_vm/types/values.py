@@ -252,6 +252,8 @@ class ValueImpl(RustEnum):
                 raise IOError("bytes not all consumed:{}, {}".format(
                     len(blob), cursor.offset))
         except Exception as err:
+            # traceback.print_exc()
+            # breakpoint()
             raise VMException(VMStatus(StatusCode.INVALID_DATA).with_message(err))
 
         return ret
@@ -289,6 +291,7 @@ class ValueImpl(RustEnum):
                 arr.append(ValueImpl.simple_decode(cursor, layout.value))
 
             if layout.value.enum_name in ['U64', 'U128', 'Bool']:
+                arr = [x.value for x in arr]
                 return ValueImpl.new_container(Container(layout.value.enum_name, arr))
             else:
                 return ValueImpl.new_container(Container('General', arr))
