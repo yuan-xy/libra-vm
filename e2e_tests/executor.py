@@ -4,6 +4,7 @@ from e2e_tests.data_store import FakeDataStore, GENESIS_WRITE_SET
 from bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView
 from libra import AccessPath, AccountResource
+from libra.account_resource import BalanceResource
 from libra.language_storage import ModuleId
 from libra.transaction import (
     SignedTransaction, Transaction, TransactionOutput, TransactionPayload, TransactionStatus,
@@ -174,9 +175,17 @@ class FakeExecutor:
 
     # Reads the resource [`Value`] for an account from this executor's data store.
     def read_account_resource(self, account: Account) -> Optional[AccountResource]:
-        ap = account.make_access_path()
+        ap = account.make_account_access_path()
         data_blob = self.data_store.get(ap)
         return AccountResource.deserialize(data_blob)
+
+    def read_balance_resource(self, account: Account) -> Optional[BalanceResource]:
+        ap = account.make_balance_access_path()
+        data_blob = self.data_store.get(ap)
+        return BalanceResource.deserialize(data_blob)
+
+    def read_account_info(self, account: Account) -> Optional[Tuple[AccountResource, BalanceResource]]:
+        return self.read_account_resource(account), self.read_balance_resource(account) 
 
 
     # Executes the given block of transactions.

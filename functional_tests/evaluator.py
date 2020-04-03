@@ -273,6 +273,7 @@ def get_transaction_parameters(
     config: TransactionConfig,
 ) -> TransactionParameters:
     account_resource = fexec.read_account_resource(config.sender)
+    account_balance = fexec.read_balance_resource(config.sender)
     sequence_number = config.sequence_number
     if sequence_number is None:
         sequence_number = account_resource.sequence_number
@@ -281,7 +282,7 @@ def get_transaction_parameters(
     if max_gas is None:
         max_gas = min(
                         MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
-                        account_resource.balance,
+                        account_balance.coin,
                     )
     gas_price = config.gas_price
     if gas_price is None:

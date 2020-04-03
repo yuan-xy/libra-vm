@@ -95,12 +95,16 @@ class FakeDataStore(StateView, RemoteCache):
 
     # Adds an [`AccountData`] to this data store.
     def add_account_data(self, name: str, account_data: AccountData):
-        v = account_data.to_resource()
-        struct = v.value_as(Struct)
-        blob = struct.simple_serialize(AccountData.layout())
-        # res = Value.simple_deserialize(blob, Type('Struct',AccountData.layout()))
-        # assert res.__str__() == v.__str__()
-        self.set(account_data.make_access_path(), blob)
+        account_blob, balance_blob = account_data.to_account()
+
+        struct1 = account_blob.value_as(Struct)
+        account = struct1.simple_serialize(AccountData.account_layout())
+        self.set(account_data.make_account_access_path(), account)
+
+        struct2 = balance_blob.value_as(Struct)
+        balance = struct2.simple_serialize(AccountData.balance_layout())
+        self.set(account_data.make_balance_access_path(), balance)
+
         self.named_accounts[account_data.account.addr] = name
 
 

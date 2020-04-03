@@ -109,7 +109,7 @@ add_native_function_to_map(
 
 add_native_function_to_map(
     "U64Util",
-    "u64_to_bytes",
+    "Uint64_to_bytes",
     primitive_helpers.native_Uint64_to_bytes,
     [U64],
     [VectorU8]
@@ -233,21 +233,47 @@ add_native_function_to_map2(
     []
 )
 
+def save_account_arg_types(m):
+    breakpoint()
+    self_t_idx = struct_handle_idx(
+        m,
+        CORE_CODE_ADDRESS,
+        AccountConfig.ACCOUNT_MODULE_NAME,
+        AccountConfig.ACCOUNT_STRUCT_NAME,
+    )
+    balance_t_idx = struct_handle_idx(
+        m,
+        CORE_CODE_ADDRESS,
+        AccountConfig.ACCOUNT_MODULE_NAME,
+        AccountConfig.ACCOUNT_BALANCE_STRUCT_NAME,
+    )
+    arg_types = [
+        Struct((balance_t_idx, [])),
+        Struct((self_t_idx, [])),
+        Address,
+    ]
+    return arg_types
+
+# Helper for finding non-native struct handle index
+def struct_handle_idx(
+    m: ModuleView,
+    module_address: Address,
+    module_name: str,
+    name: str,
+) -> Optional[StructHandleIndex]:
+    for (idx, handle) in enumerate(m.struct_handles()):
+        if handle.name() == name \
+            and handle.module_id().name() == module_name \
+            and handle.module_id().address() == module_address:
+            return StructHandleIndex.new(idx)
+        
+    return None
+
 # LibraAccount
 add_native_function_to_map(
     "LibraAccount",
     "save_account",
     gen_lambda("save_account does not have a native implementation"),
-    [
-        ADDRESS,
-        # this is LibraAccount.T which happens to be the first class handle in the
-        # binary.
-        # TODO: current plan is to rework the description of the native function
-        # by using the binary directly and have functions that fetch the arguments
-        # go through the signature for extra verification. That is the plan if perf
-        # and the model look good.
-        Struct((StructHandleIndex(0), [])),
-    ],
+    save_account_arg_types,
     []
 )
-

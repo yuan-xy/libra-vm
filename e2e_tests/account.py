@@ -91,9 +91,11 @@ class Account:
     #
     # Use this to retrieve or publish the Account blob.
     # TODO: plug in the account type
-    def make_access_path(self) -> AccessPath:
-        # TODO: we need a way to get the type (StructDef) of the Account in place
+    def make_account_access_path(self) -> AccessPath:
         return create_access_path(self.addr, AccountConfig.account_struct_tag())
+
+    def make_balance_access_path(self) -> AccessPath:
+        return create_access_path(self.addr, AccountConfig.account_balance_struct_tag())
 
 
     # Changes the keys for this account to the provided ones.
@@ -359,8 +361,11 @@ class AccountData:
     #
     # Use this to retrieve or publish the Account blob.
     # TODO: plug in the account type
-    def make_access_path(self) -> AccessPath:
-        return self.account.make_access_path()
+    def make_account_access_path(self) -> AccessPath:
+        return self.account.make_account_access_path()
+
+    def make_balance_access_path(self) -> AccessPath:
+        return self.account.make_balance_access_path()
 
 
     # Returns the address of the account. This is a hash of the public key the account was created

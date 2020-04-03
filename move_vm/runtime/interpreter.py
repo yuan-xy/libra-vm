@@ -678,7 +678,7 @@ class Interpreter:
         if module_id == ACCOUNT_MODULE and function_name == EMIT_EVENT_NAME:
             self.call_emit_event(context, type_actual_tags, type_actuals)
         elif module_id == ACCOUNT_MODULE and function_name == SAVE_ACCOUNT_NAME:
-            self.call_save_account(runtime, context)
+            self.call_save_account(runtime, context, type_actual_tags, type_actuals)
         else:
             arguments = []
             expected_args = native_function.num_args()
@@ -747,15 +747,39 @@ class Interpreter:
         self,
         runtime: VMRuntime,
         context: InterpreterContext,
+        type_actual_tags: List[TypeTag],
+        type_actuals: List[Type],
     ) -> None:
+        gas_consume(context,
+            self.gas_schedule
+                .native_cost(NativeCostIndex::SAVE_ACCOUNT)
+                .total()
+        )
         account_module = runtime.get_loaded_module(ACCOUNT_MODULE, context)
-        account_resource = self.operand_stack.pop_as(Struct)
         address = self.operand_stack.pop_as(Address)
         if Address.equal_address(address, CORE_CODE_ADDRESS):
             raise VMException(VMStatus(StatusCode.CREATE_NULL_ACCOUNT))
 
-        self.save_account(runtime, context, account_module, address, account_resource)
-
+        Interpreter.save_under_address(
+            runtime,
+            context,
+            [],
+            [],
+            account_module,
+            account_config.ACCOUNT_STRUCT_NAME,
+            self.operand_stack.pop_as(Struct),
+            address,
+        )
+        Interpreter.save_under_address(
+            runtime,
+            context,
+            [],
+            [],
+            account_module,
+            account_config.ACCOUNT_BALANCE_STRUCT_NAME,
+            self.operand_stack.pop_as(Struct),
+            address,
+        )
 
     # Perform a binary operation to two values at the top of the stack.
     def binop(self, f, T) -> None:
@@ -869,32 +893,26 @@ class Interpreter:
         type_actual_tags: List[TypeTag],
         address: Address,
     ) -> AccessPath:
+        breakpoint()
         struct_tag = resource_storage_key(module, idx, type_actual_tags)
         return create_access_path(address, struct_tag)
 
-
-    def save_account(
-        self,
+    # Save a resource under the address specified by `account_address`
+    @classmethod
+    def save_under_address(cls,
         runtime: VMRuntime,
         context: InterpreterContext,
-        account_module: LoadedModule,
-        addr: Address,
-        account_resource: Struct,
+        type_actual_tags: List[TypeTag],
+        type_actuals: List[Type],
+        module: LoadedModule,
+        struct_name: IdentStr,
+        resource_to_save: Struct,
+        account_address: Address,
     ) -> None:
-        gas_consume(context,
-            self.gas_schedule
-                .native_cost(NativeCostIndex.SAVE_ACCOUNT)
-                .total()
-        )
-        account_struct_id = account_module.struct_defs_table.get(ACCOUNT_STRUCT_NAME)
-            #.ok_or_else(|| VMStatus(StatusCode.LINKER_ERROR))
-        account_struct_def =\
-            runtime.resolve_struct_def(account_module, account_struct_id, [], context)
-
-        # TODO: Adding the freshly created account's expiration date to the TransactionOutput here.
-        account_path = Interpreter.make_access_path(account_module, account_struct_id, [], addr)
-        context.move_resource_to(account_path, account_struct_def, account_resource)
-
+        struct_id = module.struct_defs_table.get(struct_name)
+        struct_def = runtime.resolve_struct_def(module, struct_id, type_actuals, context)
+        path = Interpreter.make_access_path(module, struct_id, type_actual_tags, account_address)
+        context.move_resource_to(path, struct_def, resource_to_save)
 
 
     # Debugging and logging helpers.
