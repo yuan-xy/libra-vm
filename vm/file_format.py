@@ -1898,7 +1898,7 @@ def empty_module() -> CompiledModuleMut:
             address=AddressPoolIndex(0),
             name=IdentifierIndex(0),
         )],
-        address_pool=[b'\x00'*32],
+        address_pool=[b'\x00' * Address.LENGTH],
         identifiers=[self_module_name()],
         function_defs=[],
         struct_defs=[],
@@ -1998,7 +1998,7 @@ def dummy_procedure_module(code: List[Bytecode]) -> CompiledModule:
 
 # Return a simple script that contains only a return in the main()
 def empty_script() -> CompiledScriptMut:
-    default_address = b'\x03'*32
+    default_address = b'\x03' * Address.LENGTH
     main_name = "main"
     void_void_sig = FunctionSignature(
         arg_types=[],

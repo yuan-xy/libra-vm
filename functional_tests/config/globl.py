@@ -3,6 +3,7 @@ from functional_tests.common import strip
 from functional_tests.errors import *
 from functional_tests.genesis_accounts import make_genesis_accounts
 from e2e_tests.account import Account, AccountData
+from libra import Address
 from libra.validator_set import ValidatorSet
 from libra.crypto.ed25519 import _generate_keypair_by_private_key
 from vm_genesis.main import rust_validator_set
@@ -127,7 +128,7 @@ class Config:
         if validator_accounts > 0:
             assert validator_accounts <= 10
             validator_set = rust_validator_set()[0:validator_accounts]
-            validator_keys = {x.account_address: b'\x00'*32 for x in validator_set}
+            validator_keys = {x.account_address: Address.default() for x in validator_set}
 
             # swarm = generator.validator_swarm_for_testing(validator_accounts)
             # validator_keys = {} #BTreeMap<_, _>

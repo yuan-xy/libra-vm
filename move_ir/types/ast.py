@@ -1202,7 +1202,7 @@ impl fmt.Display for ImportDefinition {
 
 impl fmt.Display for ModuleDependency {
     def fmt(self, f: fmt.Formatter<'_>) -> fmt.Result {
-        write!(f, "Depedency({}, ", self.name)
+        write!(f, "Dependency({}, ", self.name)
         for sdep in self.structs {
             writeln!(f, "{}, ", sdep)
         }

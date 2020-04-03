@@ -3,7 +3,7 @@ from functional_tests.common import strip
 from functional_tests.config.globl import Config as GlobalConfig
 from functional_tests.errors import *
 from functional_tests.tests.mod import parse_each_line_as
-from libra import HashValue
+from libra import HashValue, Address
 from libra.block_metadata import BlockMetadata
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
@@ -72,7 +72,7 @@ def build_block_metadata(config: GlobalConfig, entries: List[Entry]) -> BlockMet
     if timestamp and proposer:
         # TODO: Add parser for hash value and vote maps.
         return BlockMetadata(
-            b'\x00'*32,
+            Address.default(),
             timestamp,
             {},
             proposer,

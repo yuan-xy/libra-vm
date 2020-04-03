@@ -106,6 +106,12 @@ class Account:
     #
     # This is the same as the account's address if the keys have never been rotated.
     def auth_key(self) -> bytes:
+        bail("unimplemented.")
+        return Address.from_public_key(self.pubkey)
+
+
+    def auth_key_prefix(self) -> bytes:
+        bail("unimplemented.")
         return Address.from_public_key(self.pubkey)
 
 
@@ -217,6 +223,20 @@ class Account:
 def new_event_handle(count: Uint64) -> EventHandle:
     return EventHandle.random_handle(count)
 
+@dataclass
+class Balance:
+    coin: Uint64
+
+    # Returns the Move Value for the account balance
+    def to_value(self) -> Value:
+        return Value.struct_(VMStruct.pack([Value.Uint64(self.coin)]))
+    
+
+    # Returns the value layout for the account balance
+    @classmethod
+    def layout(cls) -> StructDef:
+        return StructDef.new([Type('U64')])
+
 
 # Represents an account along with initial state about it.
 #
@@ -225,7 +245,7 @@ def new_event_handle(count: Uint64) -> EventHandle:
 @dataclass
 class AccountData:
     account: e2e_tests.account.Account
-    balance: Uint64
+    balance: Balance
     sequence_number: Uint64
     delegated_key_rotation_capability: bool
     delegated_withdrawal_capability: bool
@@ -273,7 +293,7 @@ class AccountData:
     ) -> AccountData:
         return cls(
             account,
-            balance,
+            Balance(balance),
             sequence_number,
             delegated_key_rotation_capability,
             delegated_withdrawal_capability,
@@ -288,11 +308,10 @@ class AccountData:
         self.account.rotate_key(privkey, pubkey)
 
 
-    def layout() -> StructDef:
+    def account_layout() -> StructDef:
         VectorU8 = Type('Vector', Type('U8'))
         return StructDef.new([
             VectorU8,
-            Type('Struct', StructDef.new([Type('U64')])),
             Type('Bool'),
             Type('Bool'),
             Type('Struct', StructDef.new([Type('U64'), VectorU8])),
@@ -301,26 +320,35 @@ class AccountData:
             Type('Struct', StructDef.new([Type('U64')])),
         ])
 
+    # Returns the layout for the LibraAccount.Balance struct
+    def balance_layout() -> StructDef:
+        return Balance.layout()
+    
 
     # Creates and returns a resource [`Value`] for this data.
-    def to_resource(self) -> Value:
+    def to_account(self) -> Tuple[Value, Value]:
         # TODO: publish some concept of Account
-        coin = Value.struct_(VMStruct.pack([Value.Uint64(self.balance)]))
-        #TTODO: why not use Uint64 directly for coin?
+        balance = self.balance.to_value()
+        account = self._to_resource()
+        return (account, balance)
+
+    # Creates and returns a resource [`Value`] for this data.
+    def _to_resource(self) -> Value:
+        # TODO: publish some concept of Account
+        #TTODO: why not use Uint64 directly for coin
         return Value.struct_(VMStruct.pack([
-            Value.vector_u8(
+            Value.vector_Uint8(
                 Address.from_public_key(self.account.pubkey),
             ),
-            coin,
             Value.bool(self.delegated_key_rotation_capability),
             Value.bool(self.delegated_withdrawal_capability),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.received_events.count),
-                Value.vector_u8(self.received_events.key),
+                Value.vector_Uint8(self.received_events.key),
             ])),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.sent_events.count),
-                Value.vector_u8(self.sent_events.key),
+                Value.vector_Uint8(self.sent_events.key),
             ])),
             Value.Uint64(self.sequence_number),
             Value.struct_(VMStruct.pack([Value.Uint64(self.event_generator)])),

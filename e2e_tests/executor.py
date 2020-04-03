@@ -64,6 +64,7 @@ def test_all_genesis(
 class FakeExecutor:
     config: VMConfig
     data_store: FakeDataStore
+    block_time: Uint64
 
     # Creates an executor from a genesis [`WriteSet`].
     @classmethod
@@ -78,6 +79,7 @@ class FakeExecutor:
         executor = FakeExecutor(
             config,
             FakeDataStore({}),
+            0,
         )
         executor.apply_write_set(write_set)
         return executor
@@ -106,6 +108,7 @@ class FakeExecutor:
         return FakeExecutor(
             VMConfig(),
             FakeDataStore.default(),
+            0,
         )
 
     # Creates fresh genesis from the stdlib modules passed in. If none are passed in the staged
@@ -239,3 +242,18 @@ class FakeExecutor:
         return self.data_store
 
 
+    def new_block(self):
+        validator_address =
+            generator.validator_swarm_for_testing(10).validator_set[0].account_address()
+        self.block_time += 1
+        new_block = BlockMetadata.new(
+            HashValue.zero(),
+            self.block_time,
+            {},
+            validator_address,
+        )
+        self.apply_write_set(
+            self.execute_transaction_block(
+                [Transaction.BlockMetadata(new_block)]
+            ).get(0).write_set()
+        )

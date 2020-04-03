@@ -13,7 +13,7 @@ from libra.transaction import ChangeSet, RawTransaction, SignatureCheckedTransac
 from libra.discovery_info import DiscoveryInfo
 from libra.discovery_set import DiscoverySet
 from libra.validator_set import ValidatorSet
-from libra.crypto.ed25519 import generate_genesis_keypair, generate_keypair, Ed25519PrivateKey, Ed25519PublicKey
+from libra.crypto.ed25519 import generate_keypair, Ed25519PrivateKey, Ed25519PublicKey, ED25519_PUBLIC_KEY_LENGTH
 from libra.rustlib import assert_equal, bail
 from stdlib import stdlib_modules
 from vm.vm_exception import VMException
@@ -35,7 +35,7 @@ def assert_equal_bail(a, b, hint, *args):
 
 
 # The seed is arbitrarily picked to produce a consistent key. XXX make this more formal
-GENESIS_SEED = bytes([42]*32)
+GENESIS_SEED = bytes([42]*ED25519_PUBLIC_KEY_LENGTH)
 
 # The initial balance of the association account.
 ASSOCIATION_INIT_BALANCE: Uint64 = 1_000_000_000_000_000

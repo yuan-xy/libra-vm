@@ -283,6 +283,9 @@ def get_transaction_parameters(
                         MAXIMUM_NUMBER_OF_GAS_UNITS.get(),
                         account_resource.balance,
                     )
+    gas_price = config.gas_price
+    if gas_price is None:
+        gas_price = 1
     expiration_time = config.expiration_time
     if expiration_time is None:
         expiration_time = 40000
@@ -294,7 +297,7 @@ def get_transaction_parameters(
         sequence_number= sequence_number,
 
         max_gas_amount= max_gas,
-        gas_unit_price= 1,
+        gas_unit_price= gas_price,
         # TTL is 86400s. Initial time was set to 0.
         expiration_time= expiration_time,
     )

@@ -116,6 +116,7 @@ class Config:
     sender: Account
     args: List[TransactionArgument]
     max_gas: Optional[Uint64]
+    gas_price: Optional[Uint64]
     sequence_number: Optional[Uint64]
     expiration_time: Optional[Uint64]
 
@@ -127,6 +128,7 @@ class Config:
         sender = None
         args = None
         max_gas = None
+        gas_price = None
         sequence_number = None
         expiration_time = None
 
@@ -165,6 +167,11 @@ class Config:
                     max_gas = entry.value
                 else:
                     raise ErrorKind.Other("max_gas already set")
+            elif entry.tag == Entry.GasPrice:
+                if gas_price is None:
+                    gas_price = entry.value
+                else:
+                    raise ErrorKind.Other("gas_price already set")
             elif entry.tag == Entry.SequenceNumber:
                 if sequence_number is None:
                     sequence_number = entry.value
@@ -188,6 +195,7 @@ class Config:
             sender,
             args,
             max_gas,
+            gas_price,
             sequence_number,
             expiration_time,
         )
