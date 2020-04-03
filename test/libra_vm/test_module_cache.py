@@ -4,7 +4,7 @@ from move_vm.state.execution_context import SystemExecutionContext, TransactionE
 from move_vm.runtime.code_cache import VMModuleCache
 from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from bytecode_verifier import VerifiedModule, VerifiedScript
-#use compiler.Compiler
+from compiler.lib import Compiler
 from libra_storage.state_view import StateView
 from libra.access_path import AccessPath
 from libra.account_address import Address
@@ -446,40 +446,27 @@ def test_multi_level_cache_write_back():
     assert_equal(func2_ref.code_definition(), [Bytecode(Opcodes.RET)])
 
 
-#cargo run -p compiler -- --no-stdlib -m ../libra-vm/test/vm_runtime/code1/*.mvir
-def decompile_modules(name) -> List[CompiledModule]:
-    curdir = dirname(__file__)
-    sdir = join(curdir, name)
-    mvs = [f for f in listdir(sdir) if f.endswith(".mv")]
-    ret = []
-    for mv in mvs:
-        filename = abspath(join(sdir, mv))
-        with open(filename, 'r') as file:
-            amap = json.load(file)
-            code = bytes(amap['code'])
-            obj = CompiledModule.deserialize(code)
-            ret.append(obj)
-    return ret
-
-
-
 def parse_and_compile_modules(s) -> List[CompiledModule]:
-    return []
-#     compiler = Compiler {
-#         skip_stdlib_deps = True,
-#         ..Compiler.default()
-#     }
-#     compiler
-#         .into_compiled_program(s)
-#         .expect("Failed to compile program")
-#         .modules
-# }
+    compiler = Compiler(
+        Address.default(),
+        True, #no_stdlib
+        [],
+    )
+    (compiled_program, source_map, dependencies) = compiler\
+        .into_compiled_program_and_source_maps_deps('filename', s)
+    return compiled_program.modules
 
 
 def test_same_module_struct_resolution():
     vm_cache = VMModuleCache()
     data_cache = FakeDataCache()
-    modules = decompile_modules("code1")
+    code1 = """
+module M1 {
+    struct X { b: bool }
+    struct T { i: u64, x: Self.X }
+}
+    """
+    modules = parse_and_compile_modules(code1)
     for module in modules:
         data_cache.set(module)
 
@@ -510,7 +497,21 @@ def test_same_module_struct_resolution():
 def test_multi_module_struct_resolution():
     vm_cache = VMModuleCache()
     data_cache = FakeDataCache()
-    modules = decompile_modules("code2")
+    code2 = """
+        modules:
+        module M1 {
+            struct X { b: bool }
+        }
+        module M2 {
+            import 0x""" + Address.default().hex() + """.M1;
+            struct T { i: u64, x: M1.X }
+        }
+        script:
+        main() {
+            return;
+        }
+    """
+    modules = parse_and_compile_modules(code2)
     for module in modules:
         data_cache.set(module)
 
@@ -541,7 +542,13 @@ def test_multi_module_struct_resolution():
 def test_field_offset_resolution():
     vm_cache = VMModuleCache()
     data_cache = FakeDataCache()
-    modules = decompile_modules("code3")
+    code3 = """
+module M1 {
+    struct X { f: u64, g: bool}
+    struct T { i: u64, x: Self.X, y: u64 }
+}
+    """
+    modules = parse_and_compile_modules(code3)
     for module in modules:
         data_cache.set(module)
 
@@ -574,7 +581,21 @@ def test_dependency_fails_verification():
     # bytecode verifier).
 
     data_cache = FakeDataCache()
-    modules = decompile_modules("code4")
+    code4 = """
+module Test {
+    resource R1 { b: bool }
+    struct S1 { r1: Self.R1 }
+
+    public new_S1(): Self.S1 {
+        let s: Self.S1;
+        let r: Self.R1;
+        r = R1 { b: true };
+        s = S1 { r1: move(r) };
+        return move(s);
+    }
+}
+    """
+    modules = parse_and_compile_modules(code4)
     for module in modules:
         data_cache.set(module)
 

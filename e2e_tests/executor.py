@@ -252,7 +252,9 @@ class FakeExecutor:
 
 
     def new_block(self):
-        validator_address =
+        #TTODO
+        breakpoint()
+        validator_address =\
             generator.validator_swarm_for_testing(10).validator_set[0].account_address()
         self.block_time += 1
         new_block = BlockMetadata.new(

@@ -7,7 +7,7 @@ import pytest
 
 def test_compile_script_with_imports():
     code = """
-        import 0x0000000000000000000000000000000000000000000000000000000000000000.LibraCoin;
+        import 0x0.LibraCoin;
 
         main() {
             let x: u64;

@@ -751,9 +751,7 @@ class Interpreter:
         type_actuals: List[Type],
     ) -> None:
         gas_consume(context,
-            self.gas_schedule
-                .native_cost(NativeCostIndex::SAVE_ACCOUNT)
-                .total()
+            self.gas_schedule.native_cost(NativeCostIndex.SAVE_ACCOUNT).total()
         )
         account_module = runtime.get_loaded_module(ACCOUNT_MODULE, context)
         address = self.operand_stack.pop_as(Address)

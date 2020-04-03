@@ -109,7 +109,7 @@ add_native_function_to_map(
 
 add_native_function_to_map(
     "U64Util",
-    "Uint64_to_bytes",
+    "u64_to_bytes",
     primitive_helpers.native_Uint64_to_bytes,
     [U64],
     [VectorU8]
@@ -234,6 +234,7 @@ add_native_function_to_map2(
 )
 
 def save_account_arg_types(m):
+    #TTODO:
     breakpoint()
     self_t_idx = struct_handle_idx(
         m,

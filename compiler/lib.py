@@ -21,7 +21,7 @@ class Compiler:
     extra_deps: List[VerifiedModule]
 
     # The address to use for stdlib.
-    stdlib_address: Address = b'\x00' * 32
+    stdlib_address: Address = Address.default()
 
 
     # Compiles into a `CompiledProgram` where the bytecode hasn't been serialized.
