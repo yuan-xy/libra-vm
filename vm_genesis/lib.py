@@ -46,10 +46,6 @@ GENESIS_KEYPAIR = (
         bytes.fromhex("01add5624932fc6e5e82ea4b8b4217c2ea4372a1e4fbc9d910a38b2514931166"),
     )
 
-# TODO(philiphayes): remove this when we add discovery set to genesis config.
-#PLACEHOLDER_PUBKEY: X25519StaticPublicKey
-PLACEHOLDER_PUBKEY = bytes.fromhex("7f937fcb47c4184cd5798b9a345e372c15326b30a0d0c7bc87887be204c19147")
-
 # Identifiers for well-known functions.
 ADD_VALIDATOR = "add_validator"
 INITIALIZE = "initialize"
@@ -66,19 +62,31 @@ EPILOGUE = "epilogue"
 # TODO(philiphayes): remove this after integrating on-chain discovery with config.
 # Make a placeholder `DiscoverySet` from the `ValidatorSet`.
 def make_placeholder_discovery_set(validator_set: ValidatorSet) -> DiscoverySet:
-    def validator_pubkeys_to_discovery_info(validator_pubkeys):
+    fullnodes_network_identity_pubkeys = [
+        '362310b9ce4dc15258ddf5ebe2ddeaad3ab2ca34cb2b3582b94ef61b990d2c61',
+        '6d168c904a92d03090c331e27431ceae1e5adbd8ea0699139b498757427c1355',
+        '3555049e0153079e64a9fdf87d132bab5d85ab3153b80e6010facef8816db51d',
+        '24322690e4396d9349c8ee5d81726a8e976b9955619e57526b7eb808f47a827f',
+        '2040e06de241e6f65db31e5c787a58c907cc7776c8db5dda8c5c739c6f0a7c38',
+        'a15d83780bf63ef55208ce0fd9eace023b9918b6b652485b722df90e4a37e57e',
+        'fb3d12f9bbf3be4b9e2774dec38d7c36832c770e32583e1d46cdfa2849149a18',
+        'a4ace5ee7da7e56e08194bfa93310d789fba224137175c910eece333b2545a17',
+        '0f8fd6be0174c5a70ef22c2a65ac59a3e33361c8555b003f84341546b8c3343f',
+        '8ac3120524009751497025009a45f577212ad3e9e1e0536053de624319ecd869',
+    ]
+    def validator_pubkeys_to_discovery_info(idx, validator_pubkeys):
         return DiscoveryInfo(
             validator_pubkeys.account_address,
             # validator_network_identity_pubkey
             validator_pubkeys.network_identity_public_key,
             # validator_network_address PLACEHOLDER
-            Multiaddr("/ip4/127.0.0.1/tcp/1234").to_bytes(),
+            Multiaddr("/ip4/127.0.0.1/tcp/6180").to_bytes(),
             # fullnodes_network_identity_pubkey PLACEHOLDER
-            PLACEHOLDER_PUBKEY,
+            bytes.fromhex(fullnodes_network_identity_pubkeys[idx]),
             # fullnodes_network_address PLACEHOLDER
-            Multiaddr("/ip4/127.0.0.1/tcp/1234").to_bytes(),
+            Multiaddr("/ip4/127.0.0.1/tcp/6180").to_bytes(),
         )
-    discovery_set = [validator_pubkeys_to_discovery_info(x) for x in validator_set]
+    discovery_set = [validator_pubkeys_to_discovery_info(i,x) for i,x in enumerate(validator_set)]
     return discovery_set
 
 
