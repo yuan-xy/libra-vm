@@ -13,6 +13,7 @@ from libra.transaction import ChangeSet, RawTransaction, SignatureCheckedTransac
 from libra.discovery_info import DiscoveryInfo
 from libra.discovery_set import DiscoverySet
 from libra.validator_set import ValidatorSet
+from libra.transaction.authenticator import AuthenticationKey
 from libra.crypto.ed25519 import generate_keypair, Ed25519PrivateKey, Ed25519PublicKey, ED25519_PUBLIC_KEY_LENGTH
 from libra.rustlib import assert_equal, bail
 from stdlib import stdlib_modules
@@ -249,7 +250,7 @@ def create_and_initialize_main_accounts(
             ],
         )
 
-    genesis_auth_key = Address.from_public_key(public_key)
+    genesis_auth_key = AuthenticationKey.ed25519(public_key)
     move_vm.execute_function(
             ACCOUNT_MODULE,
             ROTATE_AUTHENTICATION_KEY,

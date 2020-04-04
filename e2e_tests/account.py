@@ -8,6 +8,7 @@ from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.values import Struct as VMStruct
 from move_vm.types.values import Value
 from libra.crypto.ed25519 import *
+from libra.transaction.authenticator import AuthenticationKey
 from vm_genesis.lib import GENESIS_KEYPAIR
 from move_vm.types.identifier import create_access_path
 from dataclasses import dataclass
@@ -108,13 +109,11 @@ class Account:
     #
     # This is the same as the account's address if the keys have never been rotated.
     def auth_key(self) -> bytes:
-        bail("unimplemented.")
-        return Address.from_public_key(self.pubkey)
+        return  AuthenticationKey.ed25519(self.pubkey)
 
 
     def auth_key_prefix(self) -> bytes:
-        bail("unimplemented.")
-        return Address.from_public_key(self.pubkey)
+        return AuthenticationKey.ed25519(self.pubkey).prefix()
 
 """
     # Returns a [`SignedTransaction`] with a payload and this account as the sender.
