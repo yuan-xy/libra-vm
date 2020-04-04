@@ -46,6 +46,10 @@ GENESIS_KEYPAIR = (
         bytes.fromhex("01add5624932fc6e5e82ea4b8b4217c2ea4372a1e4fbc9d910a38b2514931166"),
     )
 
+# TODO(philiphayes): remove this when we add discovery set to genesis config.
+#PLACEHOLDER_PUBKEY: X25519StaticPublicKey
+PLACEHOLDER_PUBKEY = bytes.fromhex("7f937fcb47c4184cd5798b9a345e372c15326b30a0d0c7bc87887be204c19147")
+
 # Identifiers for well-known functions.
 ADD_VALIDATOR = "add_validator"
 INITIALIZE = "initialize"
@@ -82,7 +86,7 @@ def make_placeholder_discovery_set(validator_set: ValidatorSet) -> DiscoverySet:
             # validator_network_address PLACEHOLDER
             Multiaddr("/ip4/127.0.0.1/tcp/6180").to_bytes(),
             # fullnodes_network_identity_pubkey PLACEHOLDER
-            bytes.fromhex(fullnodes_network_identity_pubkeys[idx]),
+            bytes.fromhex(fullnodes_network_identity_pubkeys[idx]), #TTODO: revert?
             # fullnodes_network_address PLACEHOLDER
             Multiaddr("/ip4/127.0.0.1/tcp/6180").to_bytes(),
         )

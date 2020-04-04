@@ -1,6 +1,7 @@
 from __future__ import annotations
 from vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasPrice, GasUnits
 from libra import Address, SignedTransaction
+from libra.transaction.authenticator import TransactionAuthenticator, AuthenticationKeyPreimage
 from libra.crypto.ed25519 import Ed25519PublicKey, generate_genesis_keypair
 from canoser import Struct, Uint64, BytesT
 from dataclasses import dataclass
@@ -8,7 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class TransactionMetadata:
     sender: Address
-    public_key: Ed25519PublicKey
+    authentication_key_preimage: bytes
     sequence_number: Uint64
     max_gas_amount: GasUnits
     gas_unit_price: GasPrice
@@ -20,6 +21,7 @@ class TransactionMetadata:
         return TransactionMetadata(
             sender = txn.sender,
             public_key = txn.public_key,
+            authentication_key_preimage= txn.authenticator.authentication_key_preimage(),
             sequence_number = txn.sequence_number,
             max_gas_amount = GasUnits.new(txn.max_gas_amount),
             gas_unit_price = GasPrice.new(txn.gas_unit_price),
@@ -32,7 +34,7 @@ class TransactionMetadata:
         (_, public_key) = generate_genesis_keypair()
         return TransactionMetadata(
             sender = Address.default(),
-            public_key = public_key,
+            authentication_key_preimage = AuthenticationKeyPreimage.ed25519(public_key),
             sequence_number = 0,
             max_gas_amount = GasUnits.new(100_000_000),
             gas_unit_price = GasPrice.new(0),

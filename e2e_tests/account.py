@@ -116,7 +116,7 @@ class Account:
         bail("unimplemented.")
         return Address.from_public_key(self.pubkey)
 
-
+"""
     # Returns a [`SignedTransaction`] with a payload and this account as the sender.
     #
     # This is the most generic way to create a transaction for testing.
@@ -216,6 +216,7 @@ class Account:
             DEFAULT_EXPIRATION_TIME,
         ).sign(self.privkey, self.pubkey).into_inner()
 
+"""
 
     def default(cls) -> Account:
         return cls.new()

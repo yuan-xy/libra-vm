@@ -437,7 +437,7 @@ class LibraVM(VMVerifier, VMExecutor):
         txn_data: TransactionMetadata,
     ) -> None:
         txn_sequence_number = txn_data.sequence_number
-        txn_public_key = txn_data.public_key
+        txn_public_key = txn_data.authentication_key_preimage
         txn_gas_price = txn_data.gas_unit_price.get()
         txn_max_gas_units = txn_data.max_gas_amount.get()
         txn_expiration_time = txn_data.expiration_time
