@@ -115,14 +115,6 @@ add_native_function_to_map(
     [VectorU8]
 )
 
-add_native_function_to_map(
-    "BytearrayUtil",
-    "bytearray_concat",
-    primitive_helpers.native_bytearray_concat,
-    [VectorU8, VectorU8],
-    [VectorU8]
-)
-
 add_native_function_to_map2(
     "Vector",
     "length",

@@ -56,7 +56,6 @@ class Tok(Enum):
     BorrowGlobal = auto()
     BorrowGlobalMut = auto()
     Break = auto()
-    Bytearray = auto()
     Continue = auto()
     Copy = auto()
     Else = auto()
@@ -448,7 +447,6 @@ def get_name_token(name: str) -> Tok:
         "as" : Tok.As,
         "bool" : Tok.Bool,
         "break" : Tok.Break,
-        "bytearray" : Tok.Bytearray,
         "continue" : Tok.Continue,
         "else" : Tok.Else,
         "ensures" : Tok.Ensures,

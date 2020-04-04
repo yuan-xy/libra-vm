@@ -124,7 +124,6 @@ class InstantiationLoopChecker:
                 SerializedType.U8,
                 SerializedType.U64,
                 SerializedType.U128,
-                SerializedType.BYTEARRAY,
             ]:
                 return
             elif ty.tag == SerializedType.TYPE_PARAMETER:

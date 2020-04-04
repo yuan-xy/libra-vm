@@ -118,7 +118,6 @@ class InferredTypeTag(IntEnum):
     U8 = SerializedType.U8
     U64 = SerializedType.U64
     U128 = SerializedType.U128
-    ByteArray = SerializedType.BYTEARRAY
     Address = SerializedType.ADDRESS
     Vector = SerializedType.VECTOR
     Struct = SerializedType.STRUCT
@@ -191,7 +190,6 @@ InferredType.U8 = InferredType(InferredTypeTag.U8)
 InferredType.U64 = InferredType(InferredTypeTag.U64)
 InferredType.U128 = InferredType(InferredTypeTag.U128)
 InferredType.Address = InferredType(InferredTypeTag.Address)
-InferredType.ByteArray = InferredType(InferredTypeTag.ByteArray)
 InferredType.Anything = InferredType(InferredTypeTag.Anything)
 
 
@@ -1011,12 +1009,6 @@ def compile_expression(
             function_frame.push()
             return [InferredType.U128]
 
-        elif cv_.tag == SerializedType.BYTEARRAY:
-            buf_idx = context.byte_array_index(cv_.value)
-            push_instr(exp.loc, Bytecode(Opcodes.LD_BYTEARRAY, buf_idx))
-            function_frame.push()
-            return [InferredType.ByteArray]
-
         elif cv_.tag == SerializedType.BOOL:
             if cv_.value:
                 bcode = Bytecode(Opcodes.LD_TRUE)
@@ -1026,6 +1018,15 @@ def compile_expression(
             push_instr(exp.loc, bcode)
             function_frame.push()
             return [InferredType.Bool]
+
+        elif cv_.tag == cv_.BYTEARRAY:
+            buf_idx = context.byte_array_index(cv_.value)
+            push_instr(exp.loc, Bytecode(Opcodes.LD_BYTEARRAY, buf_idx))
+            function_frame.push()
+            return [InferredType.Vector(InferredType.U8)]
+
+        else:
+            bail("unreachable!")        
 
     elif isinstance(exp.value, PackExp):
         (name, tys, fields) = exp.value.v0
@@ -1186,8 +1187,8 @@ def compile_expression(
     elif isinstance(exp.value, ExprListExp):
         exps = exp.value.v0
         result = []
-        for e in exps:
-            result.extend(compile_expression(context, function_frame, code, e))
+        for exp in exps:
+            result.extend(compile_expression(context, function_frame, code, exp))
         return result
 
 

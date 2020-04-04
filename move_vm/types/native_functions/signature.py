@@ -95,10 +95,10 @@ def native_ed25519_threshold_signature_verification(
 
 
 def ed25519_threshold_signature_verification(
-    bitmap: ByteArray,
-    signatures: ByteArray,
-    public_keys: ByteArray,
-    message: ByteArray,
+    bitmap: bytes,
+    signatures: bytes,
+    public_keys: bytes,
+    message: bytes,
     cost_table: CostTable,
 ) -> NativeResult:
     bitvec = flatten([bin(x)[2:].rjust(8, '0') for x in bitmap])

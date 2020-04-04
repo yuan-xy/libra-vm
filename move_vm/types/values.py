@@ -53,7 +53,6 @@ class ValueImpl(RustEnum):
         ('U8', Uint8),
         ('U64', Uint64),
         ('U128', Uint128),
-        ('ByteArray', bytes),
         ('Address', Address),
         ('Container', ContainerRefCell),
         ('ContainerRef', 'move_vm.types.values.ContainerRef'),
@@ -74,8 +73,6 @@ class ValueImpl(RustEnum):
             return self.Bool
         elif sig.tag == SerializedType.ADDRESS:
             return self.Address
-        elif sig.tag == SerializedType.BYTEARRAY:
-            return self.ByteArray
         elif sig == VectorU8:
             return self.Container and self.value.v0.U8
         else:
@@ -96,10 +93,6 @@ class ValueImpl(RustEnum):
     @classmethod
     def bool(cls, x: bool) -> ValueImpl:
         return ValueImpl('Bool', x)
-
-    @classmethod
-    def byte_array(cls, x: ByteArray) -> ValueImpl:
-        return ValueImpl('ByteArray', x)
 
     @classmethod
     def vector_u8(cls, x: bytes) -> ValueImpl:
@@ -135,7 +128,7 @@ class ValueImpl(RustEnum):
         return self.value_ref(ty)
 
     def is_primitive(self) -> bool:
-        if self.enum_name in ['Bool', 'U8', 'U64', 'U128', 'ByteArray', 'Address']:
+        if self.enum_name in ['Bool', 'U8', 'U64', 'U128', 'Address']:
             return True
         else:
             return False
@@ -231,8 +224,6 @@ class ValueImpl(RustEnum):
             return CONST_SIZE
         elif self.Address:
             return AbstractMemorySize.new(ADDRESS_LENGTH)
-        elif self.ByteArray:
-            return AbstractMemorySize.new(self.value.__len__())
         elif self.ContainerRef:
             return self.value.size()
         elif self.IndexedRef:
@@ -268,8 +259,6 @@ class ValueImpl(RustEnum):
             return Value.Uint64(Uint64.decode(cursor))
         elif layout.U128:
             return Value.Uint128(Uint128.decode(cursor))
-        elif layout.ByteArray:
-            return Value.vector_u8(BytesT().decode(cursor))
         elif layout.Address:
             return Value.address(Address.decode(cursor))
 

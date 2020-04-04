@@ -5,7 +5,7 @@ from libra.language_storage import ModuleId, TypeTag
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 
 def test_native_function():
-    assert len(NATIVE_FUNCTION_MAP) == 7
+    assert len(NATIVE_FUNCTION_MAP) == 6
     hashm = ModuleId(CORE_CODE_ADDRESS, "Hash")
     func_map = NATIVE_FUNCTION_MAP[hashm]
     assert len(func_map) == 2

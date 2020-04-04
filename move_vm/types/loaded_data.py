@@ -12,7 +12,6 @@ class Type(RustEnum):  # order not same with SerializedType
         ('U8', None),
         ('U64', None),
         ('U128', None),
-        ('ByteArray', None),
         ('Address', None),
         ('Vector', 'move_vm.types.loaded_data.Type'),
         ('Struct', 'move_vm.types.loaded_data.StructDef'),

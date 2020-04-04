@@ -43,7 +43,6 @@ def test_compile_account_module():
     vector_code = include_str("../../compiler/ir_stdlib/modules/vector.mvir")
     address_util_code = include_str("../../compiler/ir_stdlib/modules/address_util.mvir")
     Uint64_util_code = include_str("../../compiler/ir_stdlib/modules/u64_util.mvir")
-    bytearray_util_code = include_str("../../compiler/ir_stdlib/modules/bytearray_util.mvir")
 
     hash_code = include_str("../../compiler/ir_stdlib/modules/hash.mvir")
     coin_code = include_str("../../compiler/ir_stdlib/modules/libra_coin.mvir")
@@ -54,7 +53,6 @@ def test_compile_account_module():
     vector_module = compile_module_string(vector_code)
     address_util_module = compile_module_string(address_util_code)
     Uint64_util_module = compile_module_string(Uint64_util_code)
-    bytearray_util_module = compile_module_string(bytearray_util_code)
     hash_module = compile_module_string(hash_code)
     time_module = compile_module_string(time_code)
     ttl_module = compile_module_string_with_deps(ttl_code, [time_module])
@@ -68,7 +66,6 @@ def test_compile_account_module():
             hash_module,
             address_util_module,
             Uint64_util_module,
-            bytearray_util_module,
             coin_module,
             ttl_module,
         ],

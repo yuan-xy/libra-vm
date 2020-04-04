@@ -114,11 +114,7 @@ def serialize_string(binary: BinaryData, string: str):
 
 
 # Serializes a `ByteArray`.
-#
-# A `ByteArray` gets serialized as follows:
-# - `ByteArray` size as a ULEB128
-# - `ByteArray` bytes in increasing index order
-def serialize_byte_array(binary: BinaryData, byte_array: bytearray):
+def serialize_byte_array(binary: BinaryData, byte_array: bytes):
     if len(byte_array) > Uint32.max_value:
         bail(
             "byte arrays size ({}) cannot exceed {}",
@@ -583,7 +579,7 @@ class CommonSerializer:
     def serialize_byte_arrays(
         self,
         binary: BinaryData,
-        byte_arrays: List[ByteArray],
+        byte_arrays: List[bytes],
     ):
         if byte_arrays:
             self.table_count += 1

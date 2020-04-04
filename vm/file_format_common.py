@@ -82,16 +82,15 @@ class SerializedType(IntEnum):
     REFERENCE               = 0x6
     MUTABLE_REFERENCE       = 0x7
     STRUCT                  = 0x8
-    BYTEARRAY               = 0x9
-    TYPE_PARAMETER          = 0xA
-    VECTOR                  = 0xB
+    TYPE_PARAMETER          = 0x9
+    VECTOR                  = 0xA
 
     @property
     def tagname(self):
         return snake_to_camel(self.name)
 
     def is_primitive(self) -> bool:
-        if self in [SerializedType.BOOL, SerializedType.U8, SerializedType.U64, SerializedType.U128, SerializedType.BYTEARRAY, SerializedType.ADDRESS]:
+        if self in [SerializedType.BOOL, SerializedType.U8, SerializedType.U64, SerializedType.U128, SerializedType.ADDRESS]:
             return True
         else:
             return False

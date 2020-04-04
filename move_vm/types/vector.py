@@ -102,7 +102,7 @@ def native_length(
         if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
             and v.enum_name == ty_args[0].enum_name:
             length = v.value.__len__()
-        elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
+        elif ty_args[0].enum_name in ('Struct', 'Address')\
             and v.enum_name == 'General':
             length = v.value.__len__()
         else:
@@ -131,7 +131,7 @@ def native_push_back(
         if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
             and v.enum_name == ty_args[0].enum_name:
             v.value.append(e.value)
-        elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
+        elif ty_args[0].enum_name in ('Struct', 'Address')\
             and v.enum_name == 'General':
             v.value.append(e)
         else:
@@ -192,7 +192,7 @@ def native_pop(
                 res = ValueImpl(v.enum_name, v.value.pop())
             else:
                 return err_pop_empty_vec()
-        elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
+        elif ty_args[0].enum_name in ('Struct', 'Address')\
             and v.enum_name == 'General':
             if v:
                 res = v.value.pop()
@@ -221,7 +221,7 @@ def native_destroy_empty(
         if ty_args[0].enum_name in ('U8', 'U64', 'U128', 'Bool')\
             and v.enum_name == ty_args[0].enum_name:
             length = v.value.__len__()
-        elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
+        elif ty_args[0].enum_name in ('Struct', 'Address')\
             and v.enum_name == 'General':
             length = v.value.__len__()
         else:
@@ -263,7 +263,7 @@ def native_swap(
             tmp = v.value[idx1]
             v.value[idx1] = v.value[idx2]
             v.value[idx2] = tmp
-        elif ty_args[0].enum_name in ('Struct', 'ByteArray', 'Address')\
+        elif ty_args[0].enum_name in ('Struct', 'Address')\
             and v.enum_name == 'General':
             tmp = v.value[idx1]
             v.value[idx1] = v.value[idx2]

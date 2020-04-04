@@ -704,7 +704,7 @@ def convert_txn_arg(arg: TransactionArgument) -> Value:
         return Value.address(arg.value)
     elif arg.Bool:
         return Value.bool(arg.value)
-    elif arg.ByteArray:
+    elif arg.U8Vector:
         return Value.vector_u8(arg.value)
     else:
         bail("unreachable!")

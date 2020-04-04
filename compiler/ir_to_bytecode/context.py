@@ -147,7 +147,7 @@ class MaterializedPools:
     # Identifier pool
     identifiers: List[Identifier]
     # Byte array pool
-    byte_array_pool: List[ByteArray]
+    byte_array_pool: List[bytes]
     # Address pool
     address_pool: List[Address]
 
@@ -181,7 +181,7 @@ class Context:
     type_signatures: Mapping[TypeSignature, TableIndex]
     locals_signatures: Mapping[LocalsSignature, TableIndex]
     identifiers: Mapping[Identifier, TableIndex]
-    byte_array_pool: Mapping[ByteArray, TableIndex]
+    byte_array_pool: Mapping[bytes, TableIndex]
     address_pool: Mapping[Address, TableIndex]
 
     # Current generic/type formal context
@@ -590,7 +590,6 @@ class Context:
             SerializedType.U8,
             SerializedType.U64,
             SerializedType.U128,
-            SerializedType.BYTEARRAY,
             SerializedType.ADDRESS,
             SerializedType.TYPE_PARAMETER,
         ]:

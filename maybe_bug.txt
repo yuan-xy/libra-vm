@@ -1,3 +1,8 @@
+allows_equality似乎从未被使用
+language/vm/src/file_format.rs
+672:    pub fn allows_equality(&self) -> bool {
+
+
 block_prologue.mvir outdated.
 block_prologue.mv should be removed.
 
@@ -10,7 +15,6 @@ reconfiguration_via_network_address_rotation.mvir里的“check: events: []”�
 
 move语言如何处理异常？
 
-matcher的注释里 check 5有误。
 
 e2e-test/account.rs
 create_user_txn

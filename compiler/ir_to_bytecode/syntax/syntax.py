@@ -206,7 +206,7 @@ def parse_copyable_val(
         s = tokens.content()
         buf = bytes.fromhex(s[2:(s.__len__() - 1)])
         tokens.advance()
-        val = CopyableVal_(SerializedType.BYTEARRAY, buf)
+        val = CopyableVal_(CopyableVal_.BYTEARRAY, buf)
 
     else:
         breakpoint()
@@ -1095,7 +1095,6 @@ def parse_kind(tokens: Lexer) -> Kind:
 #     "address" => Type.Address,
 #     "Uint64" => Type.U64,
 #     "bool" => Type.Bool,
-#     "bytearray" => Type.ByteArray,
 #     <s: QualifiedStructIdent> <tys: TypeActuals> => Type.Struct(s, tys),
 #     "&" <t: Type> => Type.Reference(False, t)),
 #     "&mut " <t: Type> => Type.Reference(True, t)),
@@ -1124,10 +1123,6 @@ def parse_type(tokens: Lexer) -> Type:
     elif tk == Tok.Bool:
         tokens.advance()
         return Type(SerializedType.BOOL)
-
-    elif tk == Tok.Bytearray:
-        tokens.advance()
-        return Type(SerializedType.BYTEARRAY)
 
     elif tk == Tok.Vector:
         tokens.advance()
