@@ -98,6 +98,11 @@ class ValueImpl(RustEnum):
     def vector_u8(cls, x: bytes) -> ValueImpl:
         return ValueImpl.new_container(Container('U8', bytearray(x)))
 
+    @classmethod
+    def vector_address(cls, xs: List[Address]) -> ValueImpl:
+        arr = [ValueImpl.address(x) for x in xs]
+        return ValueImpl.new_container(Container('General', arr))
+
 
     @classmethod
     def address(cls, x: Address) -> ValueImpl:

@@ -130,7 +130,6 @@ class VMExecutor(abc.ABC):
     @abc.abstractmethod
     def execute_block(cls,
         transactions: List[Transaction],
-        config: Any,
         state_view: StateView,
     ) -> List[TransactionOutput]:
         pass

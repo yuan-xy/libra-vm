@@ -32,11 +32,6 @@ class VMPublishingOption(Enum):
     # Allow both custom scripts and custom module publishing
     Open = 2
 
-@dataclass
-class VMConfig:
-    publishing_options: VMPublishingOption = VMPublishingOption.Open
-
-
 
 def test_all_genesis_impl(
     publishing_options: Optional[VMPublishingOption],
@@ -63,7 +58,6 @@ def test_all_genesis(
 # This class is a mock in-memory implementation of the Libra executor.
 @dataclass
 class FakeExecutor:
-    config: VMConfig
     data_store: FakeDataStore
     block_time: Uint64
 
@@ -71,14 +65,8 @@ class FakeExecutor:
     @classmethod
     def from_genesis(cls,
         write_set: WriteSet,
-        publishing_options: Optional[VMPublishingOption],
     ) -> FakeExecutor:
-        config = VMConfig()
-        if publishing_options:
-            config.publishing_options = publishing_options
-
         executor = FakeExecutor(
-            config,
             FakeDataStore({}),
             0,
         )
@@ -89,7 +77,7 @@ class FakeExecutor:
     # Creates an executor from the genesis file GENESIS_FILE_LOCATION
     @classmethod
     def from_genesis_file(cls) -> FakeExecutor:
-        return cls.from_genesis(GENESIS_WRITE_SET, None)
+        return cls.from_genesis(GENESIS_WRITE_SET)
 
 
     # Creates an executor from the genesis file GENESIS_FILE_LOCATION with script/module
@@ -107,7 +95,6 @@ class FakeExecutor:
     @classmethod
     def no_genesis(cls) -> FakeExecutor:
         return FakeExecutor(
-            VMConfig(),
             FakeDataStore.default(),
             0,
         )
@@ -121,11 +108,10 @@ class FakeExecutor:
         publishing_options: VMPublishingOption,
     ) -> FakeExecutor:
         if genesis_modules is None and validator_set is None:
-            genesis_write_set = GENESIS_WRITE_SET
+            genesis_write_set = GENESIS_WRITE_SET.raw_txn.payload.value.write_set
+        elif validator_set is None:
+            genesis_write_set = GENESIS_WRITE_SET.raw_txn.payload.value.write_set
         else:
-            if validator_set is None:
-                validator_set = rust_validator_set()
-                # validator_set = generator.validator_swarm_for_testing(10).validator_set
             discovery_set = make_placeholder_discovery_set(validator_set)
             if genesis_modules:
                 stdlib_modules = genesis_modules
@@ -141,7 +127,7 @@ class FakeExecutor:
             )
             genesis_write_set = txn.into_inner().payload.value.write_set
 
-        return cls.from_genesis(genesis_write_set, publishing_options)
+        return cls.from_genesis(genesis_write_set)
 
 
     # Creates a number of [`Account`] instances all with the same balance and sequence number,
@@ -198,7 +184,6 @@ class FakeExecutor:
     ) -> List[TransactionOutput]:
         return LibraVM.execute_block(
             [Transaction('UserTransaction', x) for x in txn_block],
-            self.config,
             self.data_store,
         )
 
@@ -226,7 +211,7 @@ class FakeExecutor:
         self,
         txn_block: List[Transaction],
     ) -> List[TransactionOutput]:
-        return LibraVM.execute_block(txn_block, self.config, self.data_store)
+        return LibraVM.execute_block(txn_block, self.data_store)
 
 
     def execute_transaction(self, txn: SignedTransaction) -> TransactionOutput:
@@ -242,7 +227,7 @@ class FakeExecutor:
 
     # Verifies the given transaction by running it through the VM verifier.
     def verify_transaction(self, txn: SignedTransaction) -> Optional[VMStatus]:
-        vm = LibraVM.new(self.config)
+        vm = LibraVM.new()
         vm.load_configs(self.get_state_view())
         return vm.validate_transaction(txn, self.data_store)
 

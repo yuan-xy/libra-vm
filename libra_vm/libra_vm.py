@@ -37,20 +37,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-#stub class
-class VMConfig:
-    pass
 
 # A wrapper to make VMRuntime standalone and thread safe.
 @dataclass
 class LibraVM(VMVerifier, VMExecutor):
     move_vm: MoveVM
     gas_schedule: Optional[CostTable] = None
-    config: VMConfig = None
 
     @classmethod
-    def new(cls, config=None) -> LibraVM:
-        return cls(MoveVM.new(), None, config)
+    def new(cls) -> LibraVM:
+        return cls(MoveVM.new(), None)
 
 
     # Provides access to some internal APIs of the Libra VM.
@@ -407,9 +403,9 @@ class LibraVM(VMVerifier, VMExecutor):
         gas_schedule = CostTable.zero()
 
         args = [
+            Value.Uint64(block_metadata.round),
             Value.Uint64(block_metadata.timestamp_usecs),
-            Value.vector_u8(block_metadata.id),
-            Value.vector_u8(MapT(Address, BytesT).encode(block_metadata.previous_block_votes)),
+            Value.vector_address(block_metadata.previous_block_votes),
             Value.address(block_metadata.proposer),
         ]
         try:
@@ -601,10 +597,9 @@ class LibraVM(VMVerifier, VMExecutor):
     @classmethod
     def execute_block(cls,
         transactions: List[Transaction],
-        config: VMConfig,
         state_view: StateView,
     ) -> List[TransactionOutput]:
-        vm = cls.new(config)
+        vm = cls.new()
         return vm.execute_block_impl(transactions, state_view)
 
 

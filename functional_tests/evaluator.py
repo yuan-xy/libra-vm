@@ -11,7 +11,7 @@ from bytecode_verifier.verifier import (
 from e2e_tests.executor import FakeExecutor, VMPublishingOption
 from libra.crypto.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from libra_storage.state_view import StateView
-from libra import AccessPath, Address
+from libra import AccessPath, Address, AccountConfig
 from libra.block_metadata import BlockMetadata
 from libra.language_storage import ModuleId
 from libra.transaction import Module as TransactionModule
@@ -320,6 +320,7 @@ def make_script_transaction(
         TransactionPayload('Script', script),
         params.max_gas_amount,
         params.gas_unit_price,
+        AccountConfig.lbr_type_tag(),
         params.expiration_time,
     )
     return raw.sign(params.privkey, params.pubkey).into_inner()
@@ -341,6 +342,7 @@ def make_module_transaction(
         TransactionPayload('Module', module),
         params.max_gas_amount,
         params.gas_unit_price,
+        AccountConfig.lbr_type_tag(),
         params.expiration_time,
     )
     return raw.sign(params.privkey, params.pubkey).into_inner()
@@ -528,6 +530,7 @@ def eval_transaction(
         try:
             txn_output = unwrap_or_abort(run_transaction(fexec, module_transaction))
         except Exception as err:
+            traceback.print_exc()
             log.append(EvaluationOutput.Error(err))
             return Status.Failure
 

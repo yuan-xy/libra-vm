@@ -889,7 +889,6 @@ class Interpreter:
         type_actual_tags: List[TypeTag],
         address: Address,
     ) -> AccessPath:
-        breakpoint()
         struct_tag = resource_storage_key(module, idx, type_actual_tags)
         return create_access_path(address, struct_tag)
 

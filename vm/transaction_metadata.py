@@ -20,7 +20,6 @@ class TransactionMetadata:
     def new(cls, txn: SignedTransaction) -> TransactionMetadata:
         return TransactionMetadata(
             sender = txn.sender,
-            public_key = txn.public_key,
             authentication_key_preimage= txn.authenticator.authentication_key_preimage(),
             sequence_number = txn.sequence_number,
             max_gas_amount = GasUnits.new(txn.max_gas_amount),

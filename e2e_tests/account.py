@@ -55,7 +55,7 @@ class Account:
     # entity.
     @classmethod
     def with_keypair(cls, privkey: Ed25519PrivateKey, pubkey: Ed25519PublicKey) -> Account:
-        addr = Address.from_public_key(pubkey)
+        addr = AuthenticationKey.ed25519(pubkey).derived_address()
         return cls(
             addr,
             privkey,
@@ -237,18 +237,18 @@ class AccountData:
         # TODO: publish some concept of Account
         #TTODO: why not use Uint64 directly for coin
         return Value.struct_(VMStruct.pack([
-            Value.vector_Uint8(
-                Address.from_public_key(self.account.pubkey),
+            Value.vector_u8(
+                AuthenticationKey.ed25519(self.account.pubkey),
             ),
             Value.bool(self.delegated_key_rotation_capability),
             Value.bool(self.delegated_withdrawal_capability),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.received_events.count),
-                Value.vector_Uint8(self.received_events.key),
+                Value.vector_u8(self.received_events.key),
             ])),
             Value.struct_(VMStruct.pack([
                 Value.Uint64(self.sent_events.count),
-                Value.vector_Uint8(self.sent_events.key),
+                Value.vector_u8(self.sent_events.key),
             ])),
             Value.Uint64(self.sequence_number),
             Value.struct_(VMStruct.pack([Value.Uint64(self.event_generator)])),
