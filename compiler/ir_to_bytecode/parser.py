@@ -6,7 +6,7 @@ from move_ir.types import ast
 from move_ir.types.location import *
 # from codespan.Files
 # from codespan_reporting.{
-#     diagnostic.{Diagnostic, Label},
+#     diagnostic.{Diagnostic, BlockLabel},
 #     term.{
 #         emit,
 #         termcolor.{ColorChoice, StandardStream},
@@ -151,7 +151,7 @@ def handle_error(e: ParseError, code_str: str) -> None:
     if isinstance(e, ParseErrorInvalidToken):
         # files = Files.new()
         # id = files.add(location.file(), code_str)
-        # lbl = Label.new(id, location.span(), "Invalid Token")
+        # lbl = BlockLabel.new(id, location.span(), "Invalid Token")
         # error = Diagnostic.new_error("Parser Error", lbl)
         # writer = StandardStream.stderr(ColorChoice.Auto)
         # emit(writer, &Config.default(), &files, &error)

@@ -165,7 +165,7 @@ class Context:
     modules: Mapping[ModuleName, Tuple[QualifiedModuleIdent, ModuleHandle]]
     structs: Mapping[QualifiedStructIdent, StructHandle]
     struct_defs: Mapping[StructName, TableIndex]
-    labels: Mapping[Label, Uint16]
+    labels: Mapping[BlockLabel, Uint16]
 
     # queryable pools
     fields: Mapping[(StructHandleIndex, Field_), (TableIndex, SignatureToken, usize)]
@@ -285,7 +285,7 @@ class Context:
 
     def build_index_remapping(
         self,
-        label_to_index: Mapping[Label, Uint16],
+        label_to_index: Mapping[BlockLabel, Uint16],
     ) -> Mapping[Uint16, Uint16]:
         labels = self.labels
         self.labels = {}
@@ -338,8 +338,8 @@ class Context:
             bail("Unbound type parameter {}", t),
         return ret
 
-    # Get the fake offset for the label. Labels will be fixed to real offsets after compilation
-    def label_index(self, label: Label) -> CodeOffset:
+    # Get the fake offset for the label. BlockLabels will be fixed to real offsets after compilation
+    def label_index(self, label: BlockLabel) -> CodeOffset:
         return get_or_add_item(self.labels, label)
 
 

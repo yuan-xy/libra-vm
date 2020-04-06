@@ -9,7 +9,7 @@ import json
 # from codespan.Span
 # from codespan.{FileId, Files}
 # from codespan_reporting.{
-#     diagnostic.{Diagnostic, Label},
+#     diagnostic.{Diagnostic, BlockLabel},
 #     term.{
 #         emit,
 #         termcolor.{ColorChoice, StandardStream},
@@ -51,7 +51,7 @@ def render_errors(source_mapper: SourceMapping, errors: Errors) -> None:
 
 def create_diagnostic(fid: FileId, err: Error) -> Diagnostic:
     (loc, msg) = err
-    return Diagnostic.new_error("", Label.new(fid, loc.span, msg))
+    return Diagnostic.new_error("", BlockLabel.new(fid, loc.span, msg))
 
 
 #***************************************************************************

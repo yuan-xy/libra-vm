@@ -947,17 +947,26 @@ ExpFields = List[Tuple[Field, Exp]]
 
 @dataclass
 class Bytecode_:
-    tag: Opcodes
+    tag: int  # Opcodes | Nop
     value: Any
+
+    @classmethod
+    def Nop(cls, v=None):
+        return cls(Bytecode_.NOP, v)
+
+    NOP = len(Opcodes) + 10
 
 class Bytecode(Spanned):
     T = Bytecode_
 
-class Label(MyStr):
+class BlockLabel(MyStr):
+    pass
+
+class NopLabel(MyStr):
     pass
 
 BytecodeBlock = List[Bytecode]
-BytecodeBlocks = List[Tuple[Label, BytecodeBlock]]
+BytecodeBlocks = List[Tuple[BlockLabel, BytecodeBlock]]
 
 
 

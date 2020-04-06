@@ -71,6 +71,14 @@ def make_push_instr(context, code):
     return push_instr
 
 
+def record_nop_label(context, code, label):
+    code_offset = code.__len__()
+    context.source_map.add_nop_mapping(
+        context.current_function_definition_index(),
+        label,
+        code_offset,
+    )
+
 
 @dataclass
 class LoopInfo:
@@ -1346,7 +1354,7 @@ def compile_function_body_bytecode(
     sig_idx = context.locals_signature_index(locals_signature)
 
     code = []
-    label_to_index: Mapping[Label, Uint16] = {}
+    label_to_index: Mapping[BlockLabel, Uint16] = {}
     for (label, block) in blocks:
         label_to_index[label] = code.__len__()
         context.label_index(label)
@@ -1379,6 +1387,11 @@ def compile_bytecode(
 ) -> None:
     loc, instr_ = irb.loc, irb.value
     push_instr = make_push_instr(context, code)
+    if instr_.tag == Bytecode_.NOP:
+        if instr_.value is not None:
+            record_nop_label(context, code, instr_.value)
+        return
+
     if instr_.tag in [
         Opcodes.POP,
         Opcodes.RET,

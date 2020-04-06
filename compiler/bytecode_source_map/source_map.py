@@ -1,7 +1,7 @@
 from __future__ import annotations
 from libra.account_address import Address
 from move_core.types.identifier import Identifier
-from move_ir.types.ast import ModuleName, QualifiedModuleIdent
+from move_ir.types.ast import ModuleName, NopLabel, QualifiedModuleIdent
 from move_ir.types.codespan import Span
 from vm.file_format import (
         AddressPoolIndex, CodeOffset, CompiledModule, CompiledScript, FieldDefinitionIndex,
@@ -106,6 +106,11 @@ class FunctionSourceMap:
     # is the name and location of the local.
     locls: List[SourceName] = field(default_factory=list)
 
+    # A map to the code offset for a corresponding nop. Nop's are used as markers for some
+    # high level language information
+    nops: Dict[NopLabel, CodeOffset] = field(default_factory=dict)
+
+
     # The source location map for the function body.
     code_map: Dict[CodeOffset, Location] = field(default_factory=dict)
 
@@ -133,6 +138,10 @@ class FunctionSourceMap:
         if possible_segment is None or possible_segment != location:
             self.code_map[start_offset] = location
 
+    # Record the code offset for an Nop label
+    def add_nop_mapping(self, label: NopLabel, offset: CodeOffset):
+        assert label not in self.nops
+        self.nops[label] = offset
 
     # Not that it is important that locations be added in order.
     def add_local_mapping(self, name: SourceName):
@@ -265,6 +274,16 @@ class ModuleSourceMap:
 
         func_entry = self.function_map[fdef_idx.v0]
         func_entry.add_code_mapping(start_offset, location)
+
+
+    def add_nop_mapping(
+        self,
+        fdef_idx: FunctionDefinitionIndex,
+        label: NopLabel,
+        start_offset: CodeOffset,
+    ) -> None:
+        func_entry = self.function_map[fdef_idx.v0]
+        func_entry.add_nop_mapping(label, start_offset)
 
 
     # Given a function definition and a code offset within that function definition, this returns
