@@ -188,7 +188,10 @@ def create_and_initialize_main_accounts(
             gas_schedule,
             interpreter_context,
             txn_data,
-            [Value.address(association_addr)],
+            [
+                Value.address(association_addr),
+                Value.vector_u8(association_addr),
+            ],
         )
 
     # create the transaction fee account
@@ -199,7 +202,10 @@ def create_and_initialize_main_accounts(
             gas_schedule,
             interpreter_context,
             txn_data,
-            [Value.address(transaction_fee_address)],
+            [
+                Value.address(transaction_fee_address),
+                Value.vector_u8(transaction_fee_address),
+            ],
         )
 
     move_vm.execute_function(
@@ -246,6 +252,7 @@ def create_and_initialize_main_accounts(
             txn_data,
             [
                 Value.address(association_addr),
+                Value.vector_u8(association_addr),
                 Value.Uint64(ASSOCIATION_INIT_BALANCE),
             ],
         )
@@ -325,7 +332,10 @@ def create_and_initialize_validator_set(
             gas_schedule,
             interpreter_context,
             txn_data,
-            [Value.address(validator_set_address)],
+            [
+                Value.address(validator_set_address),
+                Value.vector_u8(validator_set_address),
+            ],
         )
 
 
@@ -355,7 +365,10 @@ def create_and_initialize_discovery_set(
             gas_schedule,
             interpreter_context,
             txn_data,
-            [Value.address(discovery_set_address)],
+            [
+                Value.address(discovery_set_address),
+                Value.vector_u8(discovery_set_address),
+            ],
         )
 
     move_vm.execute_function(
@@ -366,6 +379,13 @@ def create_and_initialize_discovery_set(
             txn_data,
             [],
         )
+
+def get_validator_authentication_key(address: Address) -> AuthenticationKey:
+    amap = {
+
+    }
+    return b'\x00' * 33
+    return amap[address]
 
 # Initialize each validator.
 def initialize_validators(
@@ -382,13 +402,17 @@ def initialize_validators(
     for (validator_keys, discovery_info) in zipped:
         # First, add a ValidatorConfig resource under each account
         validator_address = validator_keys.account_address
+        validator_authentication_key = get_validator_authentication_key(validator_address)
         move_vm.execute_function(
                 ACCOUNT_MODULE,
                 CREATE_ACCOUNT_NAME,
                 gas_schedule,
                 interpreter_context,
                 txn_data,
-                [Value.address(validator_address)],
+                [
+                    Value.address(validator_address),
+                    Value.vector_u8(validator_authentication_key),
+                ],
             )
 
         validator_txn_data = TransactionMetadata.default()
