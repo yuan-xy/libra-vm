@@ -769,8 +769,8 @@ class Interpreter:
         Interpreter.save_under_address(
             runtime,
             context,
-            [],
-            [],
+            [type_actual_tags[0]],
+            type_actuals,
             account_module,
             account_config.ACCOUNT_BALANCE_STRUCT_NAME,
             self.operand_stack.pop_as(Struct),

@@ -181,6 +181,16 @@ def create_and_initialize_main_accounts(
     txn_data = TransactionMetadata.default()
     txn_data.sender = association_addr
 
+    # create  the LBR module
+    move_vm.execute_function(
+            LBR_MODULE,
+            INITIALIZE,
+            gas_schedule,
+            interpreter_context,
+            txn_data,
+            [],
+        )
+
     # create the association account
     move_vm.execute_function(
             ACCOUNT_MODULE,

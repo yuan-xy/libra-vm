@@ -12,6 +12,11 @@ ACCOUNT_MODULE =  ModuleId(
         "LibraAccount",
     )
 
+LBR_MODULE =  ModuleId(
+        CORE_CODE_ADDRESS,
+        AccountConfig.LBR_MODULE_NAME,
+    )
+
 # The ModuleId for the LibraTransactionTimeout module
 LIBRA_TRANSACTION_TIMEOUT = ModuleId(
         CORE_CODE_ADDRESS,

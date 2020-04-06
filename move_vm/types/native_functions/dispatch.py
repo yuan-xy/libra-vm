@@ -241,7 +241,7 @@ def save_account_arg_types(m):
         AccountConfig.ACCOUNT_BALANCE_STRUCT_NAME,
     )
     arg_types = [
-        Struct((balance_t_idx, [])),
+        Struct((balance_t_idx, [TypeParameter(0)])),
         Struct((self_t_idx, [])),
         Address,
     ]
@@ -263,10 +263,11 @@ def struct_handle_idx(
     return None
 
 # LibraAccount
-add_native_function_to_map(
+add_native_function_to_map2(
     "LibraAccount",
     "save_account",
     gen_lambda("save_account does not have a native implementation"),
+    [Kind.All],
     save_account_arg_types,
     []
 )
