@@ -72,9 +72,10 @@ def build_block_metadata(config: GlobalConfig, entries: List[Entry]) -> BlockMet
     if timestamp and proposer:
         # TODO: Add parser for hash value and vote maps.
         return BlockMetadata(
-            Address.default(),
+            b'\x00' * HashValue.LENGTH,
+            0,
             timestamp,
-            {},
+            [],
             proposer,
         )
     else:

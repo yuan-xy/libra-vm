@@ -98,6 +98,6 @@ def test_compile_peer_to_peer_transfer_script():
         _compiled_script = compile_script_string_with_stdlib(code)
         bail("should raise VerifyException")
     except VerifyException as err:
-        assert err.vm_status[0].major_status == StatusCode.NEGATIVE_STACK_SIZE_WITHIN_BLOCK
+        assert err.vm_status[0].major_status == StatusCode.NUMBER_OF_TYPE_ACTUALS_MISMATCH
 
 

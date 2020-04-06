@@ -47,8 +47,9 @@ class Entry:
     Sender = 2 #(String),
     Arguments = 3 #(List[Argument]),
     MaxGas = 4 #(Uint64),
-    SequenceNumber = 5 #(Uint64),
-    ExpirationTime = 6 #(Uint64),
+    GasPrice = 5 #(Uint64),
+    SequenceNumber = 6 #(Uint64),
+    ExpirationTime = 7 #(Uint64),
 
     @classmethod
     def from_str(cls, s: str) -> Entry:

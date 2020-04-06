@@ -55,7 +55,7 @@ def test_build_global_config_1():
     assert("default" in config.accounts)
     assert("alice" in config.accounts)
     bob = config.accounts["bob"]
-    assert(bob.balance == 2000)
+    assert(bob.balance.coin == 2000)
     assert(bob.sequence_number == 10)
 
 
@@ -73,4 +73,4 @@ def test_build_global_config_4():
     config = parse_and_build_config("//! account: default, 50,")
     assert_equal(config.accounts.__len__(), 1)
     default = config.accounts["default"]
-    assert_equal(default.balance, 50)
+    assert_equal(default.balance.coin, 50)

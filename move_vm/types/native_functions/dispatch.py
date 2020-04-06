@@ -5,7 +5,7 @@ from move_vm.types.values import Value
 import move_vm.types.vector as vector
 from move_vm.types.native_structs import resolve_native_struct
 from libra.account_address import Address
-from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
+from libra.account_config import AccountConfig
 from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, TypeTag
 from libra.vm_error import StatusCode, VMStatus
@@ -57,11 +57,11 @@ NATIVE_FUNCTION_MAP: NativeFunctionMap = {}
 
 
 def add_native_function_to_map(module, name, dis, args, ret):
-    addr = CORE_CODE_ADDRESS
+    addr = AccountConfig.core_code_address_bytes()
     add_native_function(NATIVE_FUNCTION_MAP, addr, module, name, dis, args, ret)
 
 def add_native_function_to_map2(module, name, dis, kind, args, ret):
-    addr = CORE_CODE_ADDRESS
+    addr = AccountConfig.core_code_address_bytes()
     add_native_function(NATIVE_FUNCTION_MAP, addr, module, name, dis, args, ret, kind)
 
 
@@ -230,13 +230,13 @@ def save_account_arg_types(m):
     breakpoint()
     self_t_idx = struct_handle_idx(
         m,
-        CORE_CODE_ADDRESS,
+        AccountConfig.core_code_address_bytes(),
         AccountConfig.ACCOUNT_MODULE_NAME,
         AccountConfig.ACCOUNT_STRUCT_NAME,
     )
     balance_t_idx = struct_handle_idx(
         m,
-        CORE_CODE_ADDRESS,
+        AccountConfig.core_code_address_bytes(),
         AccountConfig.ACCOUNT_MODULE_NAME,
         AccountConfig.ACCOUNT_BALANCE_STRUCT_NAME,
     )

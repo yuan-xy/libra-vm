@@ -16,7 +16,7 @@ from move_vm.types.native_structs import resolve_native_struct
 from vm import ModuleAccess, ScriptAccess, IndexKind, Resolver
 from vm.vm_exception import VMException
 from vm.errors import append_err_info, verification_error
-from vm.file_format import CompiledModule, CompiledProgram, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from vm.views import ModuleView, ViewInternals
 from typing import List, Optional, Mapping
 from libra.vm_error import StatusCode, VMStatus
@@ -32,63 +32,6 @@ class VerifyException(VMException):
     def __init__(self, status: Union[VMStatus, List[VMStatus]], data: Union[CompiledModule, CompiledScript]):
         super().__init__(status)
         self.data = data
-
-
-
-# A program that has been verified for internal consistency.
-#
-# This includes cross-module checking for the base dependencies.
-@dataclass
-class VerifiedProgram:
-    script: VerifiedScript
-    modules: List[VerifiedModule]
-    deps: List[VerifiedModule]
-
-
-    # Creates a new `VerifiedProgram` after verifying the provided `CompiledProgram` against
-    # the provided base dependencies.
-    #
-    # On error, returns a list of verification statuses.
-    @classmethod
-    def new(cls,
-        program: CompiledProgram,
-        deps: Iterable[VerifiedModule],
-    ) -> VerifiedProgram:
-        modules = []
-
-        for module in program.modules:
-            module = VerifiedModule.new(module)
-            # {
-            #     # Verify against any modules compiled earlier as well.
-            #     deps = deps.iter().copied().chain(modules)
-            #     errors = verify_module_dependencies(module, deps)
-            #     if !errors.is_empty() {
-            #         return Err(errors)
-            #     }
-            # }
-            modules.append(module)
-
-        script = VerifiedScript.new(program.script)
-        # {
-        #     deps = deps.iter().copied().chain(modules)
-        #     errors = verify_script_dependencies(&script, deps)
-        #     if !errors.is_empty() {
-        #         return Err(errors)
-        #     }
-        # }
-        return VerifiedProgram(script, modules, deps)
-
-
-    # Converts this `VerifiedProgram` into a `CompiledProgram` instance.
-    #
-    # Converting back would require re-verifying this program.
-    def into_inner(self) -> CompiledProgram:
-        return CompiledProgram(
-            modules= [x.into_inner() for x in self.modules],
-            script= self.script.into_inner(),
-        )
-
-
 
 
 # A module that has been verified for internal consistency.
