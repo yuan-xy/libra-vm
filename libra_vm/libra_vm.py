@@ -329,7 +329,6 @@ class LibraVM(VMVerifier, VMExecutor):
                 return gas_free_ctx.get_transaction_output(txn_data, error_code)
             except VMException as err:
                 traceback.print_exc()
-                breakpoint()
                 return discard_error_output(err.vm_status[0])
         elif ts.tag == TransactionStatus.Discard:
             return discard_error_output(error_code)
@@ -454,6 +453,8 @@ class LibraVM(VMVerifier, VMExecutor):
                 ],
             )
         except VMException as err:
+            traceback.print_exc()
+            # chain_state.data_view.data_cache.data_view.print_account_resource()
             ret = convert_prologue_runtime_error(err.vm_status[0], txn_data.sender)
             raise VMException(ret)
 

@@ -150,9 +150,6 @@ class TransactionDataCache:
         if not ap in self.data_map:
             try:
                 blob = self.data_cache.get(ap, tryload)
-                res = Value.simple_deserialize(blob, Type('Struct', sdef))
-                gr = GlobalValue.new(res)
-                self.data_map[ap] = (sdef, gr)
             except Exception as err:
                 if tryload:
                     return None
@@ -161,7 +158,22 @@ class TransactionDataCache:
                     # breakpoint()
                     raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
 
+            if blob is None:
+                if tryload:
+                    return None
+                else:
+                    raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
+
+            try:
+                res = Value.simple_deserialize(blob, Type('Struct', sdef))
+                gr = GlobalValue.new(res)
+                self.data_map[ap] = (sdef, gr)
+            except Exception as err:
+                breakpoint()
+                raise
+
         return self.data_map[ap]
+
 
     def load_data_then_move(
         self,
@@ -187,20 +199,7 @@ class TransactionDataCache:
         data_map = self.data_map
         self.data_map = {}
 
-        # from libra.validator_set import ValidatorSet
-        from libra import AccountConfig
-        # vap = AccessPath(
-        #         AccountConfig.association_address_bytes(),
-        #         AccountConfig.account_resource_path(),
-        #         #"0116608f05d24742a043e6fd12d3b32735f6bfcba287bea92b28a175cd4f3eee32"
-        #     )
-        # vap = AccessPath(
-        #         AccountConfig.association_address_bytes(),
-        #         bytes.fromhex("017145d498e0e7f8838533f612ea661134c188d94c2d7f29d547d3ad6731705faa"),
-        #     )
         for idx, (key, global_val) in enumerate(data_map.items()):
-            # if key == vap:
-            #     breakpoint()
             if global_val is not None:
                 (layout, global_val) = global_val
                 if not global_val.is_clean():
@@ -208,7 +207,6 @@ class TransactionDataCache:
                     # at the end of a transaction
                     data = global_val.into_owned_struct()
                     blob = data.simple_serialize(layout)
-                    # breakpoint()
                     sorted_ws[key] = WriteOp('Value', blob)
             else:
                 sorted_ws[key] = WriteOp('Deletion')
@@ -221,8 +219,6 @@ class TransactionDataCache:
 
         write_set = WriteSetMut([])
         for idx, (key, value) in enumerate(sorted(sorted_ws.items())):
-            # if key == vap:
-            #     breakpoint()
             write_set.write_set.append((key, value))
 
         try:

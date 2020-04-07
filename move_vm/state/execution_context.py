@@ -18,23 +18,23 @@ from typing import List, Optional, Mapping
 from dataclasses import dataclass
 import abc
 
-# An `ExecutionContext` represents mutable state that is retained in-memory between invocations of
-# the Move VM.
-class ExecutionContext(abc.ABC):
-    # Returns the list of events emmitted during execution.
-    @abc.abstractmethod
-    def events(self) -> List[ContractEvent]:
-        bail("unimplemented!")
+# # An `ExecutionContext` represents mutable state that is retained in-memory between invocations of
+# # the Move VM.
+# class ExecutionContext(abc.ABC):
+#     # Returns the list of events emmitted during execution.
+#     @abc.abstractmethod
+#     def events(self) -> List[ContractEvent]:
+#         bail("unimplemented!")
 
-    # Generates a `WriteSet` as a result of an execution.
-    @abc.abstractmethod
-    def make_write_set(self) -> WriteSet:
-        bail("unimplemented!")
+#     # Generates a `WriteSet` as a result of an execution.
+#     @abc.abstractmethod
+#     def make_write_set(self) -> WriteSet:
+#         bail("unimplemented!")
 
-    # Clears all the in-memory writes local to this execution.
-    @abc.abstractmethod
-    def clear(self) -> None:
-        bail("unimplemented!")
+#     # Clears all the in-memory writes local to this execution.
+#     @abc.abstractmethod
+#     def clear(self) -> None:
+#         bail("unimplemented!")
 
 
 

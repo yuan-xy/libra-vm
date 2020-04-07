@@ -53,6 +53,8 @@ def run_testcase(path: str):
 
 
 def ir_testsuite(subdir: str, basedir: str = None):
+    if 'ONE_BY_ONE' in os.environ:
+        return
     if basedir is None:
         basedir = "../../libra/language/ir-testsuite/tests"
     curdir = dirname(__file__)
@@ -67,14 +69,17 @@ def ir_testsuite(subdir: str, basedir: str = None):
 
 
 def test_all_one_by_one():
+    if 'ONE_BY_ONE' not in os.environ:
+        return
     basedir = "../../libra/language/ir-testsuite/tests"
     curdir = dirname(__file__)
     path = join(curdir, basedir)
     errors = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if(file.endswith(".mvir")):
+            if(file.endswith(".mvir")):# and file == "vector_module.mvir":
                 fullname = join(root, file)
+                print(fullname)
                 try:
                     run_testcase(fullname)
                 except Exception as err:

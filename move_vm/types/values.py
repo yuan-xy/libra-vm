@@ -276,7 +276,7 @@ class ValueImpl(RustEnum):
             return Value.struct_(Struct.pack(fields))
 
         elif layout.Vector:
-            size = Uint32.decode(cursor)
+            size = Uint32.parse_uint32_from_uleb128(cursor)
             if layout.value.enum_name == 'U8':
                 return ValueImpl.vector_u8(cursor.read_bytes(size))
 
@@ -412,7 +412,7 @@ class Container(RustEnum):
         if self.General:
             v = self.value
             ret = bytearray()
-            ret.extend(Uint32.encode(len(v)))
+            ret.extend(Uint32.serialize_uint32_as_uleb128(len(v)))
             for val in v:
                 ret.extend(val.simple_serialize(ty))
             return bytes(ret)
