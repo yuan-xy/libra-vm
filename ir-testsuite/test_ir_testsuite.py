@@ -12,6 +12,7 @@ from os import listdir
 from os.path import isfile, join, abspath, dirname
 from dataclasses import dataclass
 from typing import List, Optional, Callable
+import pytest
 
 @dataclass
 class IRCompiler(Compiler):
@@ -63,6 +64,25 @@ def ir_testsuite(subdir: str, basedir: str = None):
                 fullname = join(root, file)
                 print(file)
                 run_testcase(fullname)
+
+
+def test_all_one_by_one():
+    basedir = "../../libra/language/ir-testsuite/tests"
+    curdir = dirname(__file__)
+    path = join(curdir, basedir)
+    errors = []
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if(file.endswith(".mvir")):
+                fullname = join(root, file)
+                try:
+                    run_testcase(fullname)
+                except Exception as err:
+                    print("======================================================")
+                    print(f"ERROR: {fullname}")
+                    errors.append(fullname)
+    if errors:
+        breakpoint()
 
 
 def test_local_case():

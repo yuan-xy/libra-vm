@@ -762,7 +762,7 @@ class Interpreter:
             [],
             [],
             account_module,
-            account_config.ACCOUNT_STRUCT_NAME,
+            AccountConfig.ACCOUNT_STRUCT_NAME,
             self.operand_stack.pop_as(Struct),
             address,
         )
@@ -772,7 +772,7 @@ class Interpreter:
             [type_actual_tags[0]],
             type_actuals,
             account_module,
-            account_config.ACCOUNT_BALANCE_STRUCT_NAME,
+            AccountConfig.ACCOUNT_BALANCE_STRUCT_NAME,
             self.operand_stack.pop_as(Struct),
             address,
         )

@@ -52,14 +52,12 @@ GENESIS_KEYPAIR = (
 PLACEHOLDER_PUBKEY = bytes.fromhex("7f937fcb47c4184cd5798b9a345e372c15326b30a0d0c7bc87887be204c19147")
 
 # Identifiers for well-known functions.
-ADD_VALIDATOR = "add_validator"
 INITIALIZE = "initialize"
 INITIALIZE_BLOCK = "initialize_block_metadata"
 INITIALIZE_TXN_FEES = "initialize_transaction_fees"
 INITIALIZE_VALIDATOR_SET = "initialize_validator_set"
 INITIALIZE_DISCOVERY_SET = "initialize_discovery_set"
 MINT_TO_ADDRESS = "mint_to_address"
-RECONFIGURE = "reconfigure"
 REGISTER_CANDIDATE_VALIDATOR = "register_candidate_validator"
 ROTATE_AUTHENTICATION_KEY = "rotate_authentication_key"
 EPILOGUE = "epilogue"
@@ -216,15 +214,6 @@ def create_and_initialize_main_accounts(
                 Value.address(transaction_fee_address),
                 Value.vector_u8(transaction_fee_address),
             ],
-        )
-
-    move_vm.execute_function(
-            COIN_MODULE,
-            INITIALIZE,
-            gas_schedule,
-            interpreter_context,
-            txn_data,
-            [],
         )
 
     move_vm.execute_function(
@@ -394,7 +383,7 @@ def get_validator_authentication_key(address: Address) -> AuthenticationKey:
     amap = {
 
     }
-    return b'\x00' * 33
+    return AuthenticationKey.new(b'\x00' * 32)
     return amap[address]
 
 # Initialize each validator.
@@ -421,7 +410,7 @@ def initialize_validators(
                 txn_data,
                 [
                     Value.address(validator_address),
-                    Value.vector_u8(validator_authentication_key),
+                    Value.vector_u8(validator_authentication_key.prefix()),
                 ],
             )
 
@@ -457,7 +446,7 @@ def initialize_validators(
         # Then, add the account to the validator set
         move_vm.execute_function(
                 LIBRA_SYSTEM_MODULE,
-                ADD_VALIDATOR,
+                "add_validator_",
                 gas_schedule,
                 interpreter_context,
                 txn_data,
@@ -482,12 +471,29 @@ def reconfigure(
     interpreter_context: TransactionExecutionContext,
 ) -> None:
     txn_data = TransactionMetadata.default()
+    txn_data.sender = AccountConfig.association_address_bytes()
 
-    # TODO: Direct write set transactions cannot specify emitted events, so this currently
-    # will not work.
+    move_vm.execute_function(
+            LIBRA_TIME_MODULE,
+            INITIALIZE,
+            gas_schedule,
+            interpreter_context,
+            txn_data,
+            [],
+        )
+
     move_vm.execute_function(
             LIBRA_SYSTEM_MODULE,
-            RECONFIGURE,
+            "emit_reconfiguration_event",
+            gas_schedule,
+            interpreter_context,
+            txn_data,
+            [],
+        )
+
+    move_vm.execute_function(
+            LIBRA_SYSTEM_MODULE,
+            "emit_discovery_set_change",
             gas_schedule,
             interpreter_context,
             txn_data,
@@ -529,6 +535,7 @@ def verify_genesis_write_set(
         "Expected sequence number 0 for validator set change event but got {}",
         validator_set_change_event.sequence_number
     )
+    return
     # (4) It should emit the validator set we fed into the genesis tx
     assert_equal_bail(
         ValidatorSet.deserialize(validator_set_change_event.event_data),

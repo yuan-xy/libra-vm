@@ -26,7 +26,7 @@ LIBRA_TRANSACTION_TIMEOUT = ModuleId(
 # The ModuleId for the LibraCoin module
 COIN_MODULE = ModuleId(
         CORE_CODE_ADDRESS,
-        "LibraCoin",
+        "Libra",
     )
 
 # The ModuleId for the Event
@@ -62,6 +62,12 @@ TRANSACTION_FEE_MODULE = ModuleId(
         CORE_CODE_ADDRESS,
         "TransactionFee",
     )
+
+LIBRA_TIME_MODULE = ModuleId(
+        CORE_CODE_ADDRESS,
+        "LibraTimestamp",
+    )
+
 
 # Names for special functions and structs
 CREATE_ACCOUNT_NAME: Identifier = "create_account"
