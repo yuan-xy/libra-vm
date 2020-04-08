@@ -80,7 +80,6 @@ class Tok(Enum):
     Loop = auto()
     Main = auto()
     Module = auto()
-    Modules = auto()
     Move = auto()
     MoveFrom = auto()
     MoveToSender = auto()
@@ -93,7 +92,6 @@ class Tok(Enum):
     SpecReturn = auto()
     # Return statement in the Move language
     Return = auto()
-    Script = auto()
     Struct = auto()
     SucceedsIf = auto()
     Synthetic = auto()
@@ -259,16 +257,6 @@ class Lexer:
                         "assert" : (Tok.Assert, lenn + 1),
                         "copy" : (Tok.Copy, lenn + 1),
                         "move" : (Tok.Move, lenn + 1),
-                    }
-                    if name in lt_map:
-                        return lt_map[name]
-                    else:
-                        return (get_name_token(name), lenn)
-
-                elif sss[0] == ':':
-                    lt_map = {
-                        "modules" : (Tok.Modules, lenn + 1),
-                        "script" : (Tok.Script, lenn + 1),
                     }
                     if name in lt_map:
                         return lt_map[name]

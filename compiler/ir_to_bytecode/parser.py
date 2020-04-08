@@ -101,16 +101,6 @@ def parse_script_or_module(file_name: str, s: str) -> ast.ScriptOrModule:
         handle_error(e, s) #TTODO: why not stripped_string instead of s
 
 
-# Given the raw input of a file, creates a `Program` struct
-# Fails with `Err(_)` if the text cannot be parsed
-def parse_program(file_name: str, program_str: str) -> ast.Program:
-    stripped_string = strip_comments_and_verify(program_str)
-    try:
-        return syntax.parse_program_string(file_name, stripped_string)
-    except ParseError as e:
-        handle_error(e, stripped_string)
-
-
 # Given the raw input of a file, creates a `Script` struct
 # Fails with `Err(_)` if the text cannot be parsed
 def parse_script(file_name: str, script_str: str) -> ast.Script:

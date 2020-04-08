@@ -9,7 +9,7 @@ from move_ir.types.ast import Bytecode as IRBytecode
 from move_ir.types.ast import Bytecode_ as IRBytecode_
 from move_ir.types.location import *
 from vm.file_format import (
-        self_module_name, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut, CompiledProgram,
+        self_module_name, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut,
         CompiledScript, CompiledScriptMut, FieldDefinition, FieldDefinitionIndex,
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
         StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
@@ -294,31 +294,6 @@ class FunctionFrame:
             return self.loops[-1].breaks
         else:
             bail("Impossible: failed to get loop breaks (no loops in stack)")
-
-
-# Compile a transaction program.
-def compile_program(
-    address: Address,
-    program: Program,
-    deps: List[ModuleAccess],
-) -> Tuple[CompiledProgram, SourceMap]:
-    deps = [dep.as_module() for dep in deps]
-
-    # This is separate to avoid unnecessary code gen due to monomorphization.
-    modules = []
-    source_maps = []
-    for m in program.modules:
-        deps2 = chain(deps, modules)
-        (module, source_map) = compile_module(address, m, deps2)
-        deps2 = None
-        modules.append(module)
-        source_maps.append(source_map)
-
-
-    deps = chain(deps, modules)
-    (script, source_map) = compile_script(address, program.script, deps)
-    source_maps.append(source_map)
-    return (CompiledProgram(modules, script), source_maps)
 
 
 # Compile a transaction script.

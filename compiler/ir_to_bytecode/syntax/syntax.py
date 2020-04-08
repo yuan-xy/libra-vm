@@ -1754,66 +1754,6 @@ def parse_field_decl(
     return (f, t)
 
 
-# Modules: List[ModuleDefinition] = {
-#     "modules:" <c: Module*> "script:" => c,
-# }
-
-def parse_modules(
-    tokens: Lexer,
-) -> List[ModuleDefinition]:
-    consume_token(tokens, Tok.Modules)
-    c: List[ModuleDefinition] = []
-    while tokens.peek() == Tok.Module:
-        c.append(parse_module(tokens))
-
-    consume_token(tokens, Tok.Script)
-    return c
-
-
-# pub Program : Program = {
-#     <m: Modules?> <s: Script> => { ... },
-#     <m: Module> => { ... }
-# }
-
-def parse_program(
-    tokens: Lexer,
-) -> Program:
-    if tokens.peek() == Tok.Module:
-        m = parse_module(tokens)
-        loc = tokens.start_loc()
-        ret_args = spanned(tokens.file_name(), loc, loc, ExprListExp([]))
-        ret = spanned(
-            tokens.file_name(),
-            loc,
-            loc,
-            Cmd_.Return(ret_args),
-        )
-        return_stmt = CommandStatement(ret)
-        body = FunctionBodyMove(
-            locls= [],
-            code= Block_([return_stmt])
-        )
-        main = Function_.new(
-            FunctionVisibility.Public,
-            [],
-            [],
-            [],
-            [],
-            [],
-            body,
-        )
-        return Program(
-            [m],
-            Script([], [], spanned(tokens.file_name(), loc, loc, main)),
-        )
-    else:
-        if tokens.peek() == Tok.Modules:
-            modules = parse_modules(tokens)
-        else:
-            modules = []
-
-        s = parse_script(tokens)
-        return Program(modules, s)
 
 
 # pub Script : Script = {
@@ -2071,15 +2011,6 @@ def parse_module_string(
     tokens = Lexer.new(leak_str(file), inputs)
     tokens.advance()
     return parse_module(tokens)
-
-
-def parse_program_string(
-    file: str,
-    inputs: str,
-) -> Program:
-    tokens = Lexer.new(leak_str(file), inputs)
-    tokens.advance()
-    return parse_program(tokens)
 
 
 def parse_script_string(

@@ -1,12 +1,12 @@
 from bytecode_verifier import VerifiedModule
-from compiler.bytecode_source_map.source_map import ModuleSourceMap, SourceMap
-from compiler.ir_to_bytecode.compiler import compile_module, compile_program
-from compiler.ir_to_bytecode.parser import parse_program
+from compiler.bytecode_source_map.source_map import ModuleSourceMap
+from compiler.ir_to_bytecode.compiler import compile_module, compile_script
+from compiler.ir_to_bytecode.parser import parse_module, parse_script
 from libra.account_address import Address
 from libra.transaction import Script, TransactionArgument
 from move_ir.types.location import Loc
 from stdlib import stdlib_modules
-from vm.file_format import CompiledModule, CompiledProgram, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -24,48 +24,19 @@ class Compiler:
     stdlib_address: Address = Address.default()
 
 
-    # Compiles into a `CompiledProgram` where the bytecode hasn't been serialized.
-    def into_compiled_program(self, file_name: str, code: str) -> CompiledProgram:
-        return self.compile_impl(file_name, code)[0]
-
-
-    def into_compiled_program_and_source_maps(
+    def into_compiled_script_and_source_map(
         self,
         file_name: str,
         code: str,
-    ) -> Tuple[CompiledProgram, SourceMap]:
-        (compiled_program, source_maps, _) = self.compile_impl(file_name, code)
-        return (compiled_program, source_maps)
-
-
-    def into_compiled_program_and_source_maps_deps(
-        self,
-        file_name: str,
-        code: str,
-    ) -> Tuple[CompiledProgram, SourceMap, List[VerifiedModule]]:
-        return self.compile_impl(file_name, code)
-
-
-    # Compiles into a `CompiledProgram` and also returns the dependencies.
-    def into_compiled_program_and_deps(
-        self,
-        file_name: str,
-        code: str,
-    ) -> Tuple[CompiledProgram, List[VerifiedModule]]:
-        (compiled_program, _, deps) = self.compile_impl(file_name, code)
-        return (compiled_program, deps)
-
-
-    # Compiles into a `CompiledScript`.
-    def into_script(self, file_name: str, code: str) -> CompiledScript:
-        compiled_program = self.compile_impl(file_name, code)[0]
-        return compiled_program.script
+    ) -> Tuple[CompiledScript, ModuleSourceMap]:
+        (compiled_script, source_map, _) = self.compile_script_(file_name, code)
+        return (compiled_script, source_map)
 
 
     # Compiles the script into a serialized form.
     def into_script_blob(self, file_name: str, code: str) -> bytes:
-        compiled_program = self.compile_impl(file_name, code)[0]
-        return compiled_program.script.serialize()
+        compiled_script = self.compile_script_(file_name, code)[0]
+        return compiled_script.serialize()
 
 
     # Compiles the module.
@@ -79,25 +50,15 @@ class Compiler:
         return compiled_module.serialize()
 
 
-    # Compiles the code and arguments into a `Script` -- the bytecode is serialized.
-    def into_program(
+    def compile_script_(
         self,
         file_name: str,
         code: str,
-        args: List[TransactionArgument],
-    ) -> Script:
-        return Script.new(self.into_script_blob(file_name, code), args)
-
-
-    def compile_impl(
-        self,
-        file_name: str,
-        code: str,
-    ) -> Tuple[CompiledProgram, SourceMap, List[VerifiedModule]]:
-        parsed_program = parse_program(file_name, code)
+    ) -> Tuple[CompiledScript, ModuleSourceMap, List[VerifiedModule]]:
+        parsed_script = parse_script(file_name, code)
         deps = self.deps()
-        (compiled_program, source_maps) = compile_program(self.address, parsed_program, deps)
-        return (compiled_program, source_maps, deps)
+        (compiled_script, source_maps) = compile_script(self.address, parsed_script, deps)
+        return (compiled_script, source_maps, deps)
 
 
     def compile_mod(

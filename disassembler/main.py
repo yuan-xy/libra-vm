@@ -13,7 +13,7 @@ from typing import List, Tuple
 
 def get_parser():
     parser = argparse.ArgumentParser(prog='Move Bytecode Disassembler', add_help=True, description='Print a human-readable version of Move bytecode (.mv files)')
-    parser.add_argument('-s', "--script", dest='is_script', action='store_true', default=False, help='Treat input file as a module (default is to treat file as a program)')
+    parser.add_argument('-s', "--script", dest='is_script', action='store_true', default=False, help='Treat input file as a script (default is to treat file as a module)')
     parser.add_argument("--skip-private", action='store_true', default=False, help='Skip printing of private functions')
     parser.add_argument("--skip-code", action='store_true', default=False, help='Do not print the disassembled bytecodes of each function')
     parser.add_argument("--skip-locals", action='store_true', default=False, help='Do not print locals of each function')
@@ -60,7 +60,7 @@ def main():
 
     disassembler_options = DisassemblerOptions()
     disassembler_options.print_code = not args.skip_code
-    disassembler_options.only_public = not args.skip_private
+    disassembler_options.only_public = args.skip_private
     disassembler_options.print_basic_blocks = not args.skip_basic_blocks
     disassembler_options.print_locals = not args.skip_locals
 

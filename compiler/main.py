@@ -3,7 +3,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from pathlib import Path
 from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
-from bytecode_verifier.verifier import verify_module_dependencies, VerifiedProgram
+from bytecode_verifier.verifier import verify_module_dependencies
 # from compiler.bytecode_source_map.source_map import ModuleSourceMap
 from compiler.lib import Compiler
 from compiler import util
@@ -12,7 +12,7 @@ from libra import AccessPath, Address
 from libra.transaction import Script, Module
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules
-from vm.file_format import CompiledModule #, CompiledProgram, CompiledScript
+from vm.file_format import CompiledModule, CompiledScript
 from typing import List, Tuple
 
 
@@ -102,19 +102,19 @@ def main():
             args.no_stdlib,
             deps,
         )
-        (compiled_program, source_map, dependencies) = compiler\
-            .into_compiled_program_and_source_maps_deps(file_name, source)
+        (compiled_script, source_map) = compiler\
+            .into_compiled_script_and_source_map(file_name, source)
 
         if not args.no_verify:
-            verified_program = VerifiedProgram.new(compiled_program, dependencies)
-            compiled_program = verified_program.into_inner()
+            verified_script = VerifiedScript.new(compiled_script)
+            compiled_script = verified_script.into_inner()
 
         if args.output_source_maps:
-            source_map_bytes = source_map[0].to_json()
+            source_map_bytes = source_map.to_json()
             path = Path(source_path).with_suffix(source_map_extension)
             path.write_text(source_map_bytes)
 
-        script = compiled_program.script.serialize()
+        script = compiled_script.serialize()
         if args.json:
             payload = Script(script, [])
             Path(source_path).with_suffix(mv_extension).write_text(payload.to_json())
