@@ -1,5 +1,5 @@
 from __future__ import annotations
-from compiler.ir_to_bytecode.context import Context, MaterializedPools
+from compiler.ir_to_bytecode.context import Context, MaterializedPools, TABLE_MAX_SIZE
 from compiler.ir_to_bytecode.errors import *
 from compiler.bytecode_source_map.source_map import ModuleSourceMap
 from libra.account_address import Address
@@ -12,7 +12,7 @@ from vm.file_format import (
         self_module_name, Bytecode, CodeOffset, CodeUnit, CompiledModule, CompiledModuleMut,
         CompiledScript, CompiledScriptMut, FieldDefinition, FieldDefinitionIndex,
         FunctionDefinition, FunctionSignature, Kind, LocalsSignature, MemberCount, SignatureToken,
-        StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, ModuleAccess
+        StructDefinition, StructFieldInformation, StructHandleIndex, TableIndex, TypeParameterIndex, ModuleAccess
     )
 from vm import signature_token_help, VMException
 from typing import List, Optional, Tuple, Mapping
@@ -136,7 +136,7 @@ class InferredTypeTag(IntEnum):
 @dataclass
 class InferredType:
     tag: InferredTypeTag
-    struct : StructHandleIndex = None
+    struct : Tuple[StructHandleIndex, List[InferredType]] = None
     reference : InferredType = None
     typeParameter : str = None
     vector_type: InferredType = None
@@ -146,8 +146,8 @@ class InferredType:
         return cls(InferredTypeTag.Vector, vector_type=v)
 
     @classmethod
-    def Struct(cls, v):
-        return cls(InferredTypeTag.Struct, struct=v)
+    def Struct(cls, idx, arr):
+        return cls(InferredTypeTag.Struct, struct=(idx, arr))
 
     @classmethod
     def Reference(cls, v):
@@ -162,30 +162,59 @@ class InferredType:
         return cls(InferredTypeTag.TypeParameter, typeParameter=v)
 
     @classmethod
-    def from_signature_token(cls, sig_token: SignatureToken) -> InferredType:
+    def from_signature_token_with_subst(cls,
+        subst: Mapping[TypeParameterIndex, InferredType],
+        sig_token: SignatureToken,
+    ) -> InferredType:
         if sig_token.is_primitive():
             return InferredType(sig_token.tag)
 
         elif sig_token.tag == SerializedType.VECTOR:
-            return cls.Vector(cls.from_signature_token(sig_token.vector_type))
+            return cls.Vector(cls.from_signature_token_with_subst(subst, sig_token.vector_type))
 
         elif sig_token.tag == SerializedType.STRUCT:
-            (si, _) = sig_token.struct
-            return cls.Struct(si)
+            (si, sig_tys) = sig_token.struct
+            tys = cls.from_signature_tokens_with_subst(subst, sig_tys)
+            return cls.Struct(si, tys)
 
         elif sig_token.tag == SerializedType.REFERENCE:
-            return cls.Reference(cls.from_signature_token(sig_token.reference))
+            return cls.Reference(cls.from_signature_token_with_subst(subst, sig_token.reference))
 
         elif sig_token.tag == SerializedType.MUTABLE_REFERENCE:
-            return cls.MutableReference(cls.from_signature_token(sig_token.reference))
+            return cls.MutableReference(cls.from_signature_token_with_subst(subst, sig_token.reference))
 
         elif sig_token.tag == SerializedType.TYPE_PARAMETER:
-            return cls.TypeParameter(sig_token.typeParameter.__str__())
+            tp = sig_token.typeParameter
+            if tp in subst:
+                bound_type = subst[tp]
+                return bound_type
+            else:
+                return cls.TypeParameter(sig_token.typeParameter.__str__())
         else:
             bail("unreachable!")
 
+    @classmethod
+    def from_signature_tokens_with_subst(cls,
+        subst: Mapping[TypeParameterIndex, InferredType],
+        sig_tokens: List[SignatureToken],
+    ) -> List[InferredType]:
+        return [cls.from_signature_token_with_subst(subst, x) for x in sig_tokens]
 
-    def get_struct_handle(self) -> StructHandleIndex:
+
+    @classmethod
+    def from_signature_token(cls,
+        sig_token: SignatureToken,
+    ) -> InferredType:
+        return cls.from_signature_token_with_subst({}, sig_token)
+
+    @classmethod
+    def from_signature_tokens(cls,
+        sig_tokens: List[SignatureToken],
+    ) -> List[InferredType]:
+        return [cls.from_signature_token_with_subst({}, x) for x in sig_tokens]
+
+
+    def get_struct_handle(self) -> Tuple[StructHandleIndex, List[InferredType]]:
         if self.tag == InferredTypeTag.Reference or self.tag == InferredTypeTag.MutableReference:
             return self.reference.get_struct_handle()
         elif self.tag == InferredTypeTag.Struct:
@@ -204,7 +233,6 @@ InferredType.Anything = InferredType(InferredTypeTag.Anything)
 # Holds information about a function being compiled.
 @dataclass
 class FunctionFrame:
-    local_count: Uint8
     locls: Mapping[Var_, Uint8]
     local_types: LocalsSignature
     # Int64 to allow the bytecode verifier to catch errors of
@@ -214,11 +242,12 @@ class FunctionFrame:
     # Theoretically, we could use a BigInt here, but that is probably overkill for any testing
     max_stack_depth: Int64
     cur_stack_depth: Int64
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex]
     loops: List[LoopInfo]
 
     @classmethod
-    def new(cls) -> FunctionFrame:
-        return cls(0, {}, LocalsSignature(), 0, 0, [])
+    def new(cls, type_parameters) -> FunctionFrame:
+        return cls({}, LocalsSignature(), 0, 0, type_parameters, [])
 
 
     # Manage the stack info for the function
@@ -254,16 +283,15 @@ class FunctionFrame:
 
 
     def define_local(self, var: Var_, type_: SignatureToken) -> Uint8:
-        if self.local_count >= Uint8.max_value:
+        if self.locls.__len__() >= Uint8.max_value:
             bail("Max number of locals reached")
 
-        cur_loc_idx = self.local_count
+        cur_loc_idx = self.locls.__len__()
         if var in self.locls:
             bail("variable redefinition {}", var)
         else:
             self.locls[var] = cur_loc_idx
             self.local_types.v0.append(type_)
-            self.local_count += 1
             return cur_loc_idx
 
 
@@ -363,8 +391,8 @@ def compile_module(
             module= self_name,
             name= s.value.name,
         )
-        (_, tys) = type_formals(s.value.type_formals)
-        context.declare_struct_handle_index(ident, s.value.is_nominal_resource, tys)
+        kinds = type_parameter_kinds(s.value.type_formals)
+        context.declare_struct_handle_index(ident, s.value.is_nominal_resource, kinds)
 
 
     # Add explicit handles/dependency declarations to the pools
@@ -407,7 +435,7 @@ def compile_explicit_dependency_declarations(
     for dependency in dependencies:
         for struct_dep in structs:
             sname = QualifiedStructIdent(dependency.name, struct_dep.name)
-            (_, kinds) = type_formals(struct_dep.type_formals)
+            kinds = type_parameter_kinds(struct_dep.type_formals)
             context.declare_struct_handle_index(sname, struct_dep.is_nominal_resource, kinds)
 
         for function_dep in functions:
@@ -430,40 +458,64 @@ def compile_imports(
         context.declare_import(ident, imp.alias)
 
 
-
-def type_formals(
+def type_parameter_indexes(
     ast_tys: List[Tuple[TypeVar, ast.Kind]]
-) -> Tuple[Mapping[TypeVar_, usize], List[Kind]]:
+) -> Tuple[Mapping[TypeVar_, TypeParameterIndex]]:
     m = {}
-    tys = []
-    for (idx, (ty_var, k)) in enumerate(ast_tys):
+    for (idx, (ty_var, _)) in enumerate(ast_tys):
+        if idx > TABLE_MAX_SIZE:
+            bail("Too many type parameters")
+        
         if ty_var.value in m:
             bail("Type formal '{}'' already bound", ty_var)
         else:
             m[ty_var.value] = idx
-        tys.append(kind(k))
 
-    return (m, tys)
+    return m
+
+
+def make_type_argument_subst(
+    tokens: List[InferredType],
+) -> Mapping[TypeParameterIndex, InferredType]:
+    subst = {}
+    for (idx, token) in enumerate(tokens):
+        if idx > TABLE_MAX_SIZE:
+            bail("Too many type arguments")
+        
+        subst[idx] = token
+    return subst
+
+
+def type_parameter_kinds(ast_tys: List[Tuple[TypeVar, ast.Kind]]) -> List[Kind]:
+    return [kind(k) for (_, k) in ast_tys]
 
 
 def kind(ast_k: ast.Kind) -> Kind:
     return Kind(ast_k)
 
 
-def compile_types(context: Context, tys: List[Type]) -> List[SignatureToken]:
-    return [compile_type(context, ty) for ty in tys]
+def compile_types(
+    context: Context,
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex],
+    tys: List[Type],
+) -> List[SignatureToken]:
+    return [compile_type(context, type_parameters, ty) for ty in tys]
 
 
-def compile_type(context: Context, ty: Type) -> SignatureToken:
+def compile_type(
+    context: Context,
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex],
+    ty: Type,
+) -> SignatureToken:
     if ty.tag.is_primitive():
         return SignatureToken(ty.tag)
 
     elif ty.tag == SerializedType.VECTOR:
-        return signature_token_help.Vector(compile_type(context, ty.vector_type))
+        return signature_token_help.Vector(compile_type(context, type_parameters, ty.vector_type))
 
     elif ty.tag == SerializedType.REFERENCE:
         (is_mutable, inner_type) = ty.reference
-        inner_token = compile_type(context, inner_type)
+        inner_token = compile_type(context, type_parameters, inner_type)
         if is_mutable:
             return signature_token_help.MutableReference(inner_token)
         else:
@@ -472,11 +524,15 @@ def compile_type(context: Context, ty: Type) -> SignatureToken:
     elif ty.tag == SerializedType.STRUCT:
         (ident, tys) = ty.struct
         sh_idx = context.struct_handle_index(ident)
-        tokens = compile_types(context, tys)
+        tokens = compile_types(context, type_parameters, tys)
         return signature_token_help.Struct(sh_idx, tokens)
 
     elif ty.tag == SerializedType.TYPE_PARAMETER:
-        return signature_token_help.TypeParameter(context.type_formal_index(ty.typeParameter))
+        if ty.typeParameter in type_parameters:
+            idx = type_parameters[ty.typeParameter]
+            return signature_token_help.TypeParameter(idx)
+        else:
+            bail("Unbound type parameter {}", ty.typeParameter),
     else:
         bail("unreachable!")
 
@@ -486,10 +542,9 @@ def function_signature(
     context: Context,
     f: ast.FunctionSignature,
 ) -> FunctionSignature:
-    (amap, _) = type_formals(f.type_formals)
-    context.bind_type_formals(amap)
-    return_types = compile_types(context, f.return_type)
-    arg_types = [compile_type(context, ty) for (_, ty) in f.formals]
+    m = type_parameter_indexes(f.type_formals)
+    return_types = compile_types(context, m, f.return_type)
+    arg_types = [compile_type(context, m, ty) for (_, ty) in f.formals]
     typeformals = [kind(k) for (_, k) in f.type_formals]
     return FunctionSignature(
         return_types,
@@ -512,9 +567,8 @@ def compile_structs(
         sh_idx = context.struct_handle_index(sident)
         record_src_loc_struct_decl(context, s.loc)
         record_src_loc_struct_type_formals(context, s.value.type_formals)
-        (amap, _) = type_formals(s.value.type_formals)
-        context.bind_type_formals(amap)
-        field_information = compile_fields(context, field_defs, sh_idx, s.value.fields)
+        m = type_parameter_indexes(s.value.type_formals)
+        field_information = compile_fields(context, m, field_defs, sh_idx, s.value.fields)
         context.declare_struct_definition_index(s.value.name)
         struct_defs.append(StructDefinition(
             sh_idx,
@@ -526,6 +580,7 @@ def compile_structs(
 
 def compile_fields(
     context: Context,
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex],
     field_pool: List[FieldDefinition],
     sh_idx: StructHandleIndex,
     sfields: StructDefinitionFields,
@@ -545,7 +600,7 @@ def compile_fields(
         for (decl_order, (f, ty)) in enumerate(fields):
             name = context.identifier_index(f.value)
             record_src_loc_field(context, f)
-            sig_token = compile_type(context, ty)
+            sig_token = compile_type(context, type_parameters, ty)
             signature = context.type_signature_index(deepcopy(sig_token))
             context.declare_field(sh_idx, f.value, sig_token, decl_order)
             field_pool.append(FieldDefinition(
@@ -591,17 +646,15 @@ def compile_function(
         for name in ast_function.acquires]
 
     if isinstance(ast_function.body, FunctionBodyMove):
-        (m, _) = type_formals(ast_function.signature.type_formals)
-        context.bind_type_formals(m)
+        m = type_parameter_indexes(ast_function.signature.type_formals)
         code = compile_function_body(
-            context, ast_function.signature.formals,
+            context, m, ast_function.signature.formals,
             ast_function.body.locls, ast_function.body.code,
         )
     elif isinstance(ast_function.body, FunctionBodyBytecode):
-        (m, _) = type_formals(ast_function.signature.type_formals)
-        context.bind_type_formals(m)
+        m = type_parameter_indexes(ast_function.signature.type_formals)
         code = compile_function_body_bytecode(
-            context, ast_function.signature.formals,
+            context, m, ast_function.signature.formals,
             ast_function.body.locls, ast_function.body.code,
         )
     elif isinstance(ast_function.body, FunctionBodyNative):
@@ -620,20 +673,21 @@ def compile_function(
 
 def compile_function_body(
     context: Context,
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex],
     formals: List[Tuple[Var, Type]],
     locls: List[Tuple[Var, Type]],
     block: Block_,
 ) -> CodeUnit:
-    function_frame = FunctionFrame.new()
+    function_frame = FunctionFrame.new(type_parameters)
     locals_signature = LocalsSignature([])
     for (var, t) in formals:
-        sig = compile_type(context, t)
+        sig = compile_type(context, function_frame.type_parameters, t)
         function_frame.define_local(var.value, deepcopy(sig))
         locals_signature.v0.append(sig)
         record_src_loc_local(context, var)
 
     for (var_, t) in locls:
-        sig = compile_type(context, t)
+        sig = compile_type(context, function_frame.type_parameters, t)
         function_frame.define_local(var_.value, deepcopy(sig))
         locals_signature.v0.append(sig)
         record_src_loc_local(context, var_)
@@ -847,7 +901,7 @@ def compile_command(
 
     elif cmd.value.tag == CmdTag.Unpack:
         (name, tys, bindings, e) = cmd.value.value
-        tokens = LocalsSignature(compile_types(context, tys))
+        tokens = LocalsSignature(compile_types(context, function_frame.type_parameters, tys))
         type_actuals_id = context.locals_signature_index(tokens)
 
         compile_expression(context, function_frame, code, e)
@@ -1012,8 +1066,10 @@ def compile_expression(
             bail("unreachable!")        
 
     elif isinstance(exp.value, PackExp):
-        (name, tys, fields) = exp.value.v0
-        tokens = LocalsSignature(compile_types(context, tys))
+        (name, ast_tys, fields) = exp.value.v0
+        sig_tys = compile_types(context, function_frame.type_parameters, ast_tys)
+        tys = InferredType.from_signature_tokens(sig_tys)
+        tokens = LocalsSignature(sig_tys)
         type_actuals_id = context.locals_signature_index(tokens)
         def_idx = context.struct_definition_index(name)
 
@@ -1038,7 +1094,7 @@ def compile_expression(
             function_frame.pop()
 
         function_frame.push()
-        return [InferredType.Struct(sh_idx)]
+        return [InferredType.Struct(sh_idx, tys)]
 
     elif isinstance(exp.value, UnaryExp):
         (op, e) = exp.value.v0
@@ -1146,10 +1202,11 @@ def compile_expression(
         inner_exp = exp.value.exp
         field = exp.value.field
         loc_type = compile_expression(context, function_frame, code, inner_exp)[0]
-        sh_idx = loc_type.get_struct_handle()
+        (sh_idx, tys) = loc_type.get_struct_handle()
+        subst = make_type_argument_subst(tys)
         (fd_idx, field_type, _) = context.field(sh_idx, field)
         function_frame.pop()
-        inner_token = InferredType.from_signature_token(field_type)
+        inner_token = InferredType.from_signature_token_with_subst(subst, field_type)
         if is_mutable:
             push_instr(exp.loc, Bytecode(Opcodes.MUT_BORROW_FIELD, fd_idx))
             function_frame.push()
@@ -1194,7 +1251,7 @@ def compile_call(
 
         elif function.tag == BuiltinTag.Exists:
             (name, tys) = function.exists
-            tokens = LocalsSignature(compile_types(context, tys))
+            tokens = LocalsSignature(compile_types(context, function_frame.type_parameters, tys))
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
             push_instr(call.loc, Bytecode(Opcodes.EXISTS, (def_idx, type_actuals_id)))
@@ -1203,8 +1260,10 @@ def compile_call(
             return [InferredType.Bool]
 
         elif function.tag == BuiltinTag.BorrowGlobal:
-            (mut_, name, tys) = function.borrow
-            tokens = LocalsSignature(compile_types(context, tys))
+            (mut_, name, ast_tys) = function.borrow
+            sig_tys = compile_types(context, function_frame.type_parameters, ast_tys)
+            tys = InferredType.from_signature_tokens(sig_tys)
+            tokens = LocalsSignature(sig_tys)
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
             if mut_:
@@ -1220,15 +1279,17 @@ def compile_call(
             ident = QualifiedStructIdent(self_name, name)
 
             sh_idx = context.struct_handle_index(ident)
-            inner = InferredType.Struct(sh_idx)
+            inner = InferredType.Struct(sh_idx, tys)
             if mut_:
                 return [InferredType.MutableReference(inner)]
             else:
                 return [InferredType.Reference(inner)]
 
         elif function.tag == BuiltinTag.MoveFrom:
-            (name, tys) = function.move
-            tokens = LocalsSignature(compile_types(context, tys))
+            (name, ast_tys) = function.move            
+            sig_tys = compile_types(context, function_frame.type_parameters, ast_tys)
+            tys = InferredType.from_signature_tokens(sig_tys)
+            tokens = LocalsSignature(sig_tys)
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
             push_instr(call.loc, Bytecode(Opcodes.MOVE_FROM, (def_idx, type_actuals_id)))
@@ -1238,11 +1299,12 @@ def compile_call(
             self_name = SELF_MODULE_NAME
             ident = QualifiedStructIdent(self_name, name)
             sh_idx = context.struct_handle_index(ident)
-            return [InferredType.Struct(sh_idx)]
+            return [InferredType.Struct(sh_idx, tys)]
 
         elif function.tag == BuiltinTag.MoveToSender:
-            (name, tys) = function.move
-            tokens = LocalsSignature(compile_types(context, tys))
+            (name, ast_tys) = function.move
+            sig_tys = compile_types(context, function_frame.type_parameters, ast_tys)
+            tokens = LocalsSignature(sig_tys)
             type_actuals_id = context.locals_signature_index(tokens)
             def_idx = context.struct_definition_index(name)
 
@@ -1286,7 +1348,11 @@ def compile_call(
         name = call.value.value.name
         type_actuals = call.value.value.type_actuals
 
-        tokens = LocalsSignature(compile_types(context, type_actuals))
+        ty_arg_tokens = compile_types(context, function_frame.type_parameters, type_actuals)
+        ty_args = [InferredType.from_signature_token(t) for t in ty_arg_tokens]
+        subst = make_type_argument_subst(ty_args)
+        tokens = LocalsSignature(ty_arg_tokens)
+
         type_actuals_id = context.locals_signature_index(tokens)
         fh_idx = context.function_handle(module, name)[1]
         fcall = Bytecode(Opcodes.CALL, (fh_idx, type_actuals_id))
@@ -1297,7 +1363,7 @@ def compile_call(
         # Return value of current function is pushed onto the stack.
         function_frame.push()
         signature = context.function_signature(module, name)[0]
-        return [InferredType.from_signature_token(x) for x in signature.return_types]
+        return [InferredType.from_signature_token_with_subst(subst, x) for x in signature.return_types]
 
     else:
         bail("unreachable!")
@@ -1308,20 +1374,21 @@ def compile_call(
 
 def compile_function_body_bytecode(
     context: Context,
+    type_parameters: Mapping[TypeVar_, TypeParameterIndex],
     formals: List[Tuple[Var, Type]],
     localss: List[Tuple[Var, Type]],
     blocks: BytecodeBlocks,
 ) -> CodeUnit:
-    function_frame = FunctionFrame.new()
+    function_frame = FunctionFrame.new(type_parameters)
     locals_signature = LocalsSignature([])
     for (var, t) in formals:
-        sig = compile_type(context, t)
+        sig = compile_type(context, function_frame.type_parameters, t)
         function_frame.define_local(var.value, deepcopy(sig))
         locals_signature.v0.append(sig)
         record_src_loc_local(context, var)
 
     for (var_, t) in localss:
-        sig = compile_type(context, t)
+        sig = compile_type(context, function_frame.type_parameters, t)
         function_frame.define_local(var_.value, deepcopy(sig))
         locals_signature.v0.append(sig)
         record_src_loc_local(context, var_)
@@ -1434,7 +1501,7 @@ def compile_bytecode(
 
     elif instr_.tag == Opcodes.CALL:
         (m, n, tys) = instr_.value
-        tokens = LocalsSignature(compile_types(context, tys))
+        tokens = LocalsSignature(compile_types(context, function_frame.type_parameters, tys))
         type_actuals_id = context.locals_signature_index(tokens)
         fh_idx = context.function_handle(m, n)[1]
         ff_instr = Bytecode(instr_.tag, (fh_idx, type_actuals_id))
@@ -1449,7 +1516,7 @@ def compile_bytecode(
         Opcodes.EXISTS,
     ]:
         (n, tys) = instr_.value
-        tokens = LocalsSignature(compile_types(context, tys))
+        tokens = LocalsSignature(compile_types(context, function_frame.type_parameters, tys))
         type_actuals_id = context.locals_signature_index(tokens)
         def_idx = context.struct_definition_index(n)
         ff_instr = Bytecode(instr_.tag, (def_idx, type_actuals_id))
@@ -1460,6 +1527,7 @@ def compile_bytecode(
         Opcodes.IMM_BORROW_FIELD,
     ]:
         (name, field) = instr_.value
+        breakpoint()
         field_ = field.value
         qualified_struct_name = QualifiedStructIdent(SELF_MODULE_NAME, name)
         sh_idx = context.struct_handle_index(qualified_struct_name)

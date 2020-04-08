@@ -146,7 +146,7 @@ class EvaluationOutput:
         elif self.tag == EvaluationOutput.vError:
             return format_str("Error: {}", self.value)
         elif self.tag == EvaluationOutput.vStatus:
-            return format_str("Status: {}", self.value)
+            return self.value.__str__()
         else:
             bail("unreachable!")
 

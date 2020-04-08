@@ -77,7 +77,7 @@ def test_all_one_by_one():
     errors = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if(file.endswith(".mvir")):# and file == "vector_module.mvir":
+            if(file.endswith(".mvir")):
                 fullname = join(root, file)
                 print(fullname)
                 try:

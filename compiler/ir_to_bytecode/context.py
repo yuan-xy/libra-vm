@@ -19,9 +19,6 @@ from canoser import Uint16
 from copy import deepcopy
 
 
-TypeFormalMap = Mapping[TypeVar_, TableIndex]
-
-
 def get_or_add_item_macro(m, k_get, k_insert):
     k_key = k_get
     if k_key in m:
@@ -184,9 +181,6 @@ class Context:
     byte_array_pool: Mapping[bytes, TableIndex]
     address_pool: Mapping[Address, TableIndex]
 
-    # Current generic/type formal context
-    type_formals: TypeFormalMap
-
     # The current function index that we are on
     current_function_index: FunctionDefinitionIndex
 
@@ -225,7 +219,6 @@ class Context:
             identifiers= {},
             byte_array_pool= {},
             address_pool= {},
-            type_formals= {},
             current_function_index= FunctionDefinitionIndex(0),
             source_map= ModuleSourceMap.new(deepcopy(current_module)),
         )
@@ -274,15 +267,6 @@ class Context:
         return (materialized_pools, self.source_map)
 
 
-    # Bind the type formals into a "pool" for the current context.
-    def bind_type_formals(self, m: Mapping[TypeVar_, usize]) -> None:
-        for (k, idx) in m.items():
-            if idx > TABLE_MAX_SIZE:
-                bail("Too many type parameters")
-
-        self.type_formals = deepcopy(m)
-
-
     def build_index_remapping(
         self,
         label_to_index: Mapping[BlockLabel, Uint16],
@@ -328,15 +312,7 @@ class Context:
     # Get the module handle index for the alias, fails if it is not bound.
     def module_handle_index(self, module_name: ModuleName) -> ModuleHandleIndex:
         return ModuleHandleIndex(self.module_handles[self.module_handle(module_name)])
-
-
-
-    # Get the type formal index, fails if it is not bound.
-    def type_formal_index(self, t: TypeVar_) -> TableIndex:
-        ret = self.type_formals.get(t)
-        if ret is None:
-            bail("Unbound type parameter {}", t),
-        return ret
+        
 
     # Get the fake offset for the label. BlockLabels will be fixed to real offsets after compilation
     def label_index(self, label: BlockLabel) -> CodeOffset:
