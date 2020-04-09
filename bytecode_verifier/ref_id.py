@@ -1,5 +1,6 @@
 from libra.rustlib import usize
 from dataclasses import dataclass
+from move_core import JsonPrintable
 
 # This module implements the RefID type used for borrow checking in the abstract interpreter.
 # A RefID instance represents an arbitrary reference or access path.
@@ -7,8 +8,14 @@ from dataclasses import dataclass
 # meaningful.
 
 @dataclass
-class RefID:
+class RefID(JsonPrintable):
     v0: usize
+
+    def to_json(self, indent=None):
+        return self.to_json_printable()
+
+    def to_json_printable(self):
+        return f"RefID({self.v0})"
 
     def __hash__(self):
         return self.v0.__hash__()

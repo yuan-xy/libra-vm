@@ -652,6 +652,7 @@ def compile_function(
             ast_function.body.locls, ast_function.body.code,
         )
     elif isinstance(ast_function.body, FunctionBodyBytecode):
+        breakpoint()
         m = type_parameter_indexes(ast_function.signature.type_formals)
         code = compile_function_body_bytecode(
             context, m, ast_function.signature.formals,
@@ -1372,6 +1373,7 @@ def compile_call(
 # Bytecode
 #**************************************************************************************************
 
+#TODOO: 'compile_function_body_bytecode' not used?
 def compile_function_body_bytecode(
     context: Context,
     type_parameters: Mapping[TypeVar_, TypeParameterIndex],

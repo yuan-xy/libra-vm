@@ -98,7 +98,7 @@ def parse_script_or_module(file_name: str, s: str) -> ast.ScriptOrModule:
     try:
         return syntax.parse_script_or_module_string(file_name, stripped_string)
     except ParseError as e:
-        handle_error(e, s) #TTODO: why not stripped_string instead of s
+        handle_error(e, s)
 
 
 # Given the raw input of a file, creates a `Script` struct

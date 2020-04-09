@@ -29,7 +29,7 @@ class AcquiresVerifier:
         module: CompiledModule,
         function_definition: FunctionDefinition,
     ) -> List[VMStatus]:
-        annotated_acquires = deepcopy(function_definition.acquires_global_resources)
+        annotated_acquires = function_definition.acquires_global_resources
 
         verifier = cls(
             module_view = ModuleView.new(module),

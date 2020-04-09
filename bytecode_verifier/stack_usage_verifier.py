@@ -45,6 +45,7 @@ class StackUsageVerifier:
         code = self.function_definition_view.code().code
         stack_size_increment = 0
         block_start = cfg.block_start(block_id)
+        assert block_start == block_id
         for i in range(block_start, cfg.block_end(block_id)+1):
             (num_pops, num_pushes) = self.instruction_effect(code[i])
             # Check that the stack height is sufficient to accomodate the number

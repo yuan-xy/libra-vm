@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from copy import deepcopy
 from enum import IntEnum
 from libra.rustlib import assert_true, flatten
+from move_core import JsonPrintable
+
 
 checked_assume = assert_true
 checked_postcondition = assert_true
@@ -14,8 +16,8 @@ checked_verify = assert_true
 # This module defines the (acyclic) borrow graph for the type and memory safety analysis.
 # A node in the borrow graph represents an abstract reference.  Each edge in the borrow graph
 # is labeled with a (possibly empty) sequence of label elements.  A label element is either a
-# field index or a local index or a class index.  An edge coming out of frame_root
-# (see abstract_state.rs) is labeled with a sequence beginning with a local or class index
+# field index or a local index or a struct index.  An edge coming out of frame_root
+# (see abstract_state.rs) is labeled with a sequence beginning with a local or struct index
 # followed by zero or more field indices.  An edge coming out of a node different from frame_root
 # is labeled by a sequence of zero or more field indices.
 
@@ -43,7 +45,7 @@ def starts_with(label1, label2):
 
 # A labeled edge in borrow graph
 @dataclass
-class Edge:
+class Edge(JsonPrintable):
     edge_type: EdgeType
     label: Label[Any]
     to: RefID
@@ -62,7 +64,7 @@ class Edge:
 # A borrow graph is represented as a map from a source id to the set of all edges
 # coming out of it.
 @dataclass
-class BorrowGraph:
+class BorrowGraph(JsonPrintable):
     v0: Mapping[RefID, Set[Edge]] #BTreeMap<RefID, BTreeSet<Edge<T>>>)
 
     # creates a new empty borrow graph
@@ -115,6 +117,9 @@ class BorrowGraph:
 
     # removes `id` and appropriately concatenates each incoming edge with each outgoing edge of `id`
     def remove(self, rid: RefID):
+        if self.v0.__len__() > 3:
+            print(self)
+            breakpoint()
         checked_assume(self.invariant())
         id_edge_set = self.v0.pop(rid)
 

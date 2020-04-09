@@ -3,7 +3,7 @@ from bytecode_verifier.absint import AbstractDomain, JoinResult
 from bytecode_verifier.borrow_graph import BorrowGraph
 from bytecode_verifier.ref_id import RefID
 from typing import List, Any, Optional, Mapping, Set, Union
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from copy import deepcopy
 from enum import IntEnum
 from vm.file_format import (
@@ -12,6 +12,7 @@ from vm.file_format import (
     )
 from vm.views import FunctionDefinitionView, ViewInternals
 from libra.rustlib import assert_true
+from move_core import JsonPrintable
 
 checked_assume = assert_true
 checked_postcondition = assert_true
@@ -22,7 +23,7 @@ checked_verify = assert_true
 # This module defines the abstract state for the type and memory safety analysis.
 
 @dataclass
-class TypedAbstractValue:
+class TypedAbstractValue(JsonPrintable):
     signature: SignatureToken
     value: AbstractValue
 
@@ -30,7 +31,7 @@ class TypedAbstractValue:
 # AbstractValue represents a value either on the evaluation stack or
 # in a local on a frame of the function stack.
 @dataclass
-class AbstractValue:
+class AbstractValue(JsonPrintable):
     tag: int
     value: Union[RefID, Kind]
 
@@ -91,7 +92,7 @@ class AbstractValue:
 
 # LabelElem is an element of a label on an edge in the borrow graph.
 @dataclass
-class LabelElem:
+class LabelElem(JsonPrintable):
     tag: int
     value: Union[LocalIndex, StructDefinitionIndex, FieldDefinitionIndex]
 
@@ -121,7 +122,7 @@ class LabelElem:
 
 # AbstractState is the analysis state over which abstract interpretation is performed.
 @dataclass
-class AbstractState:
+class AbstractState(JsonPrintable):
     locls: Mapping[LocalIndex, TypedAbstractValue]
     borrow_graph: BorrowGraph #<LabelElem>,
     num_locls: usize
@@ -164,7 +165,6 @@ class AbstractState:
             next_id,
         )
         new_state.borrow_graph.add(new_state.frame_root())
-        # assert new_state.num_locls == len(new_state.locls) #why not equal?
         return new_state
 
 
