@@ -446,15 +446,13 @@ def test_multi_level_cache_write_back():
     assert_equal(func2_ref.code_definition(), [Bytecode(Opcodes.RET)])
 
 
-def parse_and_compile_modules(s) -> List[CompiledModule]:
+def parse_and_compile_module(s, deps: List[CompiledModule] = []) -> CompiledModule:
     compiler = Compiler(
         Address.default(),
         True, #no_stdlib
-        [],
+        [VerifiedModule.bypass_verifier_DANGEROUS_FOR_TESTING_ONLY(m) for m in deps],
     )
-    (compiled_program, source_map, dependencies) = compiler\
-        .into_compiled_program_and_source_maps_deps('filename', s)
-    return compiled_program.modules
+    return compiler.into_compiled_module('filename', s)
 
 
 def test_same_module_struct_resolution():
@@ -466,9 +464,8 @@ module M1 {
     struct T { i: u64, x: Self.X }
 }
     """
-    modules = parse_and_compile_modules(code1)
-    for module in modules:
-        data_cache.set(module)
+    module = parse_and_compile_module(code1)
+    data_cache.set(module)
 
     ctx = SystemExecutionContext.new(data_cache, GasUnits.new(0))
 
@@ -497,23 +494,21 @@ module M1 {
 def test_multi_module_struct_resolution():
     vm_cache = VMModuleCache()
     data_cache = FakeDataCache()
-    code2 = """
-        modules:
+    code21 = """
         module M1 {
             struct X { b: bool }
         }
+    """
+    code22 = """
         module M2 {
             import 0x""" + Address.default().hex() + """.M1;
             struct T { i: u64, x: M1.X }
         }
-        script:
-        main() {
-            return;
-        }
     """
-    modules = parse_and_compile_modules(code2)
-    for module in modules:
-        data_cache.set(module)
+    module21 = parse_and_compile_module(code21)
+    data_cache.set(module21)
+    module22 = parse_and_compile_module(code22, [module21])
+    data_cache.set(module22)
 
     ctx = SystemExecutionContext.new(data_cache, GasUnits.new(0))
 
@@ -548,9 +543,8 @@ module M1 {
     struct T { i: u64, x: Self.X, y: u64 }
 }
     """
-    modules = parse_and_compile_modules(code3)
-    for module in modules:
-        data_cache.set(module)
+    module = parse_and_compile_module(code3)
+    data_cache.set(module)
 
     ctx = SystemExecutionContext.new(data_cache, GasUnits.new(0))
 
@@ -595,9 +589,8 @@ module Test {
     }
 }
     """
-    modules = parse_and_compile_modules(code4)
-    for module in modules:
-        data_cache.set(module)
+    module = parse_and_compile_module(code4)
+    data_cache.set(module)
 
     ctx = SystemExecutionContext.new(data_cache, GasUnits.new(0))
 

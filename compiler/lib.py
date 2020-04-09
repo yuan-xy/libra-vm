@@ -66,11 +66,8 @@ class Compiler:
         file_name: str,
         code: str,
     ) -> Tuple[CompiledModule, ModuleSourceMap, List[VerifiedModule]]:
-        parsed_program = parse_program(file_name, code)
+        module = parse_module(file_name, code)
         deps = self.deps()
-        modules = parsed_program.modules
-        assert_equal(modules.__len__(), 1, "Must have single module")
-        module = modules.pop()
         (compiled_module, source_map) = compile_module(self.address, module, deps)
         return (compiled_module, source_map, deps)
 

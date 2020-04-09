@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from libra.rustlib import bail, ensure, usize
 from canoser import Uint16
 from copy import deepcopy
+from move_core import JsonPrintable
 
 
 def get_or_add_item_macro(m, k_get, k_insert):
@@ -154,7 +155,7 @@ class MaterializedPools:
 # Specific definitions to CompiledModule or CompiledScript are not stored.
 # However, some fields, like struct_defs and fields, are not used in CompiledScript.
 @dataclass
-class Context:
+class Context(JsonPrintable):
     dependencies: Mapping[QualifiedModuleIdent, CompiledDependency]
 
     # helpers
@@ -312,7 +313,7 @@ class Context:
     # Get the module handle index for the alias, fails if it is not bound.
     def module_handle_index(self, module_name: ModuleName) -> ModuleHandleIndex:
         return ModuleHandleIndex(self.module_handles[self.module_handle(module_name)])
-        
+
 
     # Get the fake offset for the label. BlockLabels will be fixed to real offsets after compilation
     def label_index(self, label: BlockLabel) -> CodeOffset:

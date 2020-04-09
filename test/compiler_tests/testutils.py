@@ -1,7 +1,7 @@
 from __future__ import annotations
 from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
-from compiler.ir_to_bytecode.compiler import compile_module, compile_program
-from compiler.ir_to_bytecode.parser import parse_module, parse_program
+from compiler.ir_to_bytecode.compiler import compile_module, compile_script
+from compiler.ir_to_bytecode.parser import parse_module, parse_script
 from libra.account_address import Address
 from libra.vm_error import VMStatus
 from stdlib import stdlib_modules#, StdLibOptions
@@ -18,16 +18,16 @@ def compile_script_string_impl(
     code: str,
     deps: List[CompiledModule],
 ) -> CompiledScript:
-    parsed_program = parse_program("file_name", code)
-    compiled_program = compile_program(Address.default(), parsed_program, deps)[0]
+    parsed_program = parse_script("file_name", code)
+    compiled_script = compile_script(Address.default(), parsed_program, deps)[0]
 
-    serialized_script = compiled_program.script.serialize()
+    serialized_script = compiled_script.serialize()
     deserialized_script = CompiledScript.deserialize(serialized_script)
-    assert_equal(compiled_program.script, deserialized_script)
+    assert_equal(compiled_script, deserialized_script)
 
     # Always return a CompiledScript because some callers explicitly care about unverified
     # modules.
-    return VerifiedScript.new(compiled_program.script).into_inner()
+    return VerifiedScript.new(compiled_script).into_inner()
 
 
 def compile_script_string_and_assert_no_error(

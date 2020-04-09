@@ -2,11 +2,11 @@ from move_vm.types.native_functions.dispatch import *
 from move_vm.types.native_functions import NativeFunction
 
 from libra.language_storage import ModuleId, TypeTag
-from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
+from libra import AccountConfig, Address
 
 def test_native_function():
     assert len(NATIVE_FUNCTION_MAP) == 6
-    hashm = ModuleId(CORE_CODE_ADDRESS, "Hash")
+    hashm = ModuleId(AccountConfig.core_code_address_bytes(), "Hash")
     func_map = NATIVE_FUNCTION_MAP[hashm]
     assert len(func_map) == 2
     assert isinstance(func_map['sha2_256'], NativeFunction)
