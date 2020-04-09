@@ -65,6 +65,7 @@ def ir_testsuite(subdir: str, basedir: str = None):
             if(file.endswith(".mvir")):
                 fullname = join(root, file)
                 print(file)
+                # if file == "exp_in_if_and_else_branch.mvir":
                 run_testcase(fullname)
 
 

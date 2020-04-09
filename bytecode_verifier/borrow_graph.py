@@ -117,9 +117,9 @@ class BorrowGraph(JsonPrintable):
 
     # removes `id` and appropriately concatenates each incoming edge with each outgoing edge of `id`
     def remove(self, rid: RefID):
-        if self.v0.__len__() > 3:
-            print(self)
-            breakpoint()
+        # if self.v0.__len__() > 3:
+        #     print(self)
+        #     breakpoint()
         checked_assume(self.invariant())
         id_edge_set = self.v0.pop(rid)
 
