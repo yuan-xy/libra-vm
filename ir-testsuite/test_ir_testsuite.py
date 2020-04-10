@@ -7,12 +7,8 @@ from libra.account_address import Address
 from libra.rustlib import format_str
 from move_ir.types import ast
 from stdlib import stdlib_modules
-import os
-from os import listdir
-from os.path import isfile, join, abspath, dirname
 from dataclasses import dataclass
 from typing import List, Optional, Callable
-import pytest
 
 @dataclass
 class IRCompiler(Compiler):
