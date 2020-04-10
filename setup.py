@@ -19,8 +19,8 @@ with open("libra_vm/version.py", "r") as fp:
 
 install_requires=[
     'canoser>=0.8.2',
-    'libra-core>=0.8.2',
-    "pygraph",
+    'libra-core==0.8.4',
+    "python-graph-core",
     "dataclasses-json",
     "multiaddr",
 ]

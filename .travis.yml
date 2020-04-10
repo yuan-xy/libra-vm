@@ -22,3 +22,4 @@ install:
 script:
     - python setup.py install
     - python -m pytest test benchmarks functional_tests
+    - python -m pytest ir-testsuite
