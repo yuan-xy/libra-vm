@@ -25,7 +25,6 @@ def get_parser():
     parser.add_argument('-l', "--list-dependencies", action='store_true', default=False, help='Instead of compiling the source, emit a dependency list of the compiled source')
     parser.add_argument("--deps", dest='deps_path', help='Path to the list of modules that we want to link with')
     parser.add_argument("--src-map", dest='output_source_maps', action='store_true', default=False)
-    parser.add_argument("--json", action='store_true', default=False, help='bytecode file format is json(default is binary)')
     parser.add_argument('source_path', nargs=1, help='Path to the Move IR source to compile')
     return parser
 
@@ -115,11 +114,7 @@ def main():
             path.write_text(source_map_bytes)
 
         script = compiled_script.serialize()
-        if args.json:
-            payload = Script(script, [])
-            Path(source_path).with_suffix(mv_extension).write_text(payload.to_json())
-        else:
-            Path(source_path).with_suffix(mv_extension).write_bytes(script)
+        Path(source_path).with_suffix(mv_extension).write_bytes(script)
     else:
         (compiled_module, source_map) =\
             util.do_compile_module(source_path, address, deps)
@@ -132,11 +127,7 @@ def main():
             Path(source_path).with_suffix(source_map_extension).write_text(source_map_bytes)
 
         module = compiled_module.serialize()
-        if args.json:
-            payload = Module(module)
-            Path(source_path).with_suffix(mv_extension).write_text(payload.to_json())
-        else:
-            Path(source_path).with_suffix(mv_extension).write_bytes(module)
+        Path(source_path).with_suffix(mv_extension).write_bytes(module)
 
 
 if __name__ == '__main__':
