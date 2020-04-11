@@ -44,6 +44,8 @@ class Transaction(JsonPrintable):
             bail("unreachable!")
 
 
+
+
 # Commands that drives the operation of LibraVM. Such as:
 # 1. Execute user transaction
 # 2. Publish a new block metadata
@@ -51,13 +53,16 @@ class Transaction(JsonPrintable):
 # In the future we will add more commands to mimic the full public API of LibraVM,
 # including reloading the on-chain configuration that will affect the code path for LibraVM,
 # cleaning the cache in the LibraVM, etc.
-@dataclass
-class Command(JsonPrintable):
-    tag: int
-    value: Union[Transaction, BlockMetadata]
-
+class CommandTag(IntEnum):
     vTransaction = 1
     vBlockMetadata = 2
+
+
+@dataclass
+class Command(JsonPrintable):
+    tag: CommandTag
+    value: Union[Transaction, BlockMetadata]
+
 
 
 # Evaluation status: success or failure.
@@ -398,10 +403,6 @@ def eval_transaction(
     transaction: Transaction,
     log: EvaluationLog,
 ) -> Status:
-    # Unwrap the given results. Upon failure, logs the error and aborts.
-    def unwrap_or_abort(res):
-        return res
-
     sender_addr = transaction.config.sender.address()
 
     # Start processing a new transaction.
@@ -415,7 +416,7 @@ def eval_transaction(
     compiler_log = lambda s: log.append(EvaluationOutput.Output(OutputType.CompilerLog(s)))
     try:
         parsed_script_or_module =\
-            unwrap_or_abort(compiler.compile(compiler_log, sender_addr, transaction.ins))
+            compiler.compile(compiler_log, sender_addr, transaction.ins)
     except Exception as err:
         traceback.print_exc()
         log.append(EvaluationOutput.Error(err))
@@ -455,7 +456,7 @@ def eval_transaction(
         if not transaction.config.is_stage_disabled(Stage.Serializer):
             log.append(EvaluationOutput.Stage(Stage.Serializer))
             try:
-                unwrap_or_abort(serialize_and_deserialize_script(compiled_script))
+                serialize_and_deserialize_script(compiled_script)
             except ErrorKind as kind:
                 log.append(EvaluationOutput.Error(kind.value))
                 return Status.Failure
@@ -469,7 +470,7 @@ def eval_transaction(
             make_script_transaction(fexec, transaction.config, compiled_script)
 
         try:
-            txn_output = unwrap_or_abort(run_transaction(fexec, script_transaction))
+            txn_output = run_transaction(fexec, script_transaction)
         except Exception as err:
             traceback.print_exc()
             log.append(EvaluationOutput.Error(err))
@@ -505,7 +506,7 @@ def eval_transaction(
         # stage 3: serializer round trip
         if not transaction.config.is_stage_disabled(Stage.Serializer):
             log.append(EvaluationOutput.Stage(Stage.Serializer))
-            unwrap_or_abort(serialize_and_deserialize_module(compiled_module))
+            serialize_and_deserialize_module(compiled_module)
 
         # stage 4: publish the module
         if transaction.config.is_stage_disabled(Stage.Runtime):
@@ -516,7 +517,7 @@ def eval_transaction(
             make_module_transaction(fexec, transaction.config, compiled_module)
 
         try:
-            txn_output = unwrap_or_abort(run_transaction(fexec, module_transaction))
+            txn_output = run_transaction(fexec, module_transaction)
         except Exception as err:
             traceback.print_exc()
             log.append(EvaluationOutput.Error(err))
@@ -577,11 +578,11 @@ def eeval(
 
 
     for (idx, command) in enumerate(commands):
-        if command.tag == Command.vTransaction:
+        if command.tag == CommandTag.vTransaction:
             transaction = command.value
             status = eval_transaction(compiler, fexec, idx, transaction, log)
             log.append(EvaluationOutput.Status(status))
-        elif command.tag == Command.vBlockMetadata:
+        elif command.tag == CommandTag.vBlockMetadata:
             block_metadata = command.value
             status = eval_block_metadata(fexec, block_metadata, log)
             log.append(EvaluationOutput.Status(status))

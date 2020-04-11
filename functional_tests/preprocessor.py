@@ -9,9 +9,10 @@ from functional_tests.config.transaction import Config as TransactionConfig
 from functional_tests.config.transaction import Entry as TransactionConfigEntry
 from functional_tests.config.transaction import is_new_transaction
 from functional_tests.errors import *
-from functional_tests.evaluator import Command, Transaction
+from functional_tests.evaluator import Command, CommandTag, Transaction
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
+from move_core import JsonPrintable
 import re
 
 PAT = re.compile(r"\{\{([A-Za-z][A-Za-z0-9]*)\}\}")
@@ -28,22 +29,23 @@ def substitute_addresses(config: GlobalConfig, text: str) -> str:
 
 
 @dataclass
-class RawTransactionInput:
+class RawTransactionInput(JsonPrintable):
     config_entries: List[TransactionConfigEntry]
     text: List[str]
 
 
-@dataclass
-class RawCommand:
-    tag: int
-    value: Union[RawTransactionInput, List[BlockEntry]]
-
+class RawCommandTag(IntEnum):
     vTransaction = 1
     vBlockMetadata = 2
 
+@dataclass
+class RawCommand(JsonPrintable):
+    tag: RawCommandTag
+    value: Union[RawTransactionInput, List[BlockEntry]]
+
 
 def is_empty_command(cmd: RawCommand) -> bool:
-    if cmd.tag == RawCommand.vTransaction:
+    if cmd.tag == RawCommandTag.vTransaction:
         txn = cmd.value
         return not txn.text and not txn.config_entries
     else:
@@ -62,9 +64,9 @@ def check_raw_transaction(txn: RawTransactionInput) -> None:
 
 
 def check_raw_command(cmd: RawCommand) -> None:
-    if cmd.tag == RawCommand.vTransaction:
+    if cmd.tag == RawCommandTag.vTransaction:
         check_raw_transaction(cmd.value)
-    elif cmd.tag == RawCommand.vBlockMetadata:
+    elif cmd.tag == RawCommandTag.vBlockMetadata:
         entries = cmd.value
         if entries.__len__() < 2:
             raise ErrorKind.Other("block prologue doesn't have enough arguments")
@@ -72,13 +74,13 @@ def check_raw_command(cmd: RawCommand) -> None:
 
 def new_command(ins: str) -> Optional[RawCommand]:
     if is_new_transaction(ins):
-        return RawCommand(RawCommand.vTransaction, RawTransactionInput(
+        return RawCommand(RawCommandTag.vTransaction, RawTransactionInput(
             config_entries= [],
             text= [],
         ))
 
     if is_new_block(ins):
-        return RawCommand(RawCommand.vBlockMetadata, [])
+        return RawCommand(RawCommandTag.vBlockMetadata, [])
 
     return None
 
@@ -97,7 +99,7 @@ def split_input(
     commands = []
     first_transaction = True
 
-    command = RawCommand(RawCommand.vTransaction, RawTransactionInput(
+    command = RawCommand(RawCommandTag.vTransaction, RawTransactionInput(
         config_entries= [],
         text= [],
     ))
@@ -126,7 +128,7 @@ def split_input(
             directives.extend([sp.into_line_sp(line_idx) for sp in dirs])
             continue
 
-        if command.tag == RawCommand.vTransaction:
+        if command.tag == RawCommandTag.vTransaction:
             txn = command.value
             entry = TransactionConfigEntry.try_parse(line)
             if entry:
@@ -138,7 +140,7 @@ def split_input(
                 txn.text.append(line)
                 continue
 
-        elif command.tag == RawCommand.vBlockMetadata:
+        elif command.tag == RawCommandTag.vBlockMetadata:
             entries = command.value
             entry = BlockEntry.try_parse(line)
             if entry:
@@ -157,14 +159,14 @@ def build_transactions(
 ) -> List[Command]:
 
     def lambda0(command_input):
-        if command_input.tag == RawCommand.vTransaction:
+        if command_input.tag == RawCommandTag.vTransaction:
             txn_input = command_input.value
-            return Command(Command.vTransaction, Transaction(
+            return Command(CommandTag.vTransaction, Transaction(
                 TransactionConfig.build(config, txn_input.config_entries),
                 substitute_addresses(config, "\n".join(txn_input.text)),
             ))
-        elif command_input.tag == RawCommand.vBlockMetadata:
-            return Command(Command.vBlockMetadata, build_block_metadata(
+        elif command_input.tag == RawCommandTag.vBlockMetadata:
+            return Command(CommandTag.vBlockMetadata, build_block_metadata(
                             config, command_input.value,
                         ))
         else:
