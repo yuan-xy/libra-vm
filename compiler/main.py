@@ -4,10 +4,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from pathlib import Path
 from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
 from bytecode_verifier.verifier import verify_module_dependencies
-# from compiler.bytecode_source_map.source_map import ModuleSourceMap
-from compiler.lib import Compiler
-from compiler import util
-from compiler.ir_to_bytecode.parser import parse_module, parse_script
+from compiler.ir_to_bytecode.compiler import compile_module, compile_script
+from compiler.ir_to_bytecode.parser import parse_script_or_module
+from move_ir.types import ast
 from libra import AccessPath, Address
 from libra.transaction import Script, Module
 from libra.vm_error import VMStatus
@@ -18,7 +17,6 @@ from typing import List, Tuple
 
 def get_parser():
     parser = argparse.ArgumentParser(prog='IR Compiler', add_help=True)
-    parser.add_argument('-m', "--module", dest='module_input', action='store_true', default=False, help='Treat input file as a module (default is to treat file as a program)')
     parser.add_argument('-a', "--address", help='Account address used for publishing')
     parser.add_argument("--no-stdlib", action='store_true', default=False, help='Do not automatically compile stdlib dependencies')
     parser.add_argument("--no-verify", action='store_true', default=False, help='Do not automatically run the bytecode verifier')
@@ -70,23 +68,17 @@ def main():
         print("File extension for input source file should be '{mvir_extension}'")
         sys.exit(1)
 
-    file_name = args.source_path[0]
+    source = Path(source_path).read_text()
+    sorm = parse_script_or_module(source_path, source)
 
     if args.list_dependencies:
-        source = util.read_to_string(source_path)
-        if args.module_input:
-            module = parse_module(file_name, source)
-            dependency_list = module.get_external_deps()
-        else:
-            script = parse_script(file_name, source)
-            dependency_list = script.get_external_deps()
-
+        dependency_list = sorm.value.get_external_deps()
         dependency_list = [AccessPath.code_access_path(m) for m in dependency_list]
         print(dependency_list)
         return
 
     if args.deps_path is not None:
-        deps = util.read_to_string(args.deps_path)
+        deps = Path(args.deps_path).read_text()
         deps_list: List[bytes] = json.load(deps) #TTODO: parse deps
         deps = [VerifiedModule.new(CompiledModule.deserialize(x)) for x in deps_list]
     elif args.no_stdlib:
@@ -94,41 +86,27 @@ def main():
     else:
         deps = stdlib_modules()
 
-    if not args.module_input:
-        source = util.read_to_string(source_path)
-        compiler = Compiler(
-            address,
-            args.no_stdlib,
-            deps,
-        )
-        (compiled_script, source_map) = compiler\
-            .into_compiled_script_and_source_map(file_name, source)
-
+    if sorm.tag == ast.ScriptOrModule.SCRIPT:
+        parsed_script = sorm.value
+        compiled_script, source_map = compile_script(address, parsed_script, deps)
         if not args.no_verify:
             verified_script = VerifiedScript.new(compiled_script)
-            compiled_script = verified_script.into_inner()
+            compiled_sorm = verified_script.into_inner()
 
-        if args.output_source_maps:
-            source_map_bytes = source_map.to_json()
-            path = Path(source_path).with_suffix(source_map_extension)
-            path.write_text(source_map_bytes)
-
-        script = compiled_script.serialize()
-        Path(source_path).with_suffix(mv_extension).write_bytes(script)
-    else:
-        (compiled_module, source_map) =\
-            util.do_compile_module(source_path, address, deps)
+    elif sorm.tag == ast.ScriptOrModule.MODULE:
+        parsed_module = sorm.value
+        compiled_module, source_map = compile_module(address, parsed_module, deps)
         if not args.no_verify:
             verified_module = do_verify_module(compiled_module, deps)
-            compiled_module = verified_module.into_inner()
+            compiled_sorm = verified_module.into_inner()
 
-        if args.output_source_maps:
-            source_map_bytes = source_map.to_json()
-            Path(source_path).with_suffix(source_map_extension).write_text(source_map_bytes)
+    if args.output_source_maps:
+        source_map_bytes = source_map.to_json()
+        path = Path(source_path).with_suffix(source_map_extension)
+        path.write_text(source_map_bytes)
 
-        module = compiled_module.serialize()
-        Path(source_path).with_suffix(mv_extension).write_bytes(module)
-
+    bytes = compiled_sorm.serialize()
+    Path(source_path).with_suffix(mv_extension).write_bytes(bytes)
 
 if __name__ == '__main__':
     main()

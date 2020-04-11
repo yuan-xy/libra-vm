@@ -18,7 +18,6 @@ def get_parser():
     parser.add_argument("--skip-code", action='store_true', default=False, help='Do not print the disassembled bytecodes of each function')
     parser.add_argument("--skip-locals", action='store_true', default=False, help='Do not print locals of each function')
     parser.add_argument("--skip-basic-blocks", action='store_true', default=False, help='Do not print the basic blocks of each function')
-    parser.add_argument("--json", action='store_true', default=False, help='bytecode file format is json(default is binary)')
     parser.add_argument('-b', '--bytecode', nargs=1, help='The path to the bytecode file')
     return parser
 
@@ -40,12 +39,7 @@ def main():
         print(f"File extension for input file should be '{mv_bytecode_extension}'")
         sys.exit(1)
 
-    if args.json:
-        jstr = Path(bytecode_file_path).read_text()
-        bytecode_bytes = json.loads(jstr)["code"]
-    else:
-        bytecode_bytes = Path(bytecode_file_path).read_bytes()
-
+    bytecode_bytes = Path(bytecode_file_path).read_bytes()
     source_path = Path(bytecode_file_path).with_suffix(move_extension)
     if source_path.exists():
         source = source_path.read_text()

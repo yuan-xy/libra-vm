@@ -267,7 +267,6 @@ def build_module_tables(
     module: CompiledModuleMut,
 ):
     for table in tables:
-        pass
         if table.kind == TableType.STRUCT_DEFS:
             load_struct_defs(binary, table, module.struct_defs)
         elif table.kind == TableType.FIELD_DEFS:
@@ -275,7 +274,8 @@ def build_module_tables(
         elif table.kind == TableType.FUNCTION_DEFS:
             load_function_defs(binary, table, module.function_defs)
         elif table.kind == TableType.MAIN:
-            raise VMException(VMStatus(StatusCode.MALFORMED))
+            raise VMException(VMStatus(StatusCode.MALFORMED).with_message(
+                "Module doesn't have main function."))
         elif table.kind in [TableType.MODULE_HANDLES, TableType.STRUCT_HANDLES, \
             TableType.FUNCTION_HANDLES, TableType.ADDRESS_POOL, \
             TableType.IDENTIFIERS, TableType.BYTE_ARRAY_POOL, \
