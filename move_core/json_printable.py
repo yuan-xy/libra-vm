@@ -37,6 +37,8 @@ class JsonPrintable:
         else:
             return obj.__str__()
 
+    def str(self):
+        return self.__class__.__qualname__ + self.to_json(indent=4)
 
     def __str__(self):
         return self.__class__.__qualname__ + self.to_json(indent=4)

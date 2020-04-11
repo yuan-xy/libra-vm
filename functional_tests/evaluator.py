@@ -26,12 +26,13 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union
 from enum import IntEnum
 from canoser import Uint64
+from move_core import JsonPrintable
 import traceback
 
 # A transaction to be evaluated by the testing infra.
 # Contains code and a transaction config.
 @dataclass
-class Transaction:
+class Transaction(JsonPrintable):
     config: TransactionConfig
     ins: str
 
@@ -51,7 +52,7 @@ class Transaction:
 # including reloading the on-chain configuration that will affect the code path for LibraVM,
 # cleaning the cache in the LibraVM, etc.
 @dataclass
-class Command:
+class Command(JsonPrintable):
     tag: int
     value: Union[Transaction, BlockMetadata]
 
@@ -66,7 +67,7 @@ class Status(IntEnum):
 
 
 @dataclass
-class OutputType:
+class OutputType(JsonPrintable):
     tag: int
     value: Any
 
@@ -99,53 +100,54 @@ class OutputType:
 
 TransactionId = usize
 
-# An entry in the `EvaluationLog`.
-@dataclass
-class EvaluationOutput:
-    tag: int
-    value: Any
-
-    vTransaction = 1 #(TransactionId),
+class EvaluationOutputTag(IntEnum):
+    vTransactionID = 1 #(TransactionId),
     vStage       = 2 #(Stage),
     vOutput      = 3 #(OutputType),
     vError       = 4 #(Box<Error>),
     vStatus      = 5 #(Status),
 
+# An entry in the `EvaluationLog`.
+@dataclass
+class EvaluationOutput(JsonPrintable):
+    tag: EvaluationOutputTag
+    value: Any
+
     @classmethod
     def Transaction(cls, v):
-        return cls(cls.vTransaction, v)
+        return cls(EvaluationOutputTag.vTransactionID, v)
 
     @classmethod
     def Stage(cls, v):
-        return cls(cls.vStage, v)
+        return cls(EvaluationOutputTag.vStage, v)
 
     @classmethod
     def Output(cls, v):
-        return cls(cls.vOutput, v)
+        return cls(EvaluationOutputTag.vOutput, v)
 
     @classmethod
     def Error(cls, v):
-        return cls(cls.vError, v)
+        return cls(EvaluationOutputTag.vError, v)
 
     @classmethod
     def Status(cls, v):
-        return cls(cls.vStatus, v)
+        return cls(EvaluationOutputTag.vStatus, v)
 
 
     def is_error(self) -> bool:
-        return self.tag == EvaluationOutput.vError
+        return self.tag == EvaluationOutputTag.vError
 
 
     def __str__(self) -> str:
-        if self.tag == EvaluationOutput.vTransaction:
+        if self.tag == EvaluationOutputTag.vTransactionID:
             return format_str("Transaction {}", self.value)
-        elif self.tag == EvaluationOutput.vStage:
+        elif self.tag == EvaluationOutputTag.vStage:
             return format_str("Stage: {}", self.value)
-        elif self.tag == EvaluationOutput.vOutput:
+        elif self.tag == EvaluationOutputTag.vOutput:
             return self.value.value.__str__()
-        elif self.tag == EvaluationOutput.vError:
+        elif self.tag == EvaluationOutputTag.vError:
             return format_str("Error: {}", self.value)
-        elif self.tag == EvaluationOutput.vStatus:
+        elif self.tag == EvaluationOutputTag.vStatus:
             return self.value.__str__()
         else:
             bail("unreachable!")
@@ -155,15 +157,8 @@ class EvaluationOutput:
 # A log consisting of outputs from all stages and the final status.
 # This is checked against the directives.
 @dataclass
-class EvaluationLog:
+class EvaluationLog(JsonPrintable):
     outputs: List[EvaluationOutput] = field(default_factory=list)
-
-    def __str__(self) -> str:
-        ret = ""
-        for i, output in enumerate(self.outputs):
-            ret += format_str("[{}] {}", i, output)
-        return ret
-
 
     def get_failed_transactions(self) -> List[Tuple[usize, Stage]]:
         res = []
@@ -171,11 +166,11 @@ class EvaluationLog:
         last_stage = None
 
         for output in self.outputs:
-            if output.tag == EvaluationOutput.vTransaction:
+            if output.tag == EvaluationOutputTag.vTransactionID:
                 last_txn = output.value
-            elif output.tag == EvaluationOutput.vStage:
+            elif output.tag == EvaluationOutputTag.vStage:
                 last_stage = output.value
-            elif output.tag == EvaluationOutput.vStatus:
+            elif output.tag == EvaluationOutputTag.vStatus:
                 if output.value == Status.Failure:
                     if last_txn and last_stage:
                         res.append((last_txn, last_stage))
@@ -406,13 +401,6 @@ def eval_transaction(
     # Unwrap the given results. Upon failure, logs the error and aborts.
     def unwrap_or_abort(res):
         return res
-        # ($res: expr) => {{
-        #     match $res {
-        #         Ok(r) => r,
-        #         Err(e) => {
-        #             log.append(EvaluationOutput.Error(Box.new(e)))
-        #             return Ok(Status.Failure)
-
 
     sender_addr = transaction.config.sender.address()
 

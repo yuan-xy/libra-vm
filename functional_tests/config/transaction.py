@@ -10,11 +10,11 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union
 from enum import Enum
 from canoser import Uint64
-
+from move_core import JsonPrintable
 
 # A partially parsed transaction argument.
 @dataclass
-class Argument:
+class Argument(JsonPrintable):
     tag: int
     value: Union[str, TransactionArgument]
 
@@ -39,7 +39,7 @@ class Argument:
 
 # A raw entry extracted from the input. Used to build a transaction config table.
 @dataclass
-class Entry:
+class Entry(JsonPrintable):
     tag: int
     value: Any
 
@@ -112,7 +112,7 @@ def is_new_transaction(s: str) -> bool:
 # A table of options specific to one transaction, fine tweaking how the transaction
 # is handled by the testing infra.
 @dataclass
-class Config:
+class Config(JsonPrintable):
     disabled_stages: Set[Stage] #btreeset
     sender: Account
     args: List[TransactionArgument]

@@ -10,10 +10,11 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union
 from enum import Enum
 from canoser import Uint64
+from move_core import JsonPrintable
 
 
 @dataclass
-class Entry:
+class Entry(JsonPrintable):
     tag: int
     value: Union[str, Uint64]
 

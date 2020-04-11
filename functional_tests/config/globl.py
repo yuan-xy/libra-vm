@@ -12,6 +12,7 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
 from enum import Enum
 from canoser import Uint64
+from move_core import JsonPrintable
 
 # The config holds the options that define the testing environment.
 # A config entry starts with "#", differentiating it from a directive.
@@ -35,7 +36,7 @@ class Role(Enum):
 
 # Struct that specifies the initial setup of an account.
 @dataclass
-class AccountDefinition:
+class AccountDefinition(JsonPrintable):
     # Name of the account. The name is case insensitive.
     name: String
     # The initial balance of the account.
@@ -50,7 +51,7 @@ class AccountDefinition:
 
 # A raw entry extracted from the input. Used to build the global config table.
 @dataclass
-class Entry:
+class Entry(JsonPrintable):
     # Defines an account that can be used in tests.
     accountDefinition: AccountDefinition
 
@@ -112,7 +113,7 @@ class Entry:
 
 # A table of options either shared by all transactions or used to define the testing environment.
 @dataclass
-class Config:
+class Config(JsonPrintable):
     # A map from account names to account data
     accounts: Mapping[str, AccountData] #BTreeMap
     genesis_accounts: Mapping[str, Account]

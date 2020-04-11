@@ -29,4 +29,5 @@ class Compiler(abc.ABC):
 class ScriptOrModule:
     script:CompiledScript = None
     module:CompiledModule = None
+    source_map: ModuleSourceMap = None
 

@@ -21,20 +21,21 @@ class IRCompiler(Compiler):
         address: Address,
         ins: str,
     ) -> ScriptOrModule:
-        sorm = parse_script_or_module('<file_path>', ins)
+        sorm = parse_script_or_module("unused_file_name", ins)
         if sorm.tag == ast.ScriptOrModule.SCRIPT:
             parsed_script = sorm.value
             log(format_str("{}", parsed_script))
-            return ScriptOrModule(script=compile_script(address, parsed_script, self.deps)[0])
+            script, source_map = compile_script(address, parsed_script, self.deps)
+            return ScriptOrModule(script=script, source_map=source_map)
 
         elif sorm.tag == ast.ScriptOrModule.MODULE:
             parsed_module = sorm.value
             log(format_str("{}", parsed_module))
-            module = compile_module(address, parsed_module, self.deps)[0]
+            module, source_map = compile_module(address, parsed_module, self.deps)
             verified = \
                 VerifiedModule.bypass_verifier_DANGEROUS_FOR_TESTING_ONLY(module)
             self.deps.append(verified)
-            return ScriptOrModule(module=module)
+            return ScriptOrModule(module=module, source_map=source_map)
 
 
     def stdlib(self) -> Optional[List[VerifiedModule]]:

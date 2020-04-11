@@ -1,5 +1,6 @@
 rm -rf ./ir-testsuite/tests/*
 cp -rf ../libra/language/ir-testsuite/tests/* ./ir-testsuite/tests/
+rm ./ir-testsuite/tests/testsuite.rs
 
 rpl "check: EventKey" "noCheck: EventKey" ./ir-testsuite/tests/block/block_prologue.mvir
 rpl "check: events" "noCheck: events" ./ir-testsuite/tests/discovery/reconfiguration_via_network_address_rotation.mvir

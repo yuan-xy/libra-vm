@@ -6,6 +6,7 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
 from enum import Enum, IntEnum
 from canoser import Uint64
+from move_core import JsonPrintable
 
 # This module implements a matcher that checks if an evaluation log matches the
 # patterns specified by a list of directives.
@@ -28,7 +29,7 @@ from canoser import Uint64
 #     #         check: 3
 #     #     group 2:
 #     #         not: 4
-#     #         check: 5
+#     #         check: bar
 #     #     group 3:
 #     #         not: 6
 #
@@ -38,7 +39,7 @@ from canoser import Uint64
 #
 #     # [1] abc de
 #     # [2] foo 3
-#     # [3] 5 bar 6
+#     # [3] bar 6
 #     # [4] 7
 #
 # For each group, we find the earliest place in the current entry where any of the
@@ -54,11 +55,11 @@ from canoser import Uint64
 #     # [2] foo 3
 #     #         ^
 #     #         check: 3
-#     # [3] 5 bar 6
-#     #       ^^^ ^
-#     #       |   not 6
-#     #       check: bar
-#     # [5] 7
+#     # [3] bar 6
+#     #     ^^^ ^
+#     #     |   not 6
+#     #     check: bar
+#     # [4] 7
 #
 # Note: the group matching procedure above requires searching for multiple string patterns
 # simultatenously. Right now this is implemented using the Aho-Corasick algorithm, achieving
@@ -75,7 +76,7 @@ from canoser import Uint64
 
 # A single match consisting of the index of the log entry, the start location and the end location (in bytes).
 @dataclass
-class Match:
+class Match(JsonPrintable):
     pat_id: usize
     entry_id: usize
     start: usize
@@ -89,7 +90,7 @@ class METag(IntEnum):
 
 # A match error.
 @dataclass
-class MatchError:
+class MatchError(JsonPrintable):
     tag: METag
     value: Any
 
@@ -106,37 +107,41 @@ class MatchError:
     def UnmatchedErrors(cls, v):
         return cls(METag.vUnmatchedErrors, v)
 
-# The status of a match.
-# Can be either success or failure with errors.
-@dataclass
-class MatchStatus:
-    tag: int
-    value: List[MatchError]
 
+class MatchStatusTag(IntEnum):
     vSuccess = 1
     vFailure = 2
 
+# The status of a match.
+# Can be either success or failure with errors.
+@dataclass
+class MatchStatus(JsonPrintable):
+    tag: MatchStatusTag
+    value: List[MatchError]
+
+
+
     @classmethod
     def Success(cls):
-        return cls(cls.vSuccess, None)
+        return cls(MatchStatusTag.vSuccess, None)
 
     @classmethod
     def Failure(cls, v):
-        return cls(cls.vFailure, v)
+        return cls(MatchStatusTag.vFailure, v)
 
 
 
     def is_success(self) -> bool:
-        return self.tag == MatchStatus.vSuccess
+        return self.tag == MatchStatusTag.vSuccess
 
 
     def is_failure(self) -> bool:
-        return self.tag == MatchStatus.vFailure
+        return self.tag == MatchStatusTag.vFailure
 
 
 # The result of matching the directives against the evaluation log.
 @dataclass
-class MatchResult:
+class MatchResult(JsonPrintable):
     status: MatchStatus
     text: List[str]
     matches: List[Match]

@@ -56,7 +56,7 @@ def functional_tests(
     log = eeval(config, compiler, commands)
     res = match_output(log, directives)
 
-    if res.status.tag == MatchStatus.vSuccess:
+    if res.status.is_success():
         return
     else:
         # print(log.outputs[-2])
