@@ -219,7 +219,7 @@ def fetch_dependencies(
     try:
         return flatten([fetch_dependency(fexec, ident) for ident in idents])
     except Exception as err:
-        raise VerifyException(VMStatus(StatusCode.MISSING_DEPENDENCY), None)
+        raise VerifyException(VMStatus(StatusCode.MISSING_DEPENDENCY).with_message(err.__str__()), None)
 
 
 def fetch_dependency(fexec: FakeExecutor, ident: ModuleId) -> Optional[VerifiedModule]:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from canoser import DelegateT
+from libra.rustlib import bail
 import re
 
 # An identifier is the name of an entity (module, resource, function, etc) in Move.
@@ -28,6 +29,9 @@ import re
 #
 # For now this is deliberately restrictive -- we would like to evolve this in the future.
 # TODO: "<SELF>" is coded as an exception. It should be removed once CompiledScript goes away.
+
+char = str
+
 def is_valid(s: str) -> bool:
     def is_first_char(ch: char) -> bool:
         od = ord(ch)

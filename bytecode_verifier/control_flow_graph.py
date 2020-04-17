@@ -4,6 +4,7 @@ from vm.file_format import Bytecode, CodeOffset
 from typing import List, Set, Mapping, Iterable, Optional
 from libra.rustlib import assert_equal, bail
 from dataclasses import dataclass
+from canoser import Uint16
 import abc
 
 BlockId = CodeOffset

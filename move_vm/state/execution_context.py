@@ -14,7 +14,8 @@ from move_vm.types.values import GlobalValue, Value
 from vm import VMException
 from vm.transaction_metadata import TransactionMetadata
 from vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
-from typing import List, Optional, Mapping
+from typing import List, Optional, Mapping, Tuple
+from canoser import Uint64
 from dataclasses import dataclass
 import abc
 

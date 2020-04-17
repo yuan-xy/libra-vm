@@ -58,7 +58,7 @@ def main():
     if not address:
         address = Address.default()
     else:
-        address = bytes.fromhex(address)
+        address = Address.normalize_to_bytes(address)
 
     source_path = args.source_path[0]
     mvir_extension = ".mvir"
@@ -79,7 +79,7 @@ def main():
 
     if args.deps_path is not None:
         deps = Path(args.deps_path).read_text()
-        deps_list: List[bytes] = json.load(deps) #TTODO: parse deps
+        deps_list = json.load(deps) #TTODO: parse deps: List[bytes]
         deps = [VerifiedModule.new(CompiledModule.deserialize(x)) for x in deps_list]
     elif args.no_stdlib:
         deps = []

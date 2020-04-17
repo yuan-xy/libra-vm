@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from libra.rustlib import usize
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Callable
 
 # Wrapper of an inner object with start and end source locations.
 @dataclass

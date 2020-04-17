@@ -1,6 +1,6 @@
 from __future__ import annotations
 from bytecode_verifier.ref_id import RefID
-from typing import List, Any, Optional, Mapping, Set
+from typing import List, Any, Optional, Mapping, Set, Callable, Tuple
 from dataclasses import dataclass
 from copy import deepcopy
 from enum import IntEnum

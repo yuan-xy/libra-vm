@@ -5,11 +5,12 @@ from libra.language_storage import ModuleId
 from libra.transaction import TransactionOutput, TransactionStatus
 from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet
+from libra.rustlib import bail
 from move_vm.types.loaded_data import StructDef, Type
 from move_vm.types.values import GlobalValue, Value
 from vm.transaction_metadata import TransactionMetadata
 from vm.gas_schedule import GasAlgebra, GasCarrier, GasUnits
-from typing import List, Optional, Mapping
+from typing import List, Optional, Mapping, Tuple
 import abc
 
 

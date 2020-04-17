@@ -1,20 +1,24 @@
 from __future__ import annotations
-from move_vm.types.native_functions import pop_arg, native_gas, NativeResult
-from move_vm.types.native_functions.primitive_helpers import check_arg_number
-from move_vm.types.values import Value
-from vm.vm_exception import VMException, VMExceptionBase
-from vm.gas_schedule import CostTable, NativeCostIndex, GasUnits
-from libra.crypto.ed25519 import ED25519_SIGNATURE_LENGTH
+
+import traceback
+from dataclasses import dataclass
+from typing import List, Mapping, Optional, Tuple
+
+from canoser import Uint32, Uint64
+from libra.crypto.ed25519 import (ED25519_SIGNATURE_LENGTH, Ed25519PublicKey,
+                                  Ed25519Signature)
 from libra.hasher import HashValue, new_sha3_256
 from libra.language_storage import TypeTag
+from libra.rustlib import flatten, usize
 from libra.vm_error import StatusCode, VMStatus
-from canoser import Uint64, Uint32
-from libra.rustlib import usize, flatten
-from typing import List, Tuple, Optional, Mapping
+from nacl.exceptions import BadSignatureError
 from nacl.signing import VerifyKey
-from dataclasses import dataclass
-import nacl
-import traceback
+
+from move_vm.types.native_functions import NativeResult, native_gas, pop_arg
+from move_vm.types.native_functions.primitive_helpers import check_arg_number
+from move_vm.types.values import Value
+from vm.gas_schedule import CostTable, GasUnits, NativeCostIndex
+from vm.vm_exception import VMException, VMExceptionBase
 
 BITMAP_SIZE: usize = 32
 
@@ -60,13 +64,14 @@ def native_ed25519_signature_verification(
         pk = VerifyKey(bytes(pubkey))
     except Exception as err:
         traceback.print_exc()
-        status = VMStatus(StatusCode.NATIVE_FUNCTION_ERROR).with_sub_status(DEFAULT_ERROR_CODE)
+        status = VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\
+            .with_sub_status(DEFAULT_ERROR_CODE).with_message(err.__str__())
         return NativeResult.err(cost, status)
 
     try:
         pk.verify(bytes(msg), sig)
         bool_value = True
-    except nacl.exceptions.BadSignatureError:
+    except BadSignatureError:
         bool_value = False
 
     return_values = [Value.bool(bool_value)]
@@ -131,7 +136,7 @@ def ed25519_threshold_signature_verification(
             pk.verify(message, sig)
 
         return NativeResult.ok(cost, [Value.Uint64(num_of_sigs)])
-    except nacl.exceptions.BadSignatureError:
+    except BadSignatureError:
         return NativeResult.err(
             cost,
             VMStatus(StatusCode.NATIVE_FUNCTION_ERROR)\

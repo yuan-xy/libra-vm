@@ -1,8 +1,8 @@
 from __future__ import annotations
 from move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
-
 from move_vm.types.chain_state import ChainState
+from move_vm.runtime.interpreter_context import InterpreterContext
 from move_vm.runtime.loaded_data import LoadedModule
 from move_vm.runtime.runtime import VMRuntime
 from bytecode_verifier import VerifiedModule
@@ -14,6 +14,7 @@ from move_vm.types.loaded_data import StructDef
 from move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
+from canoser import Uint8
 
 @dataclass
 class MoveVMImpl:

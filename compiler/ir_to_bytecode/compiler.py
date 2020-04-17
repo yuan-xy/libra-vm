@@ -300,7 +300,7 @@ class FunctionFrame:
 
 
     def pop_loop(self) -> None:
-        loop = self.loops.pop()
+        self.loops.pop()
 
 
     def get_loop_start(self) -> usize:
@@ -465,7 +465,7 @@ def type_parameter_indexes(
     for (idx, (ty_var, _)) in enumerate(ast_tys):
         if idx > TABLE_MAX_SIZE:
             bail("Too many type parameters")
-        
+
         if ty_var.value in m:
             bail("Type formal '{}'' already bound", ty_var)
         else:
@@ -481,7 +481,7 @@ def make_type_argument_subst(
     for (idx, token) in enumerate(tokens):
         if idx > TABLE_MAX_SIZE:
             bail("Too many type arguments")
-        
+
         subst[idx] = token
     return subst
 
@@ -1064,7 +1064,7 @@ def compile_expression(
             return [InferredType.Vector(InferredType.U8)]
 
         else:
-            bail("unreachable!")        
+            bail("unreachable!")
 
     elif isinstance(exp.value, PackExp):
         (name, ast_tys, fields) = exp.value.v0
@@ -1287,7 +1287,7 @@ def compile_call(
                 return [InferredType.Reference(inner)]
 
         elif function.tag == BuiltinTag.MoveFrom:
-            (name, ast_tys) = function.move            
+            (name, ast_tys) = function.move
             sig_tys = compile_types(context, function_frame.type_parameters, ast_tys)
             tys = InferredType.from_signature_tokens(sig_tys)
             tokens = LocalsSignature(sig_tys)

@@ -4,7 +4,7 @@ from vm.file_format import(
 )
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
-
+from libra.rustlib import usize
 
 def insert_list_item_in_map(amap, key, value):
     if key in amap:

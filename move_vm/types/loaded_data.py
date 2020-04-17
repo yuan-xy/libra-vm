@@ -1,6 +1,6 @@
 from __future__ import annotations
 from canoser import Struct, RustEnum, Uint16
-
+from typing import List
 
 # Loaded representation for runtime types.
 

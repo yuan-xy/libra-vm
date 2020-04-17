@@ -47,6 +47,8 @@ class FakeDataStore(StateView, RemoteCache):
 
     def print_account_resource(self, only_balance=False, show_genesis=False):
         for ap, blob in self.data.items():
+            #TTODO: account_resource_path to AccountResource.resource_path
+            #TTODO: balance is not in AccountResource
             if ap.path == AccountConfig.account_resource_path():
                 if ap.address in self.named_accounts or show_genesis:
                     if ap.address in self.named_accounts:

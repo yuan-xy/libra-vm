@@ -8,6 +8,7 @@ from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
 from canoser import Cursor, Uint8, Uint16, Uint32, Uint64, Uint128
 from typing import List, Optional, Tuple
+from dataclasses import dataclass
 import abc
 
 # Table info: table type, offset where the table content starts from, count of bytes for
@@ -61,7 +62,7 @@ def check_binary(cursor: Cursor) -> Uint8:
 
         return cursor.read_u8()
     except IOError as err:
-        raise VMException(VMStatus(StatusCode.MALFORMED))
+        raise VMException(VMStatus(StatusCode.MALFORMED).with_message(err.__str__()))
 
 
 # Reads all the table headers.

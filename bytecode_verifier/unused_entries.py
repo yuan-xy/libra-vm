@@ -5,7 +5,7 @@ from vm.file_format import Bytecode, CompiledModule, StructFieldInformation, Mod
 from vm import IndexKind, Opcodes, SerializedNativeStructFlag
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Callable, Any, Tuple
-from libra.rustlib import flatten
+from libra.rustlib import flatten, usize
 
 @dataclass
 class UnusedEntryChecker:

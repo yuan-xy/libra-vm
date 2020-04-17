@@ -11,7 +11,7 @@ from canoser import Uint64, Uint8, Struct
 from canoser.base import Base
 from enum import IntEnum
 from dataclasses import dataclass
-from typing import List, TypeVar
+from typing import List, TypeVar, Tuple, Callable, Any
 import abc
 
 # This module lays out the basic abstract costing schedule for bytecode instructions.
@@ -77,8 +77,8 @@ class GasAlgebra(abc.ABC):
     def app(
         self,
         other: GasAlgebra,
-        f: Callable[[GasCarrier, GasCarrier], T],
-    ) -> T:
+        f: Callable[[GasCarrier, GasCarrier], Any],
+    ) -> Any:
         return f(self.get(), other.get())
 
 
@@ -280,7 +280,9 @@ class CostTable(Struct):
         # will be the key - 1.
         key = instruction_key(instr)
         cost = self.instruction_table.get(key - 1)
-        assert coset is not None
+        #TTODO: why not reached?
+        breakpoint()
+        assert cost is not None
         good_cost = cost
         return GasCost(
             instruction_gas = good_cost.instruction_gas.map2(size_provider, mul_lambda),

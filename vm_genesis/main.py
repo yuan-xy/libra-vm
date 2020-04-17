@@ -5,7 +5,7 @@ from libra.transaction import Transaction
 from libra.validator_public_keys import ValidatorPublicKeys
 # use move_lang_stdlib.move_lang_stdlib_modules
 from stdlib import stdlib_modules
-
+from typing import List
 
 CONFIG_LOCATION = "genesis/vm_config.toml"
 GENESIS_LOCATION = "genesis/genesis.blob"

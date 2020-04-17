@@ -79,7 +79,7 @@ class LibraVM(VMVerifier, VMExecutor):
             return table
         except Exception as err:
             raise VMException(VMStatus(StatusCode.GAS_SCHEDULE_ERROR)\
-                    .with_sub_status(SubStatus.GSE_UNABLE_TO_LOAD_RESOURCE))
+                    .with_sub_status(SubStatus.GSE_UNABLE_TO_LOAD_RESOURCE).with_message(err.__str__()))
 
 
     def get_gas_schedule(self) -> CostTable:
@@ -420,7 +420,7 @@ class LibraVM(VMVerifier, VMExecutor):
                 .get_transaction_output(txn_data, VMStatus(StatusCode.EXECUTED))
             remote_cache.push_write_set(output.write_set)
             return output
-        except Exception as err:
+        except Exception:
             traceback.print_exc()
             raise
 

@@ -18,8 +18,7 @@ from vm.vm_exception import VMException
 from vm.errors import append_err_info, verification_error
 from vm.file_format import CompiledModule, CompiledScript
 from vm.views import ModuleView, ViewInternals
-from typing import List, Optional, Mapping
-from libra.vm_error import StatusCode, VMStatus
+from typing import List, Optional, Mapping, Union, Iterable
 from dataclasses import dataclass
 
 
@@ -123,7 +122,7 @@ class VerifiedScript:
     @classmethod
     def new(cls, script: CompiledScript) -> VerifiedScript:
         fake_module = script.into_module()
-        module = VerifiedModule.new(fake_module).into_inner()
+        fake_module = VerifiedModule.new(fake_module).into_inner()
 
         script = fake_module.into_script()
         errors = verify_main_signature(script)

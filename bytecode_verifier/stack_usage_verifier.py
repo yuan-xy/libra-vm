@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Set, Mapping, Iterable, Optional
+from typing import List, Set, Mapping, Iterable, Optional, Tuple
 from dataclasses import dataclass
 import abc
 from bytecode_verifier import BlockId, ControlFlowGraph, VMControlFlowGraph
@@ -8,6 +8,8 @@ from vm import ModuleAccess, Opcodes
 from vm.errors import err_at_offset
 from vm.file_format import Bytecode, CompiledModule, FunctionDefinition, StructFieldInformation
 from vm.views import FunctionDefinitionView
+from canoser import Uint32
+from libra.rustlib import bail
 
 # This module implements a checker for verifying that basic blocks in the bytecode instruction
 # sequence of a function use the evaluation stack in a balanced manner. Every basic block,

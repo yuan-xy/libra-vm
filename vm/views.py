@@ -10,6 +10,7 @@ from vm.file_format_common import SerializedType, SerializedNativeStructFlag
 from vm.lib import SignatureTokenKind
 from move_core.types.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag
+from libra.rustlib import usize, bail
 from typing import List, Set, Optional, Tuple, Mapping, Any
 from dataclasses import dataclass
 from copy import deepcopy

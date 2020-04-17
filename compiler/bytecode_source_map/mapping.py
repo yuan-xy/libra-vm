@@ -35,5 +35,5 @@ class SourceMapping:
         self.marks = marks
 
 
-    def with_source_code(self, source_code: Tuple[String, String]):
+    def with_source_code(self, source_code: Tuple[str, str]):
         self.source_code = source_code

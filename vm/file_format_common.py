@@ -1,4 +1,5 @@
 from libra.rustlib import bail, usize, snake_to_camel
+from libra.vm_error import VMStatus, StatusCode
 from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field

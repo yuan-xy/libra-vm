@@ -156,7 +156,7 @@ class TransactionDataCache:
                 else:
                     traceback.print_exc()
                     # breakpoint()
-                    raise VMException(vm_error(Location(), StatusCode.MISSING_DATA))
+                    raise VMException(vm_error(Location(), StatusCode.MISSING_DATA).with_message(err.__str__()))
 
             if blob is None:
                 if tryload:
@@ -168,7 +168,7 @@ class TransactionDataCache:
                 res = Value.simple_deserialize(blob, Type('Struct', sdef))
                 gr = GlobalValue.new(res)
                 self.data_map[ap] = (sdef, gr)
-            except Exception as err:
+            except Exception:
                 breakpoint()
                 raise
 

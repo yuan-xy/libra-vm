@@ -5,6 +5,7 @@ from move_ir.types.location import Loc
 from enum import Enum, auto
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
+from libra.rustlib import usize
 
 class Tok(Enum):
     EOF = auto()

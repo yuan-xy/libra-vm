@@ -5,6 +5,7 @@ from vm.file_format import CompiledModule
 from vm import ModuleView, IndexKind
 from libra.rustlib import usize
 from dataclasses import dataclass
+from typing import List
 
 # This module implements a checker for verifying that a non-resource class does not
 # have resource fields inside it.

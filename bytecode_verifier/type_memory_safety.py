@@ -86,8 +86,6 @@ class TypeAndMemorySafetyAnalysis(AbstractInterpreter):
         inv_map = verifier.analyze_function(initial_state, function_definition_view, cfg)
         # Report all the join failures
         for (block_id, inv) in inv_map.items():
-            pre = inv.pre
-            post = inv.post
             if inv.pre.tag == BlockPrecondition.JOIN_FAILURE:
                 errors.append(err_at_offset(StatusCode.JOIN_FAILURE, block_id))
 

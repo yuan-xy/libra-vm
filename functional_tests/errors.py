@@ -3,6 +3,7 @@ from libra.transaction import TransactionOutput
 from libra.vm_error import VMStatus
 from enum import IntEnum
 from dataclasses import dataclass
+from typing import Union
 
 class ErrorKindTag(IntEnum):
     #[error("an error occurred when executing the transaction")]

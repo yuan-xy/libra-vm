@@ -35,7 +35,7 @@ def native_sha3_256(
     _ty_args: List[TypeTag],
     arguments: List[Value],
     cost_table: CostTable,
-) -> VMNativeResult:
+) -> NativeResult:
     if arguments.__len__() != 1:
         msg = f"wrong number of arguments for sha3_256 expected 1 found {len(arguments)}"
         raise VMException(VMStatus(StatusCode.UNREACHABLE).with_message(msg))

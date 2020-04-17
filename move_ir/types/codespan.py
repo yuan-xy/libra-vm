@@ -17,5 +17,5 @@ class Span:
         return cls(start, end)
 
     def __lt__(self, other):
-        return (self,start, self.end).__lt__((other.start, other.end))
+        return (self.start, self.end).__lt__((other.start, other.end))
 

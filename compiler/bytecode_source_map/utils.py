@@ -1,3 +1,4 @@
+# flake8: noqa
 from __future__ import annotations
 from compiler.bytecode_source_map.mapping import SourceMapping
 from compiler.bytecode_source_map.source_map import ModuleSourceMap, SourceMap

@@ -16,7 +16,9 @@ from canoser import Uint8, Uint16, Uint64, Int64
 from itertools import chain
 from enum import IntEnum
 from copy import deepcopy
+from move_ir.types.codespan import Span
 
+Location = Span
 
 # Holds the various options that we support while disassembling code.
 @dataclass

@@ -12,7 +12,7 @@ from libra.rustlib import ensure, bail, usize, flatten
 from canoser import Uint8, Uint32, Uint16, Uint64, Uint128
 from enum import IntEnum, unique
 from dataclasses import dataclass, field
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Mapping, Any
 import traceback
 import abc
 
@@ -641,7 +641,7 @@ class SignatureToken:
         else:
             bail(
                 "debug_set_sh_idx (to {}) called for non-class token {}",
-                sh_idx, other
+                sh_idx, self
             )
 
 
@@ -1437,7 +1437,7 @@ class CompiledModuleMut:
         elif kind == IndexKind.AddressPool:
             return self.address_pool.__len__()
         else:
-            bail("invalid kind for count: {}", other)
+            bail("invalid kind for count: {}", kind)
 
     # Converts this instance into `CompiledModule` after verifying it for basic internal
     # consistency. This includes bounds checks but no others.

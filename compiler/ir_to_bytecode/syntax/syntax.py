@@ -1443,7 +1443,7 @@ def parse_unary_spec_exp(
     elif tk == Tok.NameValue:
         try:
             nextt = tokens.lookahead()
-        except Exception as err:
+        except Exception:
             nextt = None
         if nextt is None or nextt != Tok.LParen:
             return SpecExpStorageLocation(parse_storage_location(tokens))

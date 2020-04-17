@@ -10,11 +10,13 @@ from vm.file_format import (
     )
 from vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
 from vm.internals import ModuleIndex
+from vm.vm_exception import VMException
 from move_vm.types.loaded_data import StructDef
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass
 import abc
-from libra.rustlib import bail, usize
+from libra.rustlib import bail, usize, format_str
+from canoser import Uint8
 from copy import deepcopy
 
 # Loaded representation for function definitions and handles.

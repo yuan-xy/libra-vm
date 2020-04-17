@@ -5,7 +5,7 @@ from vm.file_format import (
         Bytecode, CompiledModule, FunctionDefinition, FunctionDefinitionIndex, FunctionHandleIndex,
         LocalsSignatureIndex, SignatureToken, TypeParameterIndex, ModuleAccess
     )
-from typing import List, Optional, Mapping, Tuple
+from typing import List, Optional, Mapping, Tuple, Set
 from dataclasses import dataclass
 from pygraph.classes.digraph import digraph
 from pygraph.algorithms.accessibility import mutual_accessibility

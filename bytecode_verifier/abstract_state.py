@@ -2,7 +2,7 @@ from __future__ import annotations
 from bytecode_verifier.absint import AbstractDomain, JoinResult
 from bytecode_verifier.borrow_graph import BorrowGraph
 from bytecode_verifier.ref_id import RefID
-from typing import List, Any, Optional, Mapping, Set, Union
+from typing import List, Any, Optional, Mapping, Set, Union, Iterable
 from dataclasses import dataclass, fields
 from copy import deepcopy
 from enum import IntEnum
@@ -11,7 +11,7 @@ from vm.file_format import (
         StructDefinitionIndex,
     )
 from vm.views import FunctionDefinitionView, ViewInternals
-from libra.rustlib import assert_true
+from libra.rustlib import assert_true, usize, bail
 from move_core import JsonPrintable
 
 checked_assume = assert_true

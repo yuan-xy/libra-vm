@@ -9,18 +9,16 @@ from vm.file_format import (
         StructDefinitionIndex, TableIndex,
     )
 from vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
-from typing import List, Optional, Any, Union, Tuple, Dict
+from typing import List, Optional, Any, Union, Tuple, Dict, Callable
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
-from libra.rustlib import list_get, bail
+from libra.rustlib import list_get, bail, usize
 from copy import deepcopy
 from canoser import Uint64
 import logging
 
 logger = logging.getLogger(__name__)
 
-CodeOffset = int #TO support auto deserialize of dataclass
-TableIndex = int
 Location = Span
 SourceName = Tuple[str, Location]
 
@@ -433,7 +431,7 @@ class ModuleSourceMap:
         function_map = {n: m.remap_locations(f) for (n,m) in self.function_map.items()}
 
         return ModuleSourceMap(
-            module_name,
+            self.module_name,
             struct_map,
             function_map,
         )

@@ -7,7 +7,7 @@ from vm.file_format import (
     )
 from vm import IndexKind, ModuleAccess, SerializedNativeStructFlag
 from typing import List, Optional
-from libra.rustlib import usize
+from libra.rustlib import usize, bail
 from dataclasses import dataclass
 
 # This module implements a checker for verifying that each vector in a CompiledModule contains
@@ -260,11 +260,9 @@ class DuplicationChecker:
                 idx,
                 StatusCode.UNIMPLEMENTED_HANDLE,
             ))
-
-
         return errors
 
-
+    @staticmethod
     def first_duplicate_element(it) -> Optional[usize]:
         uniq = set()
         for (i, x) in enumerate(it):

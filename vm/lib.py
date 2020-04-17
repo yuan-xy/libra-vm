@@ -1,5 +1,6 @@
 from __future__ import annotations
 from enum import IntEnum
+from typing import List
 
 # Represents a kind of index -- useful for error messages.
 class IndexKind(IntEnum):

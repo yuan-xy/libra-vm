@@ -12,6 +12,8 @@ from libra.transaction import (
 )
 from libra.validator_set import ValidatorSet
 from libra.vm_error import StatusCode, VMStatus
+from libra.block_metadata import BlockMetadata
+from libra.hasher import HashValue
 from libra.rustlib import ensure, bail, usize
 from stdlib import stdlib_modules
 from vm import CompiledModule
@@ -19,7 +21,8 @@ from vm_genesis.main import rust_validator_set
 from vm_genesis.lib import make_placeholder_discovery_set, GENESIS_KEYPAIR, encode_genesis_transaction_with_validator_and_modules
 from libra_vm import LibraVM, VMExecutor, VMVerifier
 from dataclasses import dataclass
-from typing import List, Optional, Mapping
+from typing import List, Optional, Mapping, Callable, Tuple
+from canoser import Uint64
 from enum import Enum
 from libra.rustlib import ensure, bail, usize
 
@@ -171,7 +174,7 @@ class FakeExecutor:
         return BalanceResource.deserialize(data_blob)
 
     def read_account_info(self, account: Account) -> Optional[Tuple[AccountResource, BalanceResource]]:
-        return self.read_account_resource(account), self.read_balance_resource(account) 
+        return self.read_account_resource(account), self.read_balance_resource(account)
 
 
     # Executes the given block of transactions.
@@ -237,19 +240,19 @@ class FakeExecutor:
 
 
     def new_block(self):
-        #TTODO
+        #TTODO when to call new_block
         breakpoint()
-        validator_address =\
-            generator.validator_swarm_for_testing(10).validator_set[0].account_address()
-        self.block_time += 1
-        new_block = BlockMetadata.new(
-            HashValue.zero(),
-            self.block_time,
-            {},
-            validator_address,
-        )
-        self.apply_write_set(
-            self.execute_transaction_block(
-                [Transaction.BlockMetadata(new_block)]
-            ).get(0).write_set()
-        )
+        # validator_address =\
+        #     generator.validator_swarm_for_testing(10).validator_set[0].account_address()
+        # self.block_time += 1
+        # new_block = BlockMetadata.new(
+        #     HashValue.zero(),
+        #     self.block_time,
+        #     {},
+        #     validator_address,
+        # )
+        # self.apply_write_set(
+        #     self.execute_transaction_block(
+        #         [Transaction.BlockMetadata(new_block)]
+        #     ).get(0).write_set()
+        # )

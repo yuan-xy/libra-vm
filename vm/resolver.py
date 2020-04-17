@@ -7,6 +7,7 @@ from vm.file_format import (
 from libra.account_address import Address
 from move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode, VMStatus
+from vm.vm_exception import VMException
 from typing import List, Set, Optional, Tuple, Mapping, Any
 from dataclasses import dataclass
 import abc
@@ -81,7 +82,7 @@ class Resolver:
                 tuple2 = (self.struct_handle_map[local_struct_handle],
                         [self.import_signature_token(dependency, t) for t in types] )
                 return SignatureToken(sig_token.tag, tuple2)
-            except Exception as err:
+            except Exception:
                 traceback.print_exc()
                 raise VMException(VMStatus(StatusCode.TYPE_RESOLUTION_FAILURE))
         elif sig_token.tag == SerializedType.REFERENCE or sig_token.tag == SerializedType.MUTABLE_REFERENCE:
