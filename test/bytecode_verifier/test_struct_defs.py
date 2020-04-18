@@ -1,6 +1,6 @@
-from stdlib import stdlib_modules, build_stdlib_map
-from bytecode_verifier import RecursiveStructDefChecker
-from vm.file_format import CompiledModule
+from mol.stdlib import stdlib_modules, build_stdlib_map
+from mol.bytecode_verifier import RecursiveStructDefChecker
+from mol.vm.file_format import CompiledModule
 
 def test_valid_recursive_struct_defs():
 

@@ -6,11 +6,11 @@ from libra.access_path import AccessPath
 from libra.language_storage import ModuleId
 from libra.transaction import Transaction, TransactionPayload
 from libra.transaction.write_set import WriteOp, WriteSet
-from move_vm.types.values import Struct
+from mol.move_vm.types.values import Struct
 
-from vm.errors import *
-from vm import CompiledModule
-from move_vm.state.data_cache import RemoteCache
+from mol.vm.errors import *
+from mol.vm import CompiledModule
+from mol.move_vm.state.data_cache import RemoteCache
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Mapping
@@ -34,7 +34,7 @@ def load_genesis(path: str) -> WriteSet:
 
 
 # The write set encoded in the genesis transaction.
-GENESIS_WRITE_SET = load_genesis("../vm_genesis/genesis/genesis.blob")
+GENESIS_WRITE_SET = load_genesis("../mol/vm_genesis/genesis/genesis.blob")
 
 # An in-memory implementation of [`StateView`] and [`RemoteCache`] for the VM.
 #

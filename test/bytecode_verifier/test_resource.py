@@ -1,6 +1,6 @@
-from stdlib import stdlib_modules, build_stdlib_map
-from bytecode_verifier import ResourceTransitiveChecker
-from vm.file_format import CompiledModule
+from mol.stdlib import stdlib_modules, build_stdlib_map
+from mol.bytecode_verifier import ResourceTransitiveChecker
+from mol.vm.file_format import CompiledModule
 
 def test_valid_resource_transitivity():
 

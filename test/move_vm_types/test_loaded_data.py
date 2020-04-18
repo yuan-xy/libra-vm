@@ -1,5 +1,5 @@
-from move_vm.types.loaded_data import *
-from move_vm.types.native_structs import *
+from mol.move_vm.types.loaded_data import *
+from mol.move_vm.types.native_structs import *
 
 def roundtrip(t, clazz = Type):
     ser = t.serialize()

@@ -1,5 +1,5 @@
-from move_vm.types.native_functions.dispatch import *
-from move_vm.types.native_functions import NativeFunction
+from mol.move_vm.types.native_functions.dispatch import *
+from mol.move_vm.types.native_functions import NativeFunction
 
 from libra.language_storage import ModuleId, TypeTag
 from libra import AccountConfig, Address

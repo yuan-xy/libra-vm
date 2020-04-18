@@ -1,5 +1,5 @@
-from vm.file_format import *
-from vm.file_format_common import Opcodes
+from mol.vm.file_format import *
+from mol.vm.file_format_common import Opcodes
 from libra.transaction import Script
 import os
 

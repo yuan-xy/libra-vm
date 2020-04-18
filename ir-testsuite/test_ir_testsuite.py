@@ -1,12 +1,12 @@
-from bytecode_verifier.verifier import VerifiedModule
+from mol.bytecode_verifier.verifier import VerifiedModule
 from functional_tests.compiler import Compiler, ScriptOrModule
 from functional_tests import testsuite
-from compiler.ir_to_bytecode.compiler import compile_module, compile_script
-from compiler.ir_to_bytecode.parser import parse_script_or_module
+from mol.compiler.ir_to_bytecode.compiler import compile_module, compile_script
+from mol.compiler.ir_to_bytecode.parser import parse_script_or_module
 from libra.account_address import Address
 from libra.rustlib import format_str
-from move_ir.types import ast
-from stdlib import stdlib_modules
+from mol.move_ir.types import ast
+from mol.stdlib import stdlib_modules
 from dataclasses import dataclass
 from typing import List, Optional, Callable
 

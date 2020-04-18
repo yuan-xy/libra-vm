@@ -1,4 +1,4 @@
-from vm.file_format_common import *
+from mol.vm.file_format_common import *
 from libra.rustlib import *
 from canoser import Cursor, Uint8, Uint32, Uint16, Uint64, Uint128, bytes_to_int_list
 from typing import List, Optional

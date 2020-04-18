@@ -1,22 +1,22 @@
-from vm import *
-from move_vm.state.data_cache import RemoteCache, BlockDataCache
-from move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
-from move_vm.runtime.code_cache import VMModuleCache
-from move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
-from bytecode_verifier import VerifiedModule, VerifiedScript
-from compiler.lib import Compiler
+from mol.vm import *
+from mol.move_vm.state.data_cache import RemoteCache, BlockDataCache
+from mol.move_vm.state.execution_context import SystemExecutionContext, TransactionExecutionContext
+from mol.move_vm.runtime.code_cache import VMModuleCache
+from mol.move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
+from mol.bytecode_verifier import VerifiedModule, VerifiedScript
+from mol.compiler.lib import Compiler
 from libra_storage.state_view import StateView
 from libra.access_path import AccessPath
 from libra.account_address import Address
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus, StatusType
 
-from vm.file_format import *
-from vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
-from vm.gas_schedule import GasAlgebra, GasUnits
-from move_vm.types.loaded_data import StructDef, Type
+from mol.vm.file_format import *
+from mol.vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
+from mol.vm.gas_schedule import GasAlgebra, GasUnits
+from mol.move_vm.types.loaded_data import StructDef, Type
 from typing import List, Optional, Mapping
-from vm import signature_token_help
+from mol.vm import signature_token_help
 from dataclasses import dataclass, field
 from libra.rustlib import *
 import pytest

@@ -1,6 +1,6 @@
-from bytecode_verifier import DuplicationChecker
-from vm.file_format import CompiledModule
-from stdlib import stdlib_modules, build_stdlib_map
+from mol.bytecode_verifier import DuplicationChecker
+from mol.vm.file_format import CompiledModule
+from mol.stdlib import stdlib_modules, build_stdlib_map
 
 def test_valid_duplication():
 

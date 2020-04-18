@@ -5,15 +5,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from libra.access_path import AccessPath
 from libra.account_address import Address
-from move_core.types.identifier import IdentStr, Identifier
+from mol.move_core.types.identifier import IdentStr, Identifier
 from libra.language_storage import ModuleId, StructTag
-from bytecode_verifier import VerifiedModule
+from mol.bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView, EmptyStateView
-from vm.gas_schedule import CostTable, GasAlgebra, GasUnits
-from vm.transaction_metadata import TransactionMetadata
-from move_vm.state.execution_context import TransactionExecutionContext
-from move_vm.state.data_cache import BlockDataCache
-from move_vm.runtime.move_vm import MoveVM
+from mol.vm.gas_schedule import CostTable, GasAlgebra, GasUnits
+from mol.vm.transaction_metadata import TransactionMetadata
+from mol.move_vm.state.execution_context import TransactionExecutionContext
+from mol.move_vm.state.data_cache import BlockDataCache
+from mol.move_vm.runtime.move_vm import MoveVM
 from canoser import Uint8
 from typing import List, Optional
 import cProfile
@@ -27,7 +27,7 @@ def bench(fun: str):
     execute(move_vm, fun)
 
 def deserialize_module() -> VerifiedModule:
-    from vm.file_format import CompiledModule
+    from mol.vm.file_format import CompiledModule
     curdir = dirname(__file__)
     filename = join(curdir, "transaction_0_module_Bench.mv")
     with open(filename, 'rb') as file:

@@ -1,11 +1,11 @@
 from __future__ import annotations
-from bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
-from compiler.ir_to_bytecode.compiler import compile_module, compile_script
-from compiler.ir_to_bytecode.parser import parse_module, parse_script
+from mol.bytecode_verifier import VerifiedModule, VerifiedScript, VerifyException
+from mol.compiler.ir_to_bytecode.compiler import compile_module, compile_script
+from mol.compiler.ir_to_bytecode.parser import parse_module, parse_script
 from libra.account_address import Address
 from libra.vm_error import VMStatus
-from stdlib import stdlib_modules#, StdLibOptions
-from vm.file_format import CompiledModule, CompiledScript, ScriptAccess
+from mol.stdlib import stdlib_modules#, StdLibOptions
+from mol.vm.file_format import CompiledModule, CompiledScript, ScriptAccess
 from libra.rustlib import *
 import traceback
 

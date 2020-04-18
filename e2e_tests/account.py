@@ -4,13 +4,13 @@ from libra.event import EventHandle
 from libra.transaction import (
     RawTransaction, Script, SignedTransaction, TransactionArgument, TransactionPayload
 )
-from move_vm.types.loaded_data import StructDef, Type
-from move_vm.types.values import Struct as VMStruct
-from move_vm.types.values import Value
+from mol.move_vm.types.loaded_data import StructDef, Type
+from mol.move_vm.types.values import Struct as VMStruct
+from mol.move_vm.types.values import Value
 from libra.crypto.ed25519 import *
 from libra.transaction.authenticator import AuthenticationKey
-from vm_genesis.lib import GENESIS_KEYPAIR
-from move_vm.types.identifier import create_access_path
+from mol.vm_genesis.lib import GENESIS_KEYPAIR
+from mol.move_vm.types.identifier import create_access_path
 from dataclasses import dataclass
 from typing import List, Optional, Mapping
 

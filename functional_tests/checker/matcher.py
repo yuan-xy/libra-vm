@@ -6,7 +6,7 @@ from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
 from enum import Enum, IntEnum
 from canoser import Uint64
-from move_core import JsonPrintable
+from mol.move_core import JsonPrintable
 
 # This module implements a matcher that checks if an evaluation log matches the
 # patterns specified by a list of directives.

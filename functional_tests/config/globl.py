@@ -6,13 +6,13 @@ from e2e_tests.account import Account, AccountData
 from libra import Address
 from libra.validator_set import ValidatorSet
 from libra.crypto.ed25519 import _generate_keypair_by_private_key
-from vm_genesis.main import rust_validator_set
+from mol.vm_genesis.main import rust_validator_set
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
 from enum import Enum
 from canoser import Uint64
-from move_core import JsonPrintable
+from mol.move_core import JsonPrintable
 
 # The config holds the options that define the testing environment.
 # A config entry starts with "#", differentiating it from a directive.

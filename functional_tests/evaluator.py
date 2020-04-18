@@ -4,7 +4,7 @@ from functional_tests.compiler import Compiler, ScriptOrModule
 from functional_tests.config.globl import Config as GlobalConfig
 from functional_tests.config.transaction import Config as TransactionConfig
 from functional_tests.errors import *
-from bytecode_verifier.verifier import (
+from mol.bytecode_verifier.verifier import (
     verify_module_dependencies, verify_script_dependencies, VerifiedModule, VerifiedScript,
     VerifyException
 )
@@ -19,14 +19,14 @@ from libra.transaction import Script as TransactionScript
 from libra.transaction import Transaction as LibraTransaction
 from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus, TransactionPayload
 from libra.vm_error import StatusCode, VMStatus
-from vm import CompiledModule, CompiledScript, ModuleView, VMException
-from vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
+from mol.vm import CompiledModule, CompiledScript, ModuleView, VMException
+from mol.vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
 from dataclasses import dataclass, field
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union
 from enum import IntEnum
 from canoser import Uint64
-from move_core import JsonPrintable
+from mol.move_core import JsonPrintable
 import traceback
 
 # A transaction to be evaluated by the testing infra.

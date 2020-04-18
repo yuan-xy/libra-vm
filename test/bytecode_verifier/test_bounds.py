@@ -1,7 +1,7 @@
-from vm.check_bounds import BoundsChecker
-from vm.file_format import *
-from vm.file_format_common import Opcodes
-from vm.signature_token_help import *
+from mol.vm.check_bounds import BoundsChecker
+from mol.vm.file_format import *
+from mol.vm.file_format_common import Opcodes
+from mol.vm.signature_token_help import *
 from libra.rustlib import *
 import pytest
 

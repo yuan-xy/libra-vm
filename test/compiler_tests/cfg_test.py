@@ -1,7 +1,7 @@
 from .testutils import *
-from vm.file_format import *
-from vm import Opcodes, ScriptAccess
-from bytecode_verifier.control_flow_graph import ControlFlowGraph, VMControlFlowGraph
+from mol.vm.file_format import *
+from mol.vm import Opcodes, ScriptAccess
+from mol.bytecode_verifier.control_flow_graph import ControlFlowGraph, VMControlFlowGraph
 import pytest
 
 def println(str, *args):

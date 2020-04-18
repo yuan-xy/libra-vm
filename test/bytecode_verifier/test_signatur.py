@@ -1,17 +1,17 @@
 import pytest
-from bytecode_verifier import SignatureChecker
-from bytecode_verifier import VerifiedModule
+from mol.bytecode_verifier import SignatureChecker
+from mol.bytecode_verifier import VerifiedModule
 # from invalid_mutations.signature.{
 #     ApplySignatureDoubleRefContext, ApplySignatureFieldRefContext, DoubleRefMutation,
 #     FieldRefMutation,
 # }
 from libra.account_address import Address, ADDRESS_LENGTH
-from move_core.types.identifier import Identifier
+from mol.move_core.types.identifier import Identifier
 from libra.vm_error import StatusCode
 
-from vm.file_format import *
-from vm.signature_token_help import *
-from vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
+from mol.vm.file_format import *
+from mol.vm.signature_token_help import *
+from mol.vm import IndexKind, Opcodes, SerializedNativeStructFlag, SerializedType
 
 
 def test_reference_of_reference():

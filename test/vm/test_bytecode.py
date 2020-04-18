@@ -1,5 +1,5 @@
-from vm.file_format_common import *
-from vm.file_format import *
+from mol.vm.file_format_common import *
+from mol.vm.file_format import *
 from libra.rustlib import *
 import pytest
 

@@ -1,4 +1,4 @@
-from compiler.ir_to_bytecode.parser import *
+from mol.compiler.ir_to_bytecode.parser import *
 import pytest
 
 def test_verify_character_whitelist():

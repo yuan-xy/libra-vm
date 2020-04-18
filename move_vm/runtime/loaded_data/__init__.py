@@ -1,1 +1,0 @@
-from move_vm.runtime.loaded_data.function import *

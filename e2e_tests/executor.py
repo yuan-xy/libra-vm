@@ -1,7 +1,7 @@
 from __future__ import annotations
 from e2e_tests.account import Account, AccountData
 from e2e_tests.data_store import FakeDataStore, GENESIS_WRITE_SET
-from bytecode_verifier import VerifiedModule
+from mol.bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView
 from libra import AccessPath, AccountResource
 from libra.account_resource import BalanceResource
@@ -15,11 +15,11 @@ from libra.vm_error import StatusCode, VMStatus
 from libra.block_metadata import BlockMetadata
 from libra.hasher import HashValue
 from libra.rustlib import ensure, bail, usize
-from stdlib import stdlib_modules
-from vm import CompiledModule
-from vm_genesis.main import rust_validator_set
-from vm_genesis.lib import make_placeholder_discovery_set, GENESIS_KEYPAIR, encode_genesis_transaction_with_validator_and_modules
-from libra_vm import LibraVM, VMExecutor, VMVerifier
+from mol.stdlib import stdlib_modules
+from mol.vm import CompiledModule
+from mol.vm_genesis.main import rust_validator_set
+from mol.vm_genesis.lib import make_placeholder_discovery_set, GENESIS_KEYPAIR, encode_genesis_transaction_with_validator_and_modules
+from mol.libra_vm import LibraVM, VMExecutor, VMVerifier
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Callable, Tuple
 from canoser import Uint64

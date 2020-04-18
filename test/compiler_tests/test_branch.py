@@ -1,7 +1,7 @@
 from __future__ import annotations
 from .testutils import *
-from vm.file_format import *
-from vm import Opcodes
+from mol.vm.file_format import *
+from mol.vm import Opcodes
 import pytest
 
 def test_compile_if():

@@ -1,4 +1,4 @@
-from move_vm.types.ref_cell import *
+from mol.move_vm.types.ref_cell import *
 from canoser import DelegateT
 import pytest
 

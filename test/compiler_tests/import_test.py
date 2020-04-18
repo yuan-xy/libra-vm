@@ -1,6 +1,6 @@
 from .testutils import compile_module_string_with_stdlib, compile_script_string_with_stdlib
-from vm.file_format import *
-from vm import Opcodes, ScriptAccess
+from mol.vm.file_format import *
+from mol.vm import Opcodes, ScriptAccess
 import pytest
 
 

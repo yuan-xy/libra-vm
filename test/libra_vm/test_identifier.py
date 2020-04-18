@@ -1,8 +1,8 @@
-from move_vm.types.identifier import resource_storage_key
-from vm.file_format import ModuleAccess
-from vm.file_format import CompiledModule, StructDefinitionIndex, TableIndex
+from mol.move_vm.types.identifier import resource_storage_key
+from mol.vm.file_format import ModuleAccess
+from mol.vm.file_format import CompiledModule, StructDefinitionIndex, TableIndex
 from libra.language_storage import ModuleId, StructTag
-from stdlib import build_stdlib_map
+from mol.stdlib import build_stdlib_map
 import os, json
 from os import listdir
 from os.path import isfile, join, abspath, dirname

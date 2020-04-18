@@ -12,7 +12,7 @@ from functional_tests.errors import *
 from functional_tests.evaluator import Command, CommandTag, Transaction
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping
-from move_core import JsonPrintable
+from mol.move_core import JsonPrintable
 import re
 
 PAT = re.compile(r"\{\{([A-Za-z][A-Za-z0-9]*)\}\}")

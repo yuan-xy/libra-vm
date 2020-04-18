@@ -1,5 +1,5 @@
 from __future__ import annotations
-from move_core.types.identifier import IdentStr, Identifier
+from mol.move_core.types.identifier import IdentStr, Identifier
 from libra.rustlib import *
 
 

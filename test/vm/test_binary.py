@@ -1,4 +1,4 @@
-from vm.file_format_common import *
+from mol.vm.file_format_common import *
 from libra.rustlib import *
 import pytest
 

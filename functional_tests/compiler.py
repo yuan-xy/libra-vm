@@ -1,9 +1,9 @@
 from __future__ import annotations
-from bytecode_verifier import VerifiedModule
-from compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.bytecode_verifier import VerifiedModule
+from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
 from libra.account_address import Address
 from libra.rustlib import bail
-from vm.file_format import CompiledModule, CompiledScript
+from mol.vm.file_format import CompiledModule, CompiledScript
 from typing import List, Optional, Callable
 from dataclasses import dataclass
 import abc
