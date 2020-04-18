@@ -1,0 +1,10 @@
+include README.md
+include setup.py
+include requirements.txt
+graft mol
+global-exclude __pycache__
+global-exclude *.py[co]
+prune benchmarks
+prune e2e_tests			 #why not work?
+prune functional_tests   #why not work? 
+prune ir-testsuite
