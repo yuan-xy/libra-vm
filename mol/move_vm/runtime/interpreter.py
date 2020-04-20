@@ -16,6 +16,7 @@ from mol.move_vm.types.identifier import create_access_path, resource_storage_ke
 from mol.move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
 from mol.move_vm.runtime.runtime import VMRuntime
 from mol.move_vm.runtime.move_vm import MoveVM
+from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer, TracableFrame
 from mol.libra_vm.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
 from mol.vm.vm_exception import VMException, VMExceptionBase
 from mol.vm.errors import *
@@ -173,7 +174,6 @@ class Interpreter:
             gas_schedule,
         )
 
-
     # Internal execution entry point.
     def execute(
         self,
@@ -211,6 +211,11 @@ class Interpreter:
         current_frame = Frame.new(function, [], [], locls)
         while True:
             code = current_frame.code_definition()
+            gtrace = GlobalTracer.gettrace()
+            if gtrace is not None:
+                ltrace = gtrace(current_frame, TraceType.CALL, None)
+                if ltrace is not None:
+                    current_frame.f_trace = ltrace
             exit_code = self\
                 .execute_code_unit(runtime, context, current_frame, code)
                 #.or_else(|err| Err(self.maybe_core_dump(err, &current_frame)))
@@ -276,7 +281,10 @@ class Interpreter:
         #code = frame.code_definition()
         while True:
             for instruction in code[frame.pc:]:
-                # print(f"PC[{frame.pc}] -> {instruction}")
+                if frame.f_trace is not None:
+                    ltrace = frame.f_trace(frame, TraceType.LINE, instruction)
+                    frame.f_trace = ltrace
+
                 frame.pc += 1
                 if instruction.tag == Opcodes.POP:
                     gas_const_instr(context, self, Opcodes.POP)
@@ -1045,7 +1053,11 @@ class CallStack:
         frame: Frame,
     ):
         if self.v0.__len__() < CALL_STACK_SIZE_LIMIT:
+            parent = None
+            if self.v0:
+                parent = self.v0[-1]
             self.v0.append(frame)
+            frame.f_back = parent
         else:
             raise VMFrameException(frame)
 
@@ -1057,12 +1069,14 @@ class CallStack:
 # A `Frame` is the execution context for a function. It holds the locals of the function and
 # the function itself.
 @dataclass
-class Frame:
+class Frame(TracableFrame):
     pc: Uint16
     locls: Locals
     function: FunctionReference
     type_actual_tags: List[TypeTag]
     type_actuals: List[Type]
+    f_trace: TraceCallback = None
+    f_back: Frame = None
 
 
     # Create a new `Frame` given a `FunctionReference` and the function `Locals`.
