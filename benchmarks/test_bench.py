@@ -82,7 +82,8 @@ def test_arith():
 def test_call():
     bench("call")
 
-if str(type(__loader__)).find('pytest') == -1:
+# if str(type(__loader__)).find('pytest') == -1:
+if __name__=='__main__':
     #cProfile.run('bench("arith")', sort='cumtime')
     cProfile.run('bench("call")', sort='cumtime')
 
