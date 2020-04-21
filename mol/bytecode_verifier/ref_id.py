@@ -12,9 +12,9 @@ class RefID(JsonPrintable):
     v0: usize
 
     def to_json(self, indent=None):
-        return self.to_json_printable()
+        return self.to_json_serializable()
 
-    def to_json_printable(self):
+    def to_json_serializable(self):
         return f"RefID({self.v0})"
 
     def __hash__(self):

@@ -47,7 +47,7 @@ import abc
 TableIndex = Uint16
 
 @dataclass
-class Index(TableIndex, ModuleIndex):
+class Index(ModuleIndex, JsonPrintable):
     v0: TableIndex = 0
 
     def __hash__(self):

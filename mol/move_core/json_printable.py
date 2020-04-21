@@ -3,9 +3,9 @@ import json
 
 class JsonPrintable:
 
-    def to_json_printable(self):
+    def to_json_serializable(self):
         if not is_dataclass(self):
-            raise TypeError(f"{type(self)} should implemente to_json_printable method!")
+            raise TypeError(f"{type(self)} should implemente to_json_serializable method!")
 
         if len(fields(self)) == 1 and hasattr(self, 'v0'):
             return JsonPrintable._to_json_obj(self.v0)
@@ -18,8 +18,8 @@ class JsonPrintable:
 
     @staticmethod
     def _to_json_obj(obj):
-        if hasattr(obj, "to_json_printable"):
-            return obj.to_json_printable()
+        if hasattr(obj, "to_json_serializable"):
+            return obj.to_json_serializable()
         elif isinstance(obj, dict):
             return {JsonPrintable._to_str(k): JsonPrintable._to_json_obj(v)\
                     for k, v in obj.items()}
@@ -47,5 +47,5 @@ class JsonPrintable:
         return self.__class__.__qualname__ + self.to_json(indent=4)
 
     def to_json(self, sort_keys=False, indent=4):
-        amap = self.to_json_printable()
+        amap = self.to_json_serializable()
         return json.dumps(amap, sort_keys=sort_keys, indent=indent)
