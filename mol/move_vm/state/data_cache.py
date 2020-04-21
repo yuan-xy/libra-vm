@@ -4,6 +4,7 @@ from libra.access_path import AccessPath
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet, WriteSetMut
+from mol.move_core import JsonPrintable
 from mol.move_vm.types.loaded_data import StructDef, Type
 from mol.move_vm.types.values import GlobalValue, Value
 from mol.vm.vm_exception import VMException
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 # It keeps track of the value that have been changed during execution of a block.
 # It's effectively the write set for the block.
 @dataclass
-class BlockDataCache:
+class BlockDataCache(JsonPrintable):
     data_view: StateView
     # TODO: an AccessPath corresponds to a top level resource but that may not be the
     # case moving forward, so we need to review this.
@@ -73,7 +74,7 @@ class RemoteCache(abc.ABC):
 
 
 @dataclass
-class RemoteStorage(RemoteCache):
+class RemoteStorage(RemoteCache, JsonPrintable):
     state_store: StateView
 
     def get(self, access_path: AccessPath) -> Optional[bytes]:
@@ -86,7 +87,7 @@ class RemoteStorage(RemoteCache):
 # reference lifetime.
 # Dirty objects are serialized and returned in make_write_set
 @dataclass
-class TransactionDataCache:
+class TransactionDataCache(JsonPrintable):
     # TODO: an AccessPath corresponds to a top level resource but that may not be the
     # case moving forward, so we need to review this.
     # Also need to relate this to a ResourceKey.

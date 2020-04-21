@@ -12,6 +12,7 @@ from mol.vm.file_format_common import Opcodes, SerializedType, SerializedNativeS
 from mol.vm.internals import ModuleIndex
 from mol.vm.vm_exception import VMException
 from mol.move_vm.types.loaded_data import StructDef
+from mol.move_core import JsonPrintable
 from typing import List, Optional, Mapping, Any
 from dataclasses import dataclass
 import abc
@@ -78,6 +79,9 @@ class FunctionRef(FunctionReference):
     fdef: FunctionDef
     handle: FunctionHandle
 
+    def __str__(self):
+        return self.pretty_string()
+
     @classmethod
     def new(cls, module: LoadedModule, idx: FunctionDefinitionIndex) -> FunctionRef:
         fdef = module.f_defs[idx.into_index()]
@@ -130,7 +134,7 @@ class FunctionRef(FunctionReference):
 
 # Resolved form of a function definition
 @dataclass
-class FunctionDef:
+class FunctionDef(JsonPrintable):
     local_count: usize
     arg_count: usize
     return_count: usize
@@ -163,7 +167,7 @@ class FunctionDef:
 # Defines a loaded module in the memory. Currently we just store module itself with a bunch of
 # reverse mapping that allows querying definition of struct/function by name.
 @dataclass
-class LoadedModule(ModuleAccess):
+class LoadedModule(ModuleAccess, JsonPrintable):
     module: VerifiedModule
 
     struct_defs_table: Mapping[Identifier, StructDefinitionIndex]

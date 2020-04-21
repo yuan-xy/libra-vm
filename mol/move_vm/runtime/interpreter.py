@@ -1,44 +1,48 @@
 from __future__ import annotations
+
+import logging
+from copy import deepcopy
+from dataclasses import dataclass, field
+from enum import IntEnum
+from typing import List, Optional, Mapping, Callable, Tuple
+
+from canoser import BoolT, Uint8, Uint16, Uint64, Uint128, BytesT
 from libra.access_path import AccessPath
 from libra.account_address import Address
 from libra.account_config import AccountConfig, CORE_CODE_ADDRESS
 from libra.contract_event import ContractEvent
-from libra.event import EventKey
-from mol.move_core.types.identifier import IdentStr
 from libra.language_storage import ModuleId, StructTag, TypeTag
+from libra.rustlib import bail, usize
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, StatusType, VMStatus
 
-from mol.libra_vm.counters import *
+from mol.libra_vm.system_module_names import ACCOUNT_MODULE, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
+from mol.move_core.types.identifier import IdentStr
+from mol.move_core import JsonPrintable
+from mol.move_vm.runtime.gas_meter import gas_instr, gas_const_instr, gas_consume
 from mol.move_vm.runtime.interpreter_context import InterpreterContext
-from mol.move_vm.runtime.gas_meter import *
-from mol.move_vm.types.identifier import create_access_path, resource_storage_key
 from mol.move_vm.runtime.loaded_data import FunctionRef, FunctionReference, LoadedModule
-from mol.move_vm.runtime.runtime import VMRuntime
 from mol.move_vm.runtime.move_vm import MoveVM
+from mol.move_vm.runtime.runtime import VMRuntime
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer, TracableFrame
-from mol.libra_vm.system_module_names import ACCOUNT_MODULE, ACCOUNT_STRUCT_NAME, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
-from mol.vm.vm_exception import VMException, VMExceptionBase
-from mol.vm.errors import *
+from mol.move_vm.types.identifier import create_access_path, resource_storage_key
+from mol.move_vm.types.loaded_data import StructDef, Type
+from mol.move_vm.types.type_context import TypeContext
+from mol.move_vm.types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
+from mol.vm.errors import format_str
 from mol.vm.file_format import (
     Bytecode, FunctionHandleIndex, LocalIndex, LocalsSignatureIndex, SignatureToken,
     StructDefinitionIndex, ModuleAccess
-    )
-from mol.vm.gas_schedule import (
-    calculate_intrinsic_gas, AbstractMemorySize, CostTable, GasAlgebra, GasCarrier,
-    NativeCostIndex
-    )
+)
 from mol.vm.file_format_common import Opcodes, SerializedType
+from mol.vm.gas_schedule import (
+    calculate_intrinsic_gas, AbstractMemorySize, CostTable, NativeCostIndex
+)
 from mol.vm.transaction_metadata import TransactionMetadata
-from mol.move_vm.types.loaded_data import StructDef, Type
-from mol.move_vm.types.native_functions.dispatch import NativeFunction
-from mol.move_vm.types.type_context import TypeContext
-from mol.move_vm.types.values import IntegerValue, Locals, Reference, Struct, StructRef, Value
-from typing import List, Optional, Mapping, Callable, Any, Tuple
-from dataclasses import dataclass, field
-from canoser import BoolT, Uint8, Uint64, Uint128, BytesT
-from copy import deepcopy
-from enum import IntEnum
+from mol.vm.vm_exception import VMException, VMExceptionBase
+
+logger = logging.getLogger(__name__)
+
 
 def derive_type_tag(
     module: ModuleAccess,
@@ -107,7 +111,6 @@ class Interpreter:
     # GetTxnSenderAddress, ...)
     txn_data: TransactionMetadata
     gas_schedule: CostTable
-    enable_gas: bool = False
 
 
     # Execute a function.
@@ -972,15 +975,15 @@ class Interpreter:
         if pc < code.__len__():
             i = 0
             for bytecode in code[0:pc]:
-                internal_state.push_str(format_str("{}> {}\n", i, bytecode))
+                internal_state += format_str("{}> {}\n", i, bytecode)
                 i += 1
 
-            internal_state.push_str(format_str("{}* {}\n", i, code[pc]))
+            internal_state += format_str("{}* {}\n", i, code[pc])
 
-        internal_state.push_str(format_str("Locals:\n{}", current_frame.locals))
-        internal_state.push_str("Operand Stack:\n")
+        internal_state += format_str("Locals:\n{}", current_frame.locls)
+        internal_state += "\nOperand Stack:\n"
         for value in self.operand_stack.v0:
-            internal_state.push_str(format_str("{}\n", value))
+            internal_state += format_str("{}\n", value)
 
         return internal_state
 
@@ -1069,7 +1072,7 @@ class CallStack:
 # A `Frame` is the execution context for a function. It holds the locals of the function and
 # the function itself.
 @dataclass
-class Frame(TracableFrame):
+class Frame(TracableFrame, JsonPrintable):
     pc: Uint16
     locls: Locals
     function: FunctionReference

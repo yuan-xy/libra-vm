@@ -6,6 +6,7 @@ from mol.vm.vm_exception import VMException
 from mol.vm.errors import bounds_error
 from libra.account_address import Address
 from mol.move_core.types.identifier import IdentStr, Identifier
+from mol.move_core import JsonPrintable
 from libra.language_storage import ModuleId
 from libra.vm_error import StatusCode, VMStatus
 from libra.rustlib import ensure, bail, usize, flatten
@@ -172,7 +173,7 @@ NO_TYPE_ACTUALS: LocalsSignatureIndex = LocalsSignatureIndex(0)
 # Type definitions (fields) are private to the module. Outside the module a
 # Type is an opaque handle.
 @dataclass
-class ModuleHandle:
+class ModuleHandle(JsonPrintable):
     # Index into the `AddressPool`. Identifies the account that holds the module.
     address: AddressPoolIndex
     # The name of the module published in the code section for the account in `address`.
@@ -197,7 +198,7 @@ class ModuleHandle:
 # mismatch with the definition.
 
 @dataclass
-class StructHandle:
+class StructHandle(JsonPrintable):
     # The module that defines the type.
     module: ModuleHandleIndex
     # The name of the type.
@@ -224,7 +225,7 @@ class StructHandle:
 # ensure the function reference is valid and it is also used by the verifier to type check
 # function calls.
 @dataclass
-class FunctionHandle:
+class FunctionHandle(JsonPrintable):
     # The module that defines the function.
     module: ModuleHandleIndex
     # The name of the function.
@@ -241,7 +242,7 @@ class FunctionHandle:
 
 # `StructFieldInformation` indicates whether a class is native or has user-specified fields
 @dataclass
-class StructFieldInformation:
+class StructFieldInformation(JsonPrintable):
     tag: SerializedNativeStructFlag
     # The number of fields in this type.
     field_count: Optional[MemberCount] = None
@@ -270,7 +271,7 @@ class StructFieldInformation:
 # A `StructDefinition` is a type definition. It either indicates it is native or
 # defines all the user-specified fields declared on the type.
 @dataclass
-class StructDefinition:
+class StructDefinition(JsonPrintable):
     # The `StructHandle` for this `StructDefinition`. This has the name and the resource flag
     # for the type.
     struct_handle: StructHandleIndex
@@ -296,7 +297,7 @@ class StructDefinition:
 # A `FieldDefinition` is the definition of a field: the type the field is defined on,
 # its name and the field type.
 @dataclass
-class FieldDefinition:
+class FieldDefinition(JsonPrintable):
     # The type (resource or unrestricted) the field is defined on.
     struct_: StructHandleIndex
     # The name of the field.
@@ -314,7 +315,7 @@ def codeuint_factory():
 # A `FunctionDefinition` is the implementation of a function. It defines
 # the *prototype* of the function and the function body.
 @dataclass
-class FunctionDefinition:
+class FunctionDefinition(JsonPrintable):
     # The prototype of the function (module, name, signature).
     function: FunctionHandleIndex = field(default_factory=FunctionHandleIndex)
     # Flags for this function (private, public, native, etc.)
@@ -353,7 +354,7 @@ class FunctionDefinition:
 # A type definition. `SignatureToken` allows the definition of the set of known types and their
 # composition.
 @dataclass
-class TypeSignature:
+class TypeSignature(JsonPrintable):
     v0: SignatureToken
 
     def __hash__(self):
@@ -373,7 +374,7 @@ class TypeSignature:
 # types and carries kind constraints for those type parameters (empty list for non-generic
 # functions).
 @dataclass
-class FunctionSignature:
+class FunctionSignature(JsonPrintable):
     # The list of return types.
     return_types: List[SignatureToken]
     # The list of arguments to the function.
@@ -390,7 +391,7 @@ class FunctionSignature:
 # Locals include the arguments to the function from position `0` to argument `count - 1`.
 # The remaining elements are the type of each local.
 @dataclass
-class LocalsSignature:
+class LocalsSignature(JsonPrintable):
     v0: List[SignatureToken] = field(default_factory=list)
 
     def __hash__(self):

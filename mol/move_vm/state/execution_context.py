@@ -8,6 +8,7 @@ from libra.language_storage import ModuleId
 from libra.transaction import TransactionOutput, TransactionStatus
 from libra.vm_error import StatusCode, VMStatus
 from libra.transaction.write_set import WriteOp, WriteSet
+from mol.move_core import JsonPrintable
 from mol.move_vm.types.loaded_data import StructDef, Type
 from mol.move_vm.types.chain_state import ChainState
 from mol.move_vm.types.values import GlobalValue, Value
@@ -43,7 +44,7 @@ import abc
 # section of the transaction flow to another. Because of this, this is the _only_ data that can
 # both be mutated, and persist between interpretation instances.
 @dataclass
-class TransactionExecutionContext(InterpreterContextImpl, ChainState):
+class TransactionExecutionContext(InterpreterContextImpl, ChainState, JsonPrintable):
     # Gas metering to track cost of execution.
     gas_left: GasUnits
     # List of events "fired" during the course of an execution.
