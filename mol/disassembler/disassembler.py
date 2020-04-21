@@ -237,7 +237,7 @@ class Disassembler:
         tag = instruction.tag
         if tag == Opcodes.LD_ADDR:
             address_idx = instruction.value
-            address = self.source_mapper.bytecode.address_at(address_idx).hex()[0:4]
+            address = self.source_mapper.bytecode.address_at(address_idx)[0:4]
             return format_str("LdAddr[{}]({})", address_idx, address)
 
         elif tag == Opcodes.LD_BYTEARRAY:
@@ -496,7 +496,7 @@ class Disassembler:
         addr = self.source_mapper.source_map.module_name[0]
         name = format_str(
             "{}.{}",
-            bytes(addr).hex()[0:4],
+            addr[0:4],
             self.source_mapper.source_map.module_name[1]
         )
 

@@ -1,5 +1,5 @@
 import argparse, sys, os, json
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from pathlib import Path
 from mol.compiler.bytecode_source_map.source_map import SourceMap, SourceName

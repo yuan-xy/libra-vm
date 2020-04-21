@@ -19,7 +19,7 @@ class SourceMapping:
     # Unused for now, this will be used when we start printing function/struct markings
     source_code: Optional[Tuple[str, str]] = None
 
-    # Function and class markings. These are used to lift up annotations/messages on the bytecode
+    # Function and struct markings. These are used to lift up annotations/messages on the bytecode
     # into the disassembled program and/or IR source code.
     marks: Optional[MarkedSourceMapping] = None
 

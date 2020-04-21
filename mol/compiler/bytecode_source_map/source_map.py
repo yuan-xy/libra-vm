@@ -15,9 +15,13 @@ from dataclasses_json import dataclass_json
 from libra.rustlib import list_get, bail, usize
 from copy import deepcopy
 from canoser import Uint64
+import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+CodeOffset = int #Uint16
+TableIndex = int #Uint16
 
 Location = Span
 SourceName = Tuple[str, Location]
@@ -31,8 +35,8 @@ class StructSourceMap:
     # Important: type parameters need to be added in the order of their declaration
     type_parameters: List[SourceName] = field(default_factory=list)
 
-    # Note that fields to a class source map need to be added in the order of the fields in the
-    # class definition.
+    # Note that fields to a struct source map need to be added in the order of the fields in the
+    # struct definition.
     fields: List[Location] = field(default_factory=list)
 
 
@@ -222,10 +226,13 @@ class SourceMap:
     # A mapping of FunctionDefinitionIndex to the soure map for that function.
     function_map: Dict[TableIndex, FunctionSourceMap]
 
+    def __str__(self):
+        return json.dumps(self.to_dict(), indent=2)
+
     @classmethod
     def new(cls, module_name: QualifiedModuleIdent) -> SourceMap:
         ident = module_name.name
-        return cls((module_name.address, ident), {}, {})
+        return cls((module_name.address.hex(), ident), {}, {})
 
 
     def add_top_level_function_mapping(
