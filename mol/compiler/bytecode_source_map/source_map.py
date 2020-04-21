@@ -446,10 +446,7 @@ def remap_locations_source_name(
 
 
 def remap_locations_source_map(
-    alist: SourceMap,
+    alist: List[ModuleSourceMap],
     f: Callable[[Any], Any],
-) -> SourceMap:
+) -> List[ModuleSourceMap]:
     return [m.remap_locations(f) for m in alist]
-
-
-SourceMap = List[ModuleSourceMap]

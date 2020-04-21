@@ -1,23 +1,11 @@
 # flake8: noqa
 from __future__ import annotations
 from mol.compiler.bytecode_source_map.mapping import SourceMapping
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap, SourceMap
+from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
 from mol.move_ir.types.location import Loc
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
 import json
-
-# from codespan.Span
-# from codespan.{FileId, Files}
-# from codespan_reporting.{
-#     diagnostic.{Diagnostic, BlockLabel},
-#     term.{
-#         emit,
-#         termcolor.{ColorChoice, StandardStream},
-#         Config,
-#     },
-# }
-
 
 
 Error = Tuple[Loc, str]
@@ -28,13 +16,6 @@ def module_source_map_from_file(file_path: str) -> ModuleSourceMap:
         jstr = f.read()
         obj = json.loads(jstr)
         return ModuleSourceMap.from_dict(obj)
-
-
-def source_map_from_file(file_path: str) -> SourceMap:
-    with open(file_path) as f:
-        jstr = f.read()
-        obj = json.loads(jstr)
-        return [ModuleSourceMap.from_dict(x) for x in obj]
 
 def render_errors(source_mapper: SourceMapping, errors: Errors) -> None:
     if source_mapper.source_code is not None:
@@ -47,7 +28,6 @@ def render_errors(source_mapper: SourceMapping, errors: Errors) -> None:
             emit(writer, Config.default(), codemap, diagnostic)
     else:
         raise "Unable to render errors since source file information is not available"
-
 
 
 def create_diagnostic(fid: FileId, err: Error) -> Diagnostic:
