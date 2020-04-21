@@ -1,6 +1,6 @@
 from __future__ import annotations
 from mol.bytecode_verifier import VerifiedModule
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from libra.account_address import Address
 from libra.rustlib import bail
 from mol.vm.file_format import CompiledModule, CompiledScript
@@ -31,5 +31,5 @@ class Compiler(abc.ABC):
 class ScriptOrModule:
     script:CompiledScript = None
     module:CompiledModule = None
-    source_map: ModuleSourceMap = None
+    source_map: SourceMap = None
 

@@ -1,7 +1,7 @@
 # flake8: noqa
 from __future__ import annotations
 from mol.compiler.bytecode_source_map.mapping import SourceMapping
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from mol.move_ir.types.location import Loc
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
@@ -11,11 +11,11 @@ import json
 Error = Tuple[Loc, str]
 Errors = List[Error]
 
-def module_source_map_from_file(file_path: str) -> ModuleSourceMap:
+def module_source_map_from_file(file_path: str) -> SourceMap:
     with open(file_path) as f:
         jstr = f.read()
         obj = json.loads(jstr)
-        return ModuleSourceMap.from_dict(obj)
+        return SourceMap.from_dict(obj)
 
 def render_errors(source_mapper: SourceMapping, errors: Errors) -> None:
     if source_mapper.source_code is not None:
@@ -43,5 +43,5 @@ class OwnedLoc(Loc):
     pass
 
 
-def remap_owned_loc_to_loc(m: ModuleSourceMap) -> ModuleSourceMap:
+def remap_owned_loc_to_loc(m: SourceMap) -> SourceMap:
     return m #Do nothing in python

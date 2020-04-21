@@ -1,5 +1,5 @@
 from mol.bytecode_verifier import VerifiedModule
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from mol.compiler.ir_to_bytecode.compiler import compile_module, compile_script
 from mol.compiler.ir_to_bytecode.parser import parse_module, parse_script
 from libra.account_address import Address
@@ -28,7 +28,7 @@ class Compiler:
         self,
         file_name: str,
         code: str,
-    ) -> Tuple[CompiledScript, ModuleSourceMap]:
+    ) -> Tuple[CompiledScript, SourceMap]:
         (compiled_script, source_map, _) = self.compile_script_(file_name, code)
         return (compiled_script, source_map)
 
@@ -54,7 +54,7 @@ class Compiler:
         self,
         file_name: str,
         code: str,
-    ) -> Tuple[CompiledScript, ModuleSourceMap, List[VerifiedModule]]:
+    ) -> Tuple[CompiledScript, SourceMap, List[VerifiedModule]]:
         parsed_script = parse_script(file_name, code)
         deps = self.deps()
         (compiled_script, source_maps) = compile_script(self.address, parsed_script, deps)
@@ -65,7 +65,7 @@ class Compiler:
         self,
         file_name: str,
         code: str,
-    ) -> Tuple[CompiledModule, ModuleSourceMap, List[VerifiedModule]]:
+    ) -> Tuple[CompiledModule, SourceMap, List[VerifiedModule]]:
         module = parse_module(file_name, code)
         deps = self.deps()
         (compiled_module, source_map) = compile_module(self.address, module, deps)

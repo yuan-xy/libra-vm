@@ -1,7 +1,7 @@
 from __future__ import annotations
 from mol.compiler.ir_to_bytecode.context import Context, MaterializedPools, TABLE_MAX_SIZE
 from mol.compiler.ir_to_bytecode.errors import *
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from libra.account_address import Address
 from mol.move_ir.types import ast
 from mol.move_ir.types.ast import *
@@ -329,7 +329,7 @@ def compile_script(
     address: Address,
     script: Script,
     dependencies: List[ModuleAccess],
-) -> Tuple[CompiledScript, ModuleSourceMap]:
+) -> Tuple[CompiledScript, SourceMap]:
     current_module = QualifiedModuleIdent(
         address = address,
         name = self_module_name(),
@@ -375,7 +375,7 @@ def compile_module(
     address: Address,
     module: ModuleDefinition,
     dependencies: List[ModuleAccess],
-) -> Tuple[CompiledModule, ModuleSourceMap]:
+) -> Tuple[CompiledModule, SourceMap]:
     current_module = QualifiedModuleIdent(
         address = address,
         name = module.name,

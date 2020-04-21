@@ -212,7 +212,7 @@ class FunctionSourceMap:
 
 @dataclass_json
 @dataclass
-class ModuleSourceMap:
+class SourceMap:
     # The name <address.module_name> for module that this source map is for
     module_name: Tuple[Address, Identifier]
 
@@ -223,7 +223,7 @@ class ModuleSourceMap:
     function_map: Dict[TableIndex, FunctionSourceMap]
 
     @classmethod
-    def new(cls, module_name: QualifiedModuleIdent) -> ModuleSourceMap:
+    def new(cls, module_name: QualifiedModuleIdent) -> SourceMap:
         ident = module_name.name
         return cls((module_name.address, ident), {}, {})
 
@@ -393,7 +393,7 @@ class ModuleSourceMap:
     # Create a 'dummy' source map for a compiled module. This is useful for e.g. disassembling
     # with generated or real names depending upon if the source map is available or not.
     @classmethod
-    def dummy_from_module(cls, module: CompiledModule, default_loc: Location) -> ModuleSourceMap:
+    def dummy_from_module(cls, module: CompiledModule, default_loc: Location) -> SourceMap:
         module_name = module.identifier_at(IdentifierIndex.new(0))
         module_ident =\
             QualifiedModuleIdent(module_name, module.address_at(AddressPoolIndex.new(0)))
@@ -419,18 +419,18 @@ class ModuleSourceMap:
         return empty_source_map
 
     @classmethod
-    def dummy_from_script(cls, script: CompiledScript, default_loc: Location) -> ModuleSourceMap:
+    def dummy_from_script(cls, script: CompiledScript, default_loc: Location) -> SourceMap:
         return cls.dummy_from_module(script.into_module(), default_loc)
 
 
     def remap_locations(
         self,
         f: Callable[[Any], Any],
-    ) -> ModuleSourceMap:
+    ) -> SourceMap:
         struct_map = {n: m.remap_locations(f) for (n,m) in self.struct_map.items()}
         function_map = {n: m.remap_locations(f) for (n,m) in self.function_map.items()}
 
-        return ModuleSourceMap(
+        return SourceMap(
             self.module_name,
             struct_map,
             function_map,
@@ -446,7 +446,7 @@ def remap_locations_source_name(
 
 
 def remap_locations_source_map(
-    alist: List[ModuleSourceMap],
+    alist: List[SourceMap],
     f: Callable[[Any], Any],
-) -> List[ModuleSourceMap]:
+) -> List[SourceMap]:
     return [m.remap_locations(f) for m in alist]

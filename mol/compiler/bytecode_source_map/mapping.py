@@ -1,6 +1,6 @@
 from __future__ import annotations
 from mol.compiler.bytecode_source_map.marking import MarkedSourceMapping
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from mol.vm.file_format import CompiledModule, CompiledScript
 from typing import List, Optional, Any, Union, Tuple, Mapping
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 @dataclass
 class SourceMapping:
     # The source map for the bytecode made w.r.t. to the `source_code`
-    source_map: ModuleSourceMap
+    source_map: SourceMap
 
     # The resulting bytecode from compiling the source map
     bytecode: CompiledModule
@@ -25,7 +25,7 @@ class SourceMapping:
 
     @classmethod
     def new_from_script(cls,
-        source_map: ModuleSourceMap,
+        source_map: SourceMap,
         bytecode: CompiledScript,
     ) -> SourceMapping:
         return cls(source_map, bytecode.into_module())

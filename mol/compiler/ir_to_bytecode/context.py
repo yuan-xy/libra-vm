@@ -1,6 +1,6 @@
 from __future__ import annotations
 from libra.account_address import Address
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap
+from mol.compiler.bytecode_source_map.source_map import SourceMap
 from mol.move_core.types.identifier import IdentStr, Identifier
 from mol.move_ir.types.ast import *
 from mol.move_ir.types.location import *
@@ -186,7 +186,7 @@ class Context(JsonPrintable):
     current_function_index: FunctionDefinitionIndex
 
     # Source location mapping for this module
-    source_map: ModuleSourceMap
+    source_map: SourceMap
 
 
     # Given the dependencies and the current module, creates an empty context.
@@ -221,7 +221,7 @@ class Context(JsonPrintable):
             byte_array_pool= {},
             address_pool= {},
             current_function_index= FunctionDefinitionIndex(0),
-            source_map= ModuleSourceMap.new(deepcopy(current_module)),
+            source_map= SourceMap.new(deepcopy(current_module)),
         )
         context.declare_import(current_module, SELF_MODULE_NAME)
         return context
@@ -246,7 +246,7 @@ class Context(JsonPrintable):
 
 
     # Finish compilation, and materialize the pools for file format.
-    def materialize_pools(self) -> Tuple[MaterializedPools, ModuleSourceMap]:
+    def materialize_pools(self) -> Tuple[MaterializedPools, SourceMap]:
         cls = self.__class__
         num_functions = self.function_handles.__len__()
         assert(num_functions == self.function_signatures.__len__())

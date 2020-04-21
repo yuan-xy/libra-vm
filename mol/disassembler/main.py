@@ -2,7 +2,7 @@ import argparse, sys, os, json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from pathlib import Path
-from mol.compiler.bytecode_source_map.source_map import ModuleSourceMap, SourceName
+from mol.compiler.bytecode_source_map.source_map import SourceMap, SourceName
 from mol.compiler.bytecode_source_map.mapping import SourceMapping
 from mol.compiler.bytecode_source_map.utils import module_source_map_from_file, remap_owned_loc_to_loc, OwnedLoc
 from mol.disassembler import Disassembler, DisassemblerOptions
@@ -63,12 +63,12 @@ def main():
     if args.is_script:
         compiled_script = CompiledScript.deserialize(bytecode_bytes)
         if not source_map:
-            source_map = ModuleSourceMap.dummy_from_script(compiled_script, no_loc)
+            source_map = SourceMap.dummy_from_script(compiled_script, no_loc)
         source_mapping = SourceMapping.new_from_script(source_map, compiled_script)
     else:
         compiled_module = CompiledModule.deserialize(bytecode_bytes)
         if not source_map:
-            source_map = ModuleSourceMap.dummy_from_module(compiled_module, no_loc)
+            source_map = SourceMap.dummy_from_module(compiled_module, no_loc)
 
         source_mapping = SourceMapping(source_map, compiled_module)
 
