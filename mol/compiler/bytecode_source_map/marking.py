@@ -1,4 +1,5 @@
 from __future__ import annotations
+from mol.move_core import JsonPrintable
 from mol.vm.file_format import(
     CodeOffset, FieldDefinitionIndex, FunctionDefinitionIndex, StructDefinitionIndex, TableIndex
 )
@@ -23,7 +24,7 @@ def apply_in_map(amap, key, default, lambd):
 # A data structure used to track any markings or extra information that is desired to be exposed
 # in the disassembled function definition. Every marking can have multiple messages associated with it.
 @dataclass
-class FunctionMarking:
+class FunctionMarking(JsonPrintable):
     # Code offset markings
     code_offsets: Mapping[CodeOffset, List[str]] = field(default_factory=dict) #BTreeMap
 
@@ -40,7 +41,7 @@ class FunctionMarking:
 # A data structure used to track any markings or extra information that is desired to be exposed
 # in the disassembled class definition. Every marking can have multiple messages associated with it.
 @dataclass
-class StructMarking:
+class StructMarking(JsonPrintable):
     # Field markings
     fields: Mapping[FieldDefinitionIndex, List[str]] = field(default_factory=dict) #BTreeMap
 
@@ -57,7 +58,7 @@ class StructMarking:
 # A data structure that contains markings for both functions and structs. This will be used for
 # printing out error messages and the like.
 @dataclass
-class MarkedSourceMapping:
+class MarkedSourceMapping(JsonPrintable):
     # Any function markings
     function_marks: Mapping[TableIndex, FunctionMarking] = field(default_factory=dict) #BTreeMap
 

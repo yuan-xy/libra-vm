@@ -17,7 +17,7 @@ def get_parser():
     parser.add_argument("--skip-private", action='store_true', default=False, help='Skip printing of private functions')
     parser.add_argument("--skip-code", action='store_true', default=False, help='Do not print the disassembled bytecodes of each function')
     parser.add_argument("--skip-locals", action='store_true', default=False, help='Do not print locals of each function')
-    parser.add_argument("--skip-basic-blocks", action='store_true', default=False, help='Do not print the basic blocks of each function')
+    parser.add_argument("--basic-blocks", action='store_true', default=False, help='Print the basic blocks of each function')
     parser.add_argument('-b', '--bytecode', nargs=1, help='The path to the bytecode file')
     return parser
 
@@ -55,7 +55,7 @@ def main():
     disassembler_options = DisassemblerOptions()
     disassembler_options.print_code = not args.skip_code
     disassembler_options.only_public = args.skip_private
-    disassembler_options.print_basic_blocks = not args.skip_basic_blocks
+    disassembler_options.print_basic_blocks = args.basic_blocks
     disassembler_options.print_locals = not args.skip_locals
 
     # TODO: make source mapping work with the move source language
@@ -73,7 +73,7 @@ def main():
         source_mapping = SourceMapping(source_map, compiled_module)
 
     if source is not None:
-        source_mapping.with_source_code((source_path, source))
+        source_mapping.with_source_code(source_path, source)
 
     disassembler = Disassembler(source_mapping, disassembler_options)
     dissassemble_string = disassembler.disassemble()

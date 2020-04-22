@@ -3,6 +3,7 @@ from libra.account_address import Address
 from mol.move_core.types.identifier import Identifier
 from mol.move_ir.types.ast import ModuleName, NopLabel, QualifiedModuleIdent
 from mol.move_ir.types.codespan import Span
+from mol.move_ir.types.location import Loc
 from mol.vm.file_format import (
         AddressPoolIndex, CodeOffset, CompiledModule, CompiledScript, FieldDefinitionIndex,
         FunctionDefinition, FunctionDefinitionIndex, IdentifierIndex, StructDefinition,
@@ -23,8 +24,13 @@ logger = logging.getLogger(__name__)
 CodeOffset = int #Uint16
 TableIndex = int #Uint16
 
-Location = Span
+Location = Loc
 SourceName = Tuple[str, Location]
+
+@dataclass
+class CodeLocation(Loc):
+    line_no: Optional[int] = None
+
 
 @dataclass_json
 @dataclass
@@ -39,6 +45,8 @@ class StructSourceMap:
     # struct definition.
     fields: List[Location] = field(default_factory=list)
 
+    def __str__(self):
+        return json.dumps(self.to_dict(), indent=2)
 
     def add_type_parameter(self, type_name: SourceName):
         self.type_parameters.append(type_name)
@@ -112,10 +120,11 @@ class FunctionSourceMap:
     # high level language information
     nops: Dict[NopLabel, CodeOffset] = field(default_factory=dict)
 
-
     # The source location map for the function body.
-    code_map: Dict[CodeOffset, Location] = field(default_factory=dict)
+    code_map: Dict[CodeOffset, CodeLocation] = field(default_factory=dict)
 
+    def __str__(self):
+        return json.dumps(self.to_dict(), indent=2)
 
     def add_type_parameter(self, type_name: SourceName):
         self.type_parameters.append(type_name)
@@ -166,7 +175,8 @@ class FunctionSourceMap:
     def get_local_name(self, local_index: Uint64) -> Optional[SourceName]:
         if local_index<0 or local_index> len(self.locls):
             return None
-        return deepcopy(list_get(self.locls,local_index))
+        ret: SourceName = list_get(self.locls, local_index)
+        return ret
 
 
     def dummy_function_map(
@@ -226,13 +236,15 @@ class SourceMap:
     # A mapping of FunctionDefinitionIndex to the soure map for that function.
     function_map: Dict[TableIndex, FunctionSourceMap]
 
+    dummy: Optional[bool] = False
+
     def __str__(self):
         return json.dumps(self.to_dict(), indent=2)
 
     @classmethod
-    def new(cls, module_name: QualifiedModuleIdent) -> SourceMap:
+    def new(cls, module_name: QualifiedModuleIdent, dummy= False) -> SourceMap:
         ident = module_name.name
-        return cls((module_name.address.hex(), ident), {}, {})
+        return cls((module_name.address.hex(), ident), {}, {}, dummy)
 
 
     def add_top_level_function_mapping(
@@ -405,7 +417,7 @@ class SourceMap:
         module_ident =\
             QualifiedModuleIdent(module_name, module.address_at(AddressPoolIndex.new(0)))
 
-        empty_source_map = cls.new(module_ident)
+        empty_source_map = cls.new(module_ident, dummy= True)
 
         for (function_idx, function_def) in enumerate(module.function_defs()):
             empty_source_map.add_top_level_function_mapping(

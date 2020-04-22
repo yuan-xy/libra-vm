@@ -126,13 +126,13 @@ class Disassembler:
         local_idx: Uint64,
         function_source_map: FunctionSourceMap,
     ) -> str:
-        name = function_source_map.get_local_name(local_idx)
+        name: SourceName = function_source_map.get_local_name(local_idx)
         if name is None:
             bail(
                 "Unable to get local name at index {} while disassembling location-based instruction",
                 local_idx
             )
-        return name
+        return name[0]
 
 
     def type_for_local(
@@ -350,8 +350,19 @@ class Disassembler:
             cfg = VMControlFlowGraph.new(function_def.code.code)
             for (block_number, block_id) in enumerate(cfg.blocks.keys()):
                 instrs.insert(block_id + block_number, format_str("B{}:", block_number))
-
-        return instrs
+            return instrs
+        elif self.source_mapper.has_source_code_and_map():
+            ret = []
+            cur_line_no = 0
+            for idx, s in enumerate(instrs):
+                line_no = function_source_map.code_map[idx].line_no
+                if line_no != cur_line_no:
+                    cur_line_no = line_no
+                    ret.append("\033[91m>>>" + self.source_mapper.source_code.lines[line_no-1] + "\033[0m")
+                ret.append(s)
+            return ret
+        else:
+            return instrs
 
 
     def disassemble_type_formals(self,
@@ -420,6 +431,7 @@ class Disassembler:
         (args, locls) =\
             self.disassemble_locals(function_source_map, function_definition, function_signature)
         bytecode = self.disassemble_bytecode(function_definition_index)
+
         return format_str(
             "{visibility_modifier}{name}{ty_params}({args}){ret_type}{body}",
             visibility_modifier = visibility_modifier,
@@ -496,7 +508,7 @@ class Disassembler:
         addr = self.source_mapper.source_map.module_name[0]
         name = format_str(
             "{}.{}",
-            addr[0:4],
+            addr,
             self.source_mapper.source_map.module_name[1]
         )
 
