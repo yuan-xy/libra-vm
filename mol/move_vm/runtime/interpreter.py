@@ -294,7 +294,7 @@ class Interpreter:
                         line_no = func_map.code_map[frame.pc].line_no
                         if line_no != cur_line_no:
                             cur_line_no = line_no
-                            src = frame.mapping.source_code.lines[line_no]
+                            src = frame.mapping.source_code.lines[line_no-1]
                             ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
                             frame.f_trace = ltrace
                     else:

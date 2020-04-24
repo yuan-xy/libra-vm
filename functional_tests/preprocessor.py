@@ -11,7 +11,7 @@ from functional_tests.config.transaction import is_new_transaction
 from functional_tests.errors import *
 from functional_tests.evaluator import Command, CommandTag, Transaction
 from libra.rustlib import usize, bail, flatten, format_str
-from typing import Any, List, Optional, Mapping
+from typing import Any, List, Optional, Mapping, Tuple
 from mol.move_core import JsonPrintable
 import re
 
@@ -33,6 +33,10 @@ class RawTransactionInput(JsonPrintable):
     config_entries: List[TransactionConfigEntry]
     text: List[str]
 
+    def is_text_empty(self):
+        lines = [x for x in self.text if x]
+        return not lines
+
 
 class RawCommandTag(IntEnum):
     vTransaction = 1
@@ -47,13 +51,13 @@ class RawCommand(JsonPrintable):
 def is_empty_command(cmd: RawCommand) -> bool:
     if cmd.tag == RawCommandTag.vTransaction:
         txn = cmd.value
-        return not txn.text and not txn.config_entries
+        return txn.is_text_empty() and not txn.config_entries
     else:
         return not cmd.value
 
 
 def check_raw_transaction(txn: RawTransactionInput) -> None:
-    if not txn.text:
+    if txn.is_text_empty():
         if txn.config_entries:
             raise ErrorKind.Other(
                 "config options attached to empty transaction"
@@ -93,7 +97,6 @@ def split_input(
     List[LineSp],
     List[RawCommand],
 ]:
-    lines = [x for x in lines if x]
     global_config = []
     directives = []
     commands = []
@@ -135,10 +138,9 @@ def split_input(
                 txn.config_entries.append(entry)
                 continue
 
-            if line.strip():
-                # breakpoint()
-                txn.text.append(line)
-                continue
+            # if line.strip():
+            txn.text.append(line) # preserve blank line for line_no mapping
+            continue
 
         elif command.tag == RawCommandTag.vBlockMetadata:
             entries = command.value
