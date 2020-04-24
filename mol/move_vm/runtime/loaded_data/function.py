@@ -1,24 +1,25 @@
 from __future__ import annotations
-from mol.bytecode_verifier import VerifiedModule
-from mol.move_core.types.identifier import IdentStr, Identifier
+
+import abc
+from copy import deepcopy
+from dataclasses import dataclass
+from typing import List, Optional, Mapping
+
+from canoser import Uint8
+from libra.rustlib import bail, usize, format_str
 from libra.vm_error import StatusCode, VMStatus
+
+from mol.bytecode_verifier import VerifiedModule
+from mol.move_core import JsonPrintable
+from mol.move_core.types.identifier import IdentStr, Identifier
+from mol.move_vm.types.loaded_data import StructDef
 from mol.vm.file_format import (
     Bytecode, CodeUnit, FunctionDefinitionIndex, FunctionHandle, FunctionSignature,
-    CompiledModule, FieldDefinitionIndex, StructDefinitionIndex,
-    StructFieldInformation, TableIndex,
-    ModuleAccess
-    )
-from mol.vm.file_format_common import Opcodes, SerializedType, SerializedNativeStructFlag
-from mol.vm.internals import ModuleIndex
+    CompiledModule, FunctionDefinition, FieldDefinitionIndex, StructDefinitionIndex,
+    TableIndex, ModuleAccess)
+from mol.vm.file_format_common import SerializedNativeStructFlag
 from mol.vm.vm_exception import VMException
-from mol.move_vm.types.loaded_data import StructDef
-from mol.move_core import JsonPrintable
-from typing import List, Optional, Mapping, Any
-from dataclasses import dataclass
-import abc
-from libra.rustlib import bail, usize, format_str
-from canoser import Uint8
-from copy import deepcopy
+
 
 # Loaded representation for function definitions and handles.
 
@@ -78,16 +79,17 @@ class FunctionRef(FunctionReference):
     amodule: LoadedModule #field 'module' with collid with 'module' method in FunctionReference
     fdef: FunctionDef
     handle: FunctionHandle
+    idx: FunctionDefinitionIndex
 
     def __str__(self):
         return self.pretty_string()
 
     @classmethod
     def new(cls, module: LoadedModule, idx: FunctionDefinitionIndex) -> FunctionRef:
-        fdef = module.f_defs[idx.into_index()]
-        fn_definition = module.function_def_at(idx)
+        fdef: FunctionDef = module.f_defs[idx.into_index()]
+        fn_definition: FunctionDefinition = module.function_def_at(idx)
         handle = module.function_handle_at(fn_definition.function)
-        return FunctionRef(module, fdef, handle)
+        return FunctionRef(module, fdef, handle, idx)
 
 
     def module(self) -> LoadedModule:

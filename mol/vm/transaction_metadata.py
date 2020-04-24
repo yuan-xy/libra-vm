@@ -1,4 +1,5 @@
 from __future__ import annotations
+from mol.move_core import JsonPrintable
 from mol.vm.gas_schedule import AbstractMemorySize, GasAlgebra, GasCarrier, GasPrice, GasUnits
 from libra import Address, SignedTransaction
 from libra.transaction.authenticator import TransactionAuthenticator, AuthenticationKeyPreimage
@@ -7,7 +8,7 @@ from canoser import Struct, Uint64, BytesT
 from dataclasses import dataclass
 
 @dataclass
-class TransactionMetadata:
+class TransactionMetadata(JsonPrintable):
     sender: Address
     authentication_key_preimage: bytes
     sequence_number: Uint64

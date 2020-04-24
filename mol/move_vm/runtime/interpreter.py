@@ -219,6 +219,8 @@ class Interpreter:
                 ltrace = gtrace(current_frame, TraceType.CALL, None)
                 if ltrace is not None:
                     current_frame.f_trace = ltrace
+                    current_frame.try_attach_mapping()
+
             exit_code = self\
                 .execute_code_unit(runtime, context, current_frame, code)
                 #.or_else(|err| Err(self.maybe_core_dump(err, &current_frame)))
@@ -282,11 +284,22 @@ class Interpreter:
     ) -> ExitCode:
         # TODO: re-enbale this once gas metering is sorted out
         #code = frame.code_definition()
+
+        cur_line_no = 0
         while True:
             for instruction in code[frame.pc:]:
                 if frame.f_trace is not None:
-                    ltrace = frame.f_trace(frame, TraceType.LINE, instruction)
-                    frame.f_trace = ltrace
+                    if frame.mapping is not None:
+                        func_map = frame.mapping.source_map.get_function_source_map(frame.function.idx)
+                        line_no = func_map.code_map[frame.pc].line_no
+                        if line_no != cur_line_no:
+                            cur_line_no = line_no
+                            src = frame.mapping.source_code.lines[line_no]
+                            ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
+                            frame.f_trace = ltrace
+                    else:
+                        ltrace = frame.f_trace(frame, TraceType.LINE, (frame.pc, instruction))
+                        frame.f_trace = ltrace
 
                 frame.pc += 1
                 if instruction.tag == Opcodes.POP:

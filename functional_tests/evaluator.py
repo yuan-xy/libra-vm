@@ -4,6 +4,7 @@ from functional_tests.compiler import Compiler, ScriptOrModule
 from functional_tests.config.globl import Config as GlobalConfig
 from functional_tests.config.transaction import Config as TransactionConfig
 from functional_tests.errors import *
+from mol.global_source_mapping import GlobalSourceMapping
 from mol.bytecode_verifier.verifier import (
     verify_module_dependencies, verify_script_dependencies, VerifiedModule, VerifiedScript,
     VerifyException
@@ -20,6 +21,7 @@ from libra.transaction import Transaction as LibraTransaction
 from libra.transaction import RawTransaction, SignedTransaction, TransactionOutput, TransactionStatus, TransactionPayload
 from libra.vm_error import StatusCode, VMStatus
 from mol.vm import CompiledModule, CompiledScript, ModuleView, VMException
+from mol.vm.file_format import self_module_name
 from mol.vm.gas_schedule import GasAlgebra, MAXIMUM_NUMBER_OF_GAS_UNITS
 from dataclasses import dataclass, field
 from libra.rustlib import usize, bail, flatten, format_str
@@ -468,6 +470,12 @@ def eval_transaction(
         log.append(EvaluationOutput.Stage(Stage.Runtime))
         script_transaction =\
             make_script_transaction(fexec, transaction.config, compiled_script)
+        GlobalSourceMapping.add(
+            transaction.config.sender.addr.hex(),
+            self_module_name(),
+            "main",
+            parsed_script_or_module.source_mapping,
+        )
 
         try:
             txn_output = run_transaction(fexec, script_transaction)

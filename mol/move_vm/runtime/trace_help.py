@@ -1,6 +1,8 @@
 from enum import IntEnum
-from typing import Callable, Union, Any
+from typing import Callable, Union, Any, Tuple
+from mol.global_source_mapping import GlobalSourceMapping
 from mol.move_core import JsonPrintable
+
 
 class TraceType(IntEnum):
 	CALL = 0
@@ -12,9 +14,18 @@ class TraceType(IntEnum):
 	NATIVE_RETURN = 6
 	OPCODE = 7
 
+
 class TracableFrame(JsonPrintable):
-	def address_module_function(self):
+	def address_module_function(self) -> Tuple[str, str, str]:
 		return self.module().address().hex(), self.module().name(), self.function.name()
+
+	def try_attach_mapping(self) -> None:
+		a, m, f = self.address_module_function()
+		mapping = GlobalSourceMapping.find(a, m, f)
+		if mapping is not None and mapping.has_source_code_and_map():
+			self.mapping = mapping
+		else:
+			self.mapping = None
 
 
 CallbackReturn = Union[None, Callable]

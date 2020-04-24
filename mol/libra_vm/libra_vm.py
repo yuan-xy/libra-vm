@@ -342,13 +342,7 @@ class LibraVM(VMVerifier, VMExecutor):
         txn: SignatureCheckedTransaction,
     ) -> TransactionOutput:
         txn_data = TransactionMetadata.new(txn.into_inner())
-        # verified_payload = record_stats! {time_hist | TXN_VERIFICATION_TIME_TAKEN | {
-        #     self.verify_transaction_impl(txn, state_view, remote_cache)
-        # }}
         try:
-            # record_stats! {time_hist | TXN_EXECUTION_TIME_TAKEN | {
-
-            # }}
             verified_payload = self.verify_transaction_impl(txn, state_view, remote_cache)
             result = self.execute_verified_payload(
                     remote_cache,

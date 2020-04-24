@@ -147,7 +147,7 @@ class FunctionSourceMap:
     def add_code_mapping(self, start_offset: CodeOffset, location: Location):
         possible_segment = self.get_code_location(start_offset)
         if possible_segment is None or possible_segment != location:
-            self.code_map[start_offset] = location
+            self.code_map[start_offset] = CodeLocation(location.file, location.span)
 
     # Record the code offset for an Nop label
     def add_nop_mapping(self, label: NopLabel, offset: CodeOffset):

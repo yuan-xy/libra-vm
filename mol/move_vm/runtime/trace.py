@@ -82,7 +82,7 @@ class Trace:
 
     def localtrace_trace_and_count(self, frame, why, arg):
         if why == TraceType.LINE:
-            print("\t", arg)
+            print("\t", arg[0], arg[1])
             this_func = frame.address_module_function()
             key = this_func, frame.pc
             self.counts[key] = self.counts.get(key, 0) + 1
@@ -91,7 +91,7 @@ class Trace:
     def localtrace_trace(self, frame, why, arg):
         if why == TraceType.LINE:
             # lineno = frame.f_lineno
-            print("\t", arg)
+            print("\t", arg[0], arg[1])
         return self.localtrace
 
     def localtrace_count(self, frame, why, arg):
@@ -187,14 +187,3 @@ def main():
 
 if __name__=='__main__':
     main()
-
-
-
-# frame.f_trace
-# frame.f_back
-# frame.f_code.co_filename
-# frame.f_code.co_name
-# frame.f_code.co_flags
-# frame.f_locals
-# frame.f_globals
-# frame.f_lineno
