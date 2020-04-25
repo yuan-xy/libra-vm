@@ -21,7 +21,7 @@ class TracableFrame(JsonPrintable):
 
 	def try_attach_mapping(self) -> None:
 		a, m, f = self.address_module_function()
-		mapping = GlobalSourceMapping.find(a, m, f)
+		mapping = GlobalSourceMapping.find(a, m)
 		if mapping is not None and mapping.has_source_code_and_map():
 			self.mapping = mapping
 		else:

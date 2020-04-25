@@ -426,6 +426,11 @@ def eval_transaction(
 
     compiled_script = parsed_script_or_module.script
     if compiled_script:
+        GlobalSourceMapping.add(
+            transaction.config.sender.addr.hex(),
+            self_module_name(),
+            parsed_script_or_module.source_mapping,
+        )
         log.append(EvaluationOutput.Output(OutputType.CompiledScript(
             compiled_script),
         ))
@@ -470,12 +475,6 @@ def eval_transaction(
         log.append(EvaluationOutput.Stage(Stage.Runtime))
         script_transaction =\
             make_script_transaction(fexec, transaction.config, compiled_script)
-        GlobalSourceMapping.add(
-            transaction.config.sender.addr.hex(),
-            self_module_name(),
-            "main",
-            parsed_script_or_module.source_mapping,
-        )
 
         try:
             txn_output = run_transaction(fexec, script_transaction)
@@ -489,6 +488,11 @@ def eval_transaction(
         )))
     else:
         compiled_module = parsed_script_or_module.module
+        GlobalSourceMapping.add(
+            transaction.config.sender.addr.hex(),
+            compiled_module.name(),
+            parsed_script_or_module.source_mapping,
+        )
 
         log.append(EvaluationOutput.Output(OutputType.CompiledModule(
             compiled_module

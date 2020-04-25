@@ -70,11 +70,12 @@ class Trace:
         else returns self.localtrace.
         """
         if why == TraceType.CALL:
+            this_func = frame.address_module_function()
             def ignore():
-                return False
+                address, _, _ = this_func
+                return address == '00000000000000000000000000000000'
             if not ignore():
                 if self.trace:
-                    this_func = frame.address_module_function()
                     print(this_func)
                 return self.localtrace
             else:
@@ -170,7 +171,7 @@ def main():
 
     tracer = Trace(opts.count, opts.trace, countfuncs=opts.listfuncs,
               countcallers=opts.trackcalls)
-    
+
     if not tracer.donothing:
         GlobalTracer.settrace(tracer.globaltrace)
 

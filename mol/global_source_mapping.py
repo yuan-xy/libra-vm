@@ -6,8 +6,8 @@ class GlobalSourceMapping:
     mapping: Mapping[str, SourceMapping] = {}
 
     @classmethod
-    def add(cls, address: str, module: str, function: str, mapping: SourceMapping) -> None:
-        qual_name = "::".join([address, module, function])
+    def add(cls, address: str, module: str, mapping: SourceMapping) -> None:
+        qual_name = "::".join([address, module])
         cls.add_mapping(qual_name, mapping)
 
     @classmethod
@@ -22,12 +22,9 @@ class GlobalSourceMapping:
             return None
 
     @classmethod
-    def find(cls, address: str, module: str, function: str) -> Optional[SourceMapping]:
-        """
-
-        :rtype: object
-        """
-        qual_name = "::".join([address, module, function])
+    def find(cls, address: str, module: str) -> Optional[SourceMapping]:
+        qual_name = "::".join([address, module])
         return cls.find_mapping(qual_name)
+
 
 
