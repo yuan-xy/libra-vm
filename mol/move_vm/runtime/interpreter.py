@@ -297,6 +297,7 @@ class Interpreter:
                             src = frame.mapping.source_code.lines[line_no-1]
                             ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
                             frame.f_trace = ltrace
+                        frame.f_trace(frame, TraceType.OPCODE, (frame.pc, instruction))
                     else:
                         ltrace = frame.f_trace(frame, TraceType.LINE, (frame.pc, instruction))
                         frame.f_trace = ltrace

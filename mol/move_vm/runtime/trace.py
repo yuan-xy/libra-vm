@@ -10,11 +10,11 @@ from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTrace
 from mol.stdlib import stdlib_modules
 
 class Trace:
-    def __init__(self, count, trace, countfuncs, countcallers):
+    def __init__(self, count, trace, countfuncs, countcallers, bytecode):
         self.counts = {}   # keys are (filename, linenumber)
-        self.pathtobasename = {} # for memoizing os.path.basename
         self.donothing = False
         self.trace = trace
+        self.bytecode = bytecode
         self._calledfuncs = {}
         self._callers = {}
         self._caller_cache = {}
@@ -91,7 +91,8 @@ class Trace:
 
     def localtrace_trace(self, frame, why, arg):
         if why == TraceType.LINE:
-            # lineno = frame.f_lineno
+            print("\t", arg[0], arg[1])
+        if self.bytecode and why == TraceType.OPCODE:
             print("\t", arg[0], arg[1])
         return self.localtrace
 
@@ -119,6 +120,8 @@ def main():
                  '--no-report below.')
     grp.add_argument('-t', '--trace', action='store_true',
             help='Print each line to sys.stdout before it is executed')
+    grp.add_argument('-b', '--bytecode', action='store_true',
+            help='Print each bytecode before it is executed')
     grp.add_argument('-l', '--listfuncs', action='store_true',
             help='Keep track of which functions are executed at least once '
                  'and write the results to sys.stdout after the program exits. '
@@ -144,20 +147,8 @@ def main():
 
     opts = parser.parse_args()
 
-    # if opts.ignore_dir:
-    #     rel_path = 'lib', 'python{0.major}.{0.minor}'.format(sys.version_info)
-    #     _prefix = os.path.join(sys.base_prefix, *rel_path)
-    #     _exec_prefix = os.path.join(sys.base_exec_prefix, *rel_path)
-
-    # def parse_ignore_dir(s):
-    #     s = os.path.expanduser(os.path.expandvars(s))
-    #     s = s.replace('$prefix', _prefix).replace('$exec_prefix', _exec_prefix)
-    #     return os.path.normpath(s)
-
     # opts.ignore_module = [mod.strip()
     #                       for i in opts.ignore_module for mod in i.split(',')]
-    # opts.ignore_dir = [parse_ignore_dir(s)
-    #                    for i in opts.ignore_dir for s in i.split(os.pathsep)]
 
     if not any([opts.trace, opts.count, opts.listfuncs, opts.trackcalls]):
         parser.error('must specify one of --trace, --count, --report, '
@@ -170,7 +161,7 @@ def main():
         parser.error('progname is missing: required with the main options')
 
     tracer = Trace(opts.count, opts.trace, countfuncs=opts.listfuncs,
-              countcallers=opts.trackcalls)
+              countcallers=opts.trackcalls, bytecode=opts.bytecode)
 
     if not tracer.donothing:
         GlobalTracer.settrace(tracer.globaltrace)
