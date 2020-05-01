@@ -8,10 +8,12 @@
 --trusted-host mirrors.aliyun.com
 
 attrs==19.3.0             # via pytest
+autopep8==1.5.2           # via -r dev-requirements.in
 bleach==3.1.4             # via readme-renderer
 certifi==2020.4.5.1       # via requests
 cffi==1.14.0              # via cryptography
 chardet==3.0.4            # via requests
+coverage==5.1             # via -r dev-requirements.in
 cryptography==2.9         # via secretstorage
 docutils==0.16            # via readme-renderer
 entrypoints==0.3          # via flake8
@@ -26,7 +28,7 @@ packaging==20.3           # via pytest
 pkginfo==1.5.0.1          # via twine
 pluggy==0.13.1            # via pytest
 py==1.8.1                 # via pytest
-pycodestyle==2.5.0        # via flake8
+pycodestyle==2.5.0        # via autopep8, flake8
 pycparser==2.20           # via cffi
 pyflakes==2.1.1           # via flake8
 pygments==2.6.1           # via readme-renderer

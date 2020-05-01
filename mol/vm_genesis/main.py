@@ -169,7 +169,7 @@ def diff_tx(old_tx, tx):
     assert cs == old_cs
     assert old_tx == tx
 
-def test_genesis_blob_unchanged():
+def assert_genesis_blob_unchanged():
     from os.path import join, abspath, dirname
     curdir = dirname(__file__)
     file = join(curdir, GENESIS_LOCATION)
