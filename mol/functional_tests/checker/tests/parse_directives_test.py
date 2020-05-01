@@ -1,7 +1,7 @@
-from functional_tests.checker import *
-from functional_tests.checker.directives import *
-from functional_tests.common import Sp
-from functional_tests.errors import *
+from mol.functional_tests.checker import *
+from mol.functional_tests.checker.directives import *
+from mol.functional_tests.common import Sp
+from mol.functional_tests.errors import *
 from libra.rustlib import assert_equal, usize
 import pytest
 

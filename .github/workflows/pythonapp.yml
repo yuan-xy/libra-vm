@@ -35,5 +35,5 @@ jobs:
     - name: Test with pytest
       run: |
         python setup.py install
-        python -m pytest test benchmarks functional_tests
+        python -m pytest test benchmarks mol/functional_tests
         python -m pytest ir-testsuite

@@ -1,9 +1,9 @@
 from __future__ import annotations
-from functional_tests.common import strip
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.errors import *
-from functional_tests.lib import Stage
-from e2e_tests.account import Account, AccountData
+from mol.functional_tests.common import strip
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.errors import *
+from mol.functional_tests.lib import Stage
+from mol.e2e_tests.account import Account, AccountData
 from libra.transaction import TransactionArgument
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str

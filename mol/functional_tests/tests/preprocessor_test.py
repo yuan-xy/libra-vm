@@ -1,6 +1,6 @@
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.errors import *
-from functional_tests.preprocessor import build_transactions, split_input
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.errors import *
+from mol.functional_tests.preprocessor import build_transactions, split_input
 import pytest
 
 

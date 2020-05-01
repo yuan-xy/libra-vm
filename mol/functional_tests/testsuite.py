@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
-from functional_tests.checker import *
-from functional_tests.compiler import Compiler
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.evaluator import eeval
-from functional_tests.preprocessor import build_transactions, split_input
+from mol.functional_tests.checker import *
+from mol.functional_tests.compiler import Compiler
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.evaluator import eeval
+from mol.functional_tests.preprocessor import build_transactions, split_input
 from pathlib import Path
 from libra.rustlib import bail, usize
 

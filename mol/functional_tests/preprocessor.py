@@ -1,15 +1,15 @@
 from __future__ import annotations
-from functional_tests.checker import Directive
-from functional_tests.common import LineSp
-from functional_tests.config.block_metadata import Entry as BlockEntry
-from functional_tests.config.block_metadata import build_block_metadata, is_new_block
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.config.globl import Entry as GlobalConfigEntry
-from functional_tests.config.transaction import Config as TransactionConfig
-from functional_tests.config.transaction import Entry as TransactionConfigEntry
-from functional_tests.config.transaction import is_new_transaction
-from functional_tests.errors import *
-from functional_tests.evaluator import Command, CommandTag, Transaction
+from mol.functional_tests.checker import Directive
+from mol.functional_tests.common import LineSp
+from mol.functional_tests.config.block_metadata import Entry as BlockEntry
+from mol.functional_tests.config.block_metadata import build_block_metadata, is_new_block
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.config.globl import Entry as GlobalConfigEntry
+from mol.functional_tests.config.transaction import Config as TransactionConfig
+from mol.functional_tests.config.transaction import Entry as TransactionConfigEntry
+from mol.functional_tests.config.transaction import is_new_transaction
+from mol.functional_tests.errors import *
+from mol.functional_tests.evaluator import Command, CommandTag, Transaction
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Tuple
 from mol.move_core import JsonPrintable

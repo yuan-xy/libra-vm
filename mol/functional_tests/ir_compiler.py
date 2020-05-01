@@ -1,5 +1,5 @@
 from mol.bytecode_verifier.verifier import VerifiedModule
-from functional_tests.compiler import Compiler, ScriptOrModule
+from mol.functional_tests.compiler import Compiler, ScriptOrModule
 from mol.compiler.bytecode_source_map.mapping import SourceMapping
 from mol.compiler.ir_to_bytecode.compiler import compile_module, compile_script
 from mol.compiler.ir_to_bytecode.parser import parse_script_or_module

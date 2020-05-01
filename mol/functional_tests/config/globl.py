@@ -1,8 +1,8 @@
 from __future__ import annotations
-from functional_tests.common import strip
-from functional_tests.errors import *
-from functional_tests.genesis_accounts import make_genesis_accounts
-from e2e_tests.account import Account, AccountData
+from mol.functional_tests.common import strip
+from mol.functional_tests.errors import *
+from mol.functional_tests.genesis_accounts import make_genesis_accounts
+from mol.e2e_tests.account import Account, AccountData
 from libra import Address
 from libra.validator_set import ValidatorSet
 from libra.crypto.ed25519 import _generate_keypair_by_private_key

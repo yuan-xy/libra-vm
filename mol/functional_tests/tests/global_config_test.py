@@ -1,7 +1,7 @@
 from __future__ import annotations
-from functional_tests.config.globl import Config, Entry
-from functional_tests.errors import *
-from functional_tests.tests.mod import parse_each_line_as
+from mol.functional_tests.config.globl import Config, Entry
+from mol.functional_tests.errors import *
+from mol.functional_tests.tests.mod import parse_each_line_as
 import pytest
 from libra.rustlib import assert_equal
 

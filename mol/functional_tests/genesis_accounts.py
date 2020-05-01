@@ -1,5 +1,5 @@
 from __future__ import annotations
-from e2e_tests.account import Account
+from mol.e2e_tests.account import Account
 from libra.account_config import AccountConfig
 from dataclasses import dataclass
 from libra.rustlib import usize

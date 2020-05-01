@@ -1,10 +1,10 @@
 from __future__ import annotations
-from functional_tests.common import strip
-from functional_tests.config.block_metadata import build_block_metadata, is_new_block, Entry
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.errors import *
-from functional_tests.tests.mod import parse_each_line_as
-from functional_tests.tests.global_config_test import parse_and_build_config as parse_and_build_global_config
+from mol.functional_tests.common import strip
+from mol.functional_tests.config.block_metadata import build_block_metadata, is_new_block, Entry
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.errors import *
+from mol.functional_tests.tests.mod import parse_each_line_as
+from mol.functional_tests.tests.global_config_test import parse_and_build_config as parse_and_build_global_config
 from libra.block_metadata import BlockMetadata
 import pytest
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
-from e2e_tests.account import Account, AccountData
-from e2e_tests.data_store import FakeDataStore, GENESIS_WRITE_SET
+from mol.e2e_tests.account import Account, AccountData
+from mol.e2e_tests.data_store import FakeDataStore, GENESIS_WRITE_SET
 from mol.bytecode_verifier import VerifiedModule
 from libra_storage.state_view import StateView
 from libra import AccessPath, AccountResource

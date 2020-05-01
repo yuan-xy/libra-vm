@@ -1,5 +1,5 @@
-from functional_tests.checker import *
-from functional_tests.evaluator import *
+from mol.functional_tests.checker import *
+from mol.functional_tests.evaluator import *
 import pytest
 from libra.rustlib import assert_equal
 

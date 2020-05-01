@@ -1,5 +1,5 @@
 from __future__ import annotations
-from e2e_tests.account import AccountData
+from mol.e2e_tests.account import AccountData
 from libra import AccountConfig, AccountResource
 from libra_storage.state_view import StateView
 from libra.access_path import AccessPath
@@ -34,7 +34,7 @@ def load_genesis(path: str) -> WriteSet:
 
 
 # The write set encoded in the genesis transaction.
-GENESIS_WRITE_SET = load_genesis("../mol/vm_genesis/genesis/genesis.blob")
+GENESIS_WRITE_SET = load_genesis("../vm_genesis/genesis/genesis.blob")
 
 # An in-memory implementation of [`StateView`] and [`RemoteCache`] for the VM.
 #

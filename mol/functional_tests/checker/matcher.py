@@ -1,6 +1,6 @@
 from __future__ import annotations
-from functional_tests.checker.directives import Directive
-from functional_tests.evaluator import EvaluationLog, EvaluationOutput
+from mol.functional_tests.checker.directives import Directive
+from mol.functional_tests.evaluator import EvaluationLog, EvaluationOutput
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping

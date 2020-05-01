@@ -1,6 +1,6 @@
 from __future__ import annotations
-from functional_tests.common import strip, Sp
-from functional_tests.errors import *
+from mol.functional_tests.common import strip, Sp
+from mol.functional_tests.errors import *
 from dataclasses import dataclass
 from libra.rustlib import usize, bail, flatten, format_str
 from typing import Any, List, Optional, Mapping, Union

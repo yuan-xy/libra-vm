@@ -4,8 +4,8 @@ import argparse, sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 from typing import Callable, Union, Any
-from functional_tests import testsuite
-from functional_tests.ir_compiler import IRCompiler
+from mol.functional_tests import testsuite
+from mol.functional_tests.ir_compiler import IRCompiler
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 from mol.stdlib import stdlib_modules
 

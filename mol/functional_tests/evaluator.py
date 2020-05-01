@@ -1,15 +1,15 @@
 from __future__ import annotations
-from functional_tests.lib import Stage
-from functional_tests.compiler import Compiler, ScriptOrModule
-from functional_tests.config.globl import Config as GlobalConfig
-from functional_tests.config.transaction import Config as TransactionConfig
-from functional_tests.errors import *
+from mol.functional_tests.lib import Stage
+from mol.functional_tests.compiler import Compiler, ScriptOrModule
+from mol.functional_tests.config.globl import Config as GlobalConfig
+from mol.functional_tests.config.transaction import Config as TransactionConfig
+from mol.functional_tests.errors import *
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.bytecode_verifier.verifier import (
     verify_module_dependencies, verify_script_dependencies, VerifiedModule, VerifiedScript,
     VerifyException
 )
-from e2e_tests.executor import FakeExecutor, VMPublishingOption
+from mol.e2e_tests.executor import FakeExecutor, VMPublishingOption
 from libra.crypto.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from libra_storage.state_view import StateView
 from libra import AccessPath, Address, AccountConfig

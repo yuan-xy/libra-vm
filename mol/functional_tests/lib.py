@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import IntEnum
-from functional_tests.errors import ErrorKind, ErrorKindTag
+from mol.functional_tests.errors import ErrorKind, ErrorKindTag
 
 # Indicates one step in the pipeline the given move module/program goes through.
 #  Ord is derived as we need to be able to determine if one stage is before another.
