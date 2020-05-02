@@ -212,20 +212,16 @@ class Interpreter:
             locls.store_loc(i, value)
 
         current_frame = Frame.new(function, [], [], locls)
+        current_frame.trace_call()
         while True:
             code = current_frame.code_definition()
-            gtrace = GlobalTracer.gettrace()
-            if gtrace is not None:
-                ltrace = gtrace(current_frame, TraceType.CALL, None)
-                if ltrace is not None:
-                    current_frame.f_trace = ltrace
-                    current_frame.try_attach_mapping()
 
             exit_code = self\
                 .execute_code_unit(runtime, context, current_frame, code)
                 #.or_else(|err| Err(self.maybe_core_dump(err, &current_frame)))
 
             if exit_code.tag == ExitCodeTag.Return:
+                current_frame.trace_return()
                 # TODO: assert consistency of current frame: stack height correct
                 if create_account_marker == self.call_stack.v0.__len__():
                     return
@@ -272,6 +268,7 @@ class Interpreter:
                 if opt_frame is not None:
                     self.call_stack.push(current_frame)
                     current_frame = opt_frame
+                    opt_frame.trace_call()
 
 
     # Execute a Move function until a return or a call opcode is found.
