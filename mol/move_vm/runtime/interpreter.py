@@ -297,10 +297,10 @@ class Interpreter:
                             src = frame.mapping.source_code.lines[line_no-1]
                             ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
                             frame.f_trace = ltrace
-                        frame.f_trace(frame, TraceType.OPCODE, (frame.pc, instruction))
-                    else:
-                        ltrace = frame.f_trace(frame, TraceType.LINE, (frame.pc, instruction))
-                        frame.f_trace = ltrace
+
+                if frame.f_trace_opcodes is not None:
+                    ltrace = frame.f_trace_opcodes(frame, TraceType.OPCODE, (frame.pc, instruction))
+                    frame.f_trace_opcodes = ltrace
 
                 frame.pc += 1
                 if instruction.tag == Opcodes.POP:
@@ -1093,6 +1093,7 @@ class Frame(TracableFrame, JsonPrintable):
     type_actual_tags: List[TypeTag]
     type_actuals: List[Type]
     f_trace: TraceCallback = None
+    f_trace_opcodes: TraceCallback = None
     f_back: Frame = None
 
 

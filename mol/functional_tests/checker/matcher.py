@@ -177,7 +177,7 @@ def match_output(log: EvaluationLog, directives: List[Directive]) -> MatchResult
                 if d.is_positive():
                     cur = i
                     cur_pos = (cur, from_idx + pos + len(d.value))
-                    print(cur_pos)
+                    # print(cur_pos)
                     matches.append((i, d))
                     return None
                 else:
