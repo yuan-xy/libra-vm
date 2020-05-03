@@ -267,6 +267,7 @@ class Interpreter:
                     #.or_else(|err| Err(self.maybe_core_dump(err, &current_frame)))
                 if opt_frame is not None:
                     self.call_stack.push(current_frame)
+                    opt_frame.f_back = current_frame
                     current_frame = opt_frame
                     opt_frame.trace_call()
 
@@ -282,15 +283,14 @@ class Interpreter:
         # TODO: re-enbale this once gas metering is sorted out
         #code = frame.code_definition()
 
-        cur_line_no = 0
         while True:
             for instruction in code[frame.pc:]:
                 if frame.f_trace is not None:
                     if frame.mapping is not None:
                         func_map = frame.mapping.source_map.get_function_source_map(frame.function.idx)
                         line_no = func_map.code_map[frame.pc].line_no
-                        if line_no != cur_line_no:
-                            cur_line_no = line_no
+                        if line_no != frame.line_no:
+                            frame.line_no = line_no
                             src = frame.mapping.source_code.lines[line_no-1]
                             ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
                             frame.f_trace = ltrace
@@ -1071,7 +1071,6 @@ class CallStack:
             if self.v0:
                 parent = self.v0[-1]
             self.v0.append(frame)
-            frame.f_back = parent
         else:
             raise VMFrameException(frame)
 
@@ -1089,6 +1088,7 @@ class Frame(TracableFrame, JsonPrintable):
     function: FunctionReference
     type_actual_tags: List[TypeTag]
     type_actuals: List[Type]
+    line_no: int = -1
     f_trace: TraceCallback = None
     f_trace_opcodes: TraceCallback = None
     f_back: Frame = None
@@ -1166,70 +1166,4 @@ class ExitCode:
     @classmethod
     def Call(cls, findex, lsindex):
         return ExitCode(ExitCodeTag.Call, (findex, lsindex))
-
-
-
-# Below are all the functions needed for gas synthesis and gas cost.
-# The story is going to change given those functions expose internals of the Interpreter that
-# should never leak out.
-# For now they are grouped in a couple of temporary class and impl that can be used
-# to determine what the needs of gas logic has to be.
-
-#[cfg(any(test, feature = "instruction_synthesis"))]
-@dataclass
-class InterpreterForCostSynthesis:
-    interpreter: Interpreter
-
-
-    def new(txn_data: TransactionMetadata, gas_schedule: CostTable) -> InterpreterForCostSynthesis:
-        interpreter = Interpreter.new(txn_data, gas_schedule)
-        return InterpreterForCostSynthesis(interpreter)
-
-
-    def set_stack(self, stack: List[Value]):
-        self.interpreter.operand_stack.v0 = stack
-
-
-    def call_stack_height(self) -> usize:
-        return self.interpreter.call_stack.v0.__len__()
-
-
-    def pop_call(self):
-        self.interpreter.call_stack.pop()
-
-    def push_frame(
-        self,
-        func: FunctionRef,
-        type_actual_tags: List[TypeTag],
-        type_actuals: List[Type],
-    ):
-        count = func.local_count()
-        self.interpreter.call_stack.push(
-            Frame.new(
-                func,
-                type_actual_tags,
-                type_actuals,
-                Locals.new(count),
-            ))
-
-
-    def load_call(self, args: Mapping[LocalIndex, Value]):
-        current_frame = self.interpreter.call_stack.pop()
-        for (local_index, local) in args:
-            current_frame.store_loc(local_index, local)
-
-        self.interpreter.call_stack.push(current_frame)
-
-
-    def execute_code_snippet(
-        self,
-        move_vm: MoveVM,
-        context: InterpreterContext,
-        code: List[Bytecode],
-    ) -> None:
-        current_frame = self.interpreter.call_stack.pop()
-        self.interpreter\
-            .execute_code_unit(move_vm.runtime, context, current_frame, code)
-        self.interpreter.call_stack.push(current_frame)
-
 
