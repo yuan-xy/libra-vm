@@ -73,6 +73,7 @@ class Trace:
             this_func = frame.address_module_function()
             def ignore():
                 address, _, _ = this_func
+                return False
                 return address == '00000000000000000000000000000000'
             if not ignore():
                 if self.trace:
@@ -82,6 +83,7 @@ class Trace:
             this_func = frame.address_module_function()
             def ignore():
                 address, _, _ = this_func
+                return False
                 return address == '00000000000000000000000000000000'
             if not ignore():
                 if self.trace:

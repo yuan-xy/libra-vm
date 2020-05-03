@@ -1067,9 +1067,6 @@ class CallStack:
         frame: Frame,
     ):
         if self.v0.__len__() < CALL_STACK_SIZE_LIMIT:
-            parent = None
-            if self.v0:
-                parent = self.v0[-1]
             self.v0.append(frame)
         else:
             raise VMFrameException(frame)
