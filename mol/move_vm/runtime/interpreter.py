@@ -16,6 +16,7 @@ from libra.rustlib import bail, usize
 from libra.transaction import MAX_TRANSACTION_SIZE_IN_BYTES
 from libra.vm_error import StatusCode, StatusType, VMStatus
 
+from mol.compiler.bytecode_source_map.mapping import SourceMapping
 from mol.libra_vm.system_module_names import ACCOUNT_MODULE, EMIT_EVENT_NAME, SAVE_ACCOUNT_NAME
 from mol.move_core.types.identifier import IdentStr
 from mol.move_core import JsonPrintable
@@ -1086,6 +1087,7 @@ class Frame(TracableFrame, JsonPrintable):
     type_actual_tags: List[TypeTag]
     type_actuals: List[Type]
     line_no: int = -1
+    mapping: Optional[SourceMapping] = None
     f_trace: TraceCallback = None
     f_trace_opcodes: TraceCallback = None
     f_back: Frame = None

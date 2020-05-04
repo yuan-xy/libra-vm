@@ -1,5 +1,6 @@
 from enum import IntEnum
-from typing import Callable, Union, Any, Tuple
+from typing import Callable, Union, Any, Tuple, Optional
+from mol.compiler.bytecode_source_map.source_map import FunctionSourceMap
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.move_core import JsonPrintable
 
@@ -22,10 +23,10 @@ class TracableFrame(JsonPrintable):
     def trace_call(self):
         gtrace = GlobalTracer.gettrace()
         if gtrace is not None:
+            self.try_attach_mapping()
             ltrace = gtrace(self, TraceType.CALL, None)
             if ltrace is not None:
                 self.f_trace = ltrace
-                self.try_attach_mapping()
 
     def trace_return(self):
         gtrace = GlobalTracer.gettrace()
@@ -33,12 +34,32 @@ class TracableFrame(JsonPrintable):
             gtrace(self, TraceType.RETURN, None)
 
     def try_attach_mapping(self) -> None:
+        if self.mapping is not None:
+            return
         a, m, f = self.address_module_function()
         mapping = GlobalSourceMapping.find(a, m)
         if mapping is not None and mapping.has_source_code_and_map():
             self.mapping = mapping
         else:
             self.mapping = None
+
+    def source_filename(self) -> Optional[str]:
+        if self.mapping is not None:
+            return self.mapping.source_code.path
+        else:
+            return None
+
+    def function_map(self) -> Optional[FunctionSourceMap]:
+        if self.mapping is not None:
+            return self.mapping.source_map.function_map[self.function.idx.v0]
+        else:
+            return None
+
+    def first_lineno(self) -> int:
+        if self.mapping is not None:
+            return self.function_map().get_code_location(0).line_no
+        else:
+            return None
 
 
 CallbackReturn = Union[None, Callable]
