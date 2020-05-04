@@ -10,7 +10,7 @@ from mol.vm.file_format import (
         StructDefinitionIndex, TableIndex,
     )
 from mol.vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
-from typing import List, Optional, Any, Union, Tuple, Dict, Callable
+from typing import List, Optional, Any, Union, Tuple, Dict, Callable, Set
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from libra.rustlib import list_get, bail, usize
@@ -126,6 +126,13 @@ class FunctionSourceMap:
     def __str__(self):
         return json.dumps(self.to_dict(), indent=2)
 
+    def executable_linenos(self) -> Set[int]:
+        ret = set()
+        for _k, v in self.code_map.items():
+            if v.line_no is not None:
+                ret.add(v.line_no)
+        return ret
+
     def add_type_parameter(self, type_name: SourceName):
         self.type_parameters.append(type_name)
 
@@ -162,7 +169,7 @@ class FunctionSourceMap:
     # Recall that we are using a segment tree. We therefore lookup the location for the code
     # offset by performing a range query for the largest number less than or equal to the code
     # offset passed in.
-    def get_code_location(self, code_offset: CodeOffset) -> Optional[Location]:
+    def get_code_location(self, code_offset: CodeOffset) -> Optional[CodeLocation]:
         matched = None
         for k, v in sorted(self.code_map.items()):
             if k <= code_offset:
@@ -309,7 +316,7 @@ class SourceMap:
         self,
         fdef_idx: FunctionDefinitionIndex,
         offset: CodeOffset,
-    ) -> Location:
+    ) -> CodeLocation:
         if fdef_idx.v0 not in self.function_map:
             bail("Tried to get code location from undefined function index")
         return self.function_map[fdef_idx.v0].get_code_location(offset)

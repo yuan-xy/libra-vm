@@ -18,6 +18,7 @@ class Compiler(abc.ABC):
         log: Callable[[str], None],
         address: Address,
         input: str,
+        path: str
     ) -> ScriptOrModule:
         bail("unimplemented!")
 

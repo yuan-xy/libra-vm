@@ -55,7 +55,7 @@ def functional_tests(
     config = GlobalConfig.build(config)
     commands = build_transactions(config, transactions)
 
-    log = eeval(config, compiler, commands)
+    log = eeval(config, compiler, commands, path)
     res = match_output(log, directives)
 
     if res.status.is_success():

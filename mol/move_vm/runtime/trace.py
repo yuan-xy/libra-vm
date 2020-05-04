@@ -3,11 +3,17 @@
 import argparse, sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-from typing import Callable, Union, Any
+from typing import Callable, Union, Any, Tuple
 from mol.functional_tests import testsuite
 from mol.functional_tests.ir_compiler import IRCompiler
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 from mol.stdlib import stdlib_modules
+
+
+def print_function(amf: Tuple[str, str, str]) -> str:
+    (a, m, f) = amf
+    return a[0:4] +"..."+ a[-5:-1] + f" {m}::{f}"
+
 
 class Trace:
     def __init__(self, count, trace, countfuncs, countcallers, bytecode):
@@ -35,22 +41,22 @@ class Trace:
             # Ahem -- do nothing?  Okay.
             self.donothing = True
 
-
     def globaltrace_trackcallers(self, frame, why, arg):
         """Handler for call events.
 
         Adds information about who called who to the self._callers dict.
         """
         if why == TraceType.CALL:
+            print(frame.source_filename())
+            print(frame.executable_linenos())
             #TTODO: support native call
             this_func = frame.address_module_function()
             parent = frame.f_back
             if parent is None:
-                parent_func = "<Entrypoint>"
+                parent_func = ("", "", "<Entrypoint>")
             else:
                 parent_func = parent.address_module_function()
-            print(parent_func, " --> ")
-            print("\t\t\t", this_func)
+            print(print_function(parent_func), " --> ", print_function(this_func))
             self._callers[(parent_func, this_func)] = 1
 
     def globaltrace_countfuncs(self, frame, why, arg):

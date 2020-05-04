@@ -404,6 +404,7 @@ def eval_transaction(
     idx: usize,
     transaction: Transaction,
     log: EvaluationLog,
+    path: str,
 ) -> Status:
     sender_addr = transaction.config.sender.address()
 
@@ -418,7 +419,7 @@ def eval_transaction(
     compiler_log = lambda s: log.append(EvaluationOutput.Output(OutputType.CompilerLog(s)))
     try:
         parsed_script_or_module =\
-            compiler.compile(compiler_log, sender_addr, transaction.ins)
+            compiler.compile(compiler_log, sender_addr, transaction.ins, path)
     except Exception as err:
         traceback.print_exc()
         log.append(EvaluationOutput.Error(err))
@@ -569,6 +570,7 @@ def eeval(
     config: GlobalConfig,
     compiler: Compiler,
     commands: List[Command],
+    path: str,
 ) -> EvaluationLog:
     log = EvaluationLog()
 
@@ -592,7 +594,7 @@ def eeval(
     for (idx, command) in enumerate(commands):
         if command.tag == CommandTag.vTransaction:
             transaction = command.value
-            status = eval_transaction(compiler, fexec, idx, transaction, log)
+            status = eval_transaction(compiler, fexec, idx, transaction, log, path)
             log.append(EvaluationOutput.Status(status))
         elif command.tag == CommandTag.vBlockMetadata:
             block_metadata = command.value

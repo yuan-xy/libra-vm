@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Callable, Union, Any, Tuple, Optional
+from typing import Callable, Union, Any, Tuple, Optional, Set
 from mol.compiler.bytecode_source_map.source_map import FunctionSourceMap
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.move_core import JsonPrintable
@@ -60,6 +60,13 @@ class TracableFrame(JsonPrintable):
             return self.function_map().get_code_location(0).line_no
         else:
             return None
+
+    def executable_linenos(self) -> Set[int]:
+        if self.mapping is not None:
+            return self.function_map().executable_linenos()
+        else:
+            return None
+
 
 
 CallbackReturn = Union[None, Callable]
