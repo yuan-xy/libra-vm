@@ -23,7 +23,7 @@ class IRCompiler(Compiler):
         log: Callable[[str], None],
         address: Address,
         ins: str,
-        path: str,
+        path: str = None,
     ) -> ScriptOrModule:
         if path is None:
             path = "<unknown_file>"

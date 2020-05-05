@@ -21,7 +21,7 @@ def pytest_generate_tests(metafunc):
     cases = []
     for root, dirs, files in os.walk(curdir):
         for file in files:
-            if(file.endswith(".mvir")):
+            if file.endswith(".mvir"):
                 fullname = join(root, file)
                 if not is_failed_case(fullname):
                     cases.append(fullname)
