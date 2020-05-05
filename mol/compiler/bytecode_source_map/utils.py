@@ -11,7 +11,7 @@ import json
 Error = Tuple[Loc, str]
 Errors = List[Error]
 
-def module_source_map_from_file(file_path: str) -> SourceMap:
+def source_map_from_file(file_path: str) -> SourceMap:
     with open(file_path) as f:
         jstr = f.read()
         obj = json.loads(jstr)

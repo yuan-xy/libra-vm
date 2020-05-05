@@ -248,6 +248,13 @@ class SourceMap:
     def __str__(self):
         return json.dumps(self.to_dict(), indent=2)
 
+    def executable_linenos(self) -> Set[int]:
+        """the line_nos of all executable statements in a file"""
+        ret = set()
+        for _k, v in self.function_map.items():
+            ret.update(v.executable_linenos())
+        return ret
+
     @classmethod
     def new(cls, module_name: QualifiedModuleIdent, dummy= False) -> SourceMap:
         ident = module_name.name

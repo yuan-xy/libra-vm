@@ -8,6 +8,7 @@ from libra.rustlib import format_str
 from mol.move_ir.types import ast
 from mol.stdlib import stdlib_modules
 from typing import List, Optional, Callable
+from pathlib import Path
 
 
 class IRCompiler(Compiler):
@@ -16,6 +17,13 @@ class IRCompiler(Compiler):
         if deps is None:
             deps = stdlib_modules()
         self.deps = deps
+        self.output_source_maps = False
+
+    def write_sourcemap(self, path, source_map):
+        if self.output_source_maps:
+            source_map_bytes = source_map.to_json()
+            path = Path(path).with_suffix(".mvsm")
+            path.write_text(source_map_bytes)
 
 
     def compile(
@@ -25,13 +33,16 @@ class IRCompiler(Compiler):
         ins: str,
         path: str = None,
     ) -> ScriptOrModule:
-        if path is None:
-            path = "<unknown_file>"
+        if not self.output_source_maps:
+            # don't use real path to compile, otherwise the output will contain source_mapping text
+            # which will cause the testcases failed, such as "break_outside_loop.mvir"
+            path = "unused_file_name"
         sorm = parse_script_or_module(path, ins)
         if sorm.tag == ast.ScriptOrModule.SCRIPT:
             parsed_script = sorm.value
             log(format_str("{}", parsed_script))
             script, source_map = compile_script(address, parsed_script, self.deps)
+            self.write_sourcemap(path, source_map)
             source_mapping = SourceMapping.new_from_script(source_map, script)
             source_mapping.with_source_code(path, ins)
             return ScriptOrModule(script=script, source_map=source_map, source_mapping=source_mapping)
@@ -40,6 +51,7 @@ class IRCompiler(Compiler):
             parsed_module = sorm.value
             log(format_str("{}", parsed_module))
             module, source_map = compile_module(address, parsed_module, self.deps)
+            self.write_sourcemap(path, source_map)
             source_mapping = SourceMapping(source_map, module)
             source_mapping.with_source_code(path, ins)
             verified = \

@@ -419,9 +419,7 @@ def eval_transaction(
     compiler_log = lambda s: log.append(EvaluationOutput.Output(OutputType.CompilerLog(s)))
     try:
         parsed_script_or_module =\
-            compiler.compile(compiler_log, sender_addr, transaction.ins, "unused_file_name")
-            # don't use real path to compile, otherwise the output will contain source_mapping text
-            # which will cause the testcases failed.
+            compiler.compile(compiler_log, sender_addr, transaction.ins, path)
     except Exception as err:
         traceback.print_exc()
         log.append(EvaluationOutput.Error(err))

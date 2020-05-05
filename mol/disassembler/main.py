@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'
 from pathlib import Path
 from mol.compiler.bytecode_source_map.source_map import SourceMap, SourceName
 from mol.compiler.bytecode_source_map.mapping import SourceMapping
-from mol.compiler.bytecode_source_map.utils import module_source_map_from_file, remap_owned_loc_to_loc, OwnedLoc
+from mol.compiler.bytecode_source_map.utils import source_map_from_file, remap_owned_loc_to_loc, OwnedLoc
 from mol.disassembler import Disassembler, DisassemblerOptions
 from mol.move_ir.types.location import Spanned
 from mol.vm.file_format import CompiledModule, CompiledScript
@@ -48,7 +48,7 @@ def main():
 
     source_map_path = Path(bytecode_file_path).with_suffix(source_map_extension)
     if source_map_path.exists():
-        source_map = module_source_map_from_file(source_map_path)
+        source_map = source_map_from_file(source_map_path)
     else:
         source_map = None
 
