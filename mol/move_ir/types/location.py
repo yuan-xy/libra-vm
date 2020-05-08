@@ -2,7 +2,9 @@ from __future__ import annotations
 from mol.move_ir.types.codespan import Span
 from typing import List, Optional, Any, Union
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 
+@dataclass_json
 @dataclass
 class Loc:
     file: str

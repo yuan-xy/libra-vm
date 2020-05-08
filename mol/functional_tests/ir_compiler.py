@@ -19,8 +19,10 @@ class IRCompiler(Compiler):
         self.deps = deps
         self.output_source_maps = False
 
-    def write_sourcemap(self, path, source_map):
+    def write_sourcemap(self, path, source_map, source):
         if self.output_source_maps:
+            mapping = SourceMapping(source_map, None)
+            mapping.with_source_code(path, source)
             source_map_bytes = source_map.to_json()
             path = Path(path).with_suffix(".mvsm")
             path.write_text(source_map_bytes)
@@ -42,7 +44,7 @@ class IRCompiler(Compiler):
             parsed_script = sorm.value
             log(format_str("{}", parsed_script))
             script, source_map = compile_script(address, parsed_script, self.deps)
-            self.write_sourcemap(path, source_map)
+            self.write_sourcemap(path, source_map, ins)
             source_mapping = SourceMapping.new_from_script(source_map, script)
             source_mapping.with_source_code(path, ins)
             return ScriptOrModule(script=script, source_map=source_map, source_mapping=source_mapping)
@@ -51,7 +53,7 @@ class IRCompiler(Compiler):
             parsed_module = sorm.value
             log(format_str("{}", parsed_module))
             module, source_map = compile_module(address, parsed_module, self.deps)
-            self.write_sourcemap(path, source_map)
+            self.write_sourcemap(path, source_map, ins)
             source_mapping = SourceMapping(source_map, module)
             source_mapping.with_source_code(path, ins)
             verified = \
