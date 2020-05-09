@@ -94,7 +94,10 @@ class Trace:
             if not ignore():
                 if self.trace:
                     print(this_func)
-                return self.localtrace
+                if self.bytecode:
+                    return self.localtrace, self.opcode_trace
+                else:
+                    return self.localtrace
             else:
                 return None
 
@@ -109,8 +112,6 @@ class Trace:
     def localtrace_trace(self, frame, why, arg):
         if why == TraceType.LINE:
             print("\t", arg[0], arg[1])
-        if self.bytecode and why == TraceType.OPCODE:
-            print("\t", arg[0], arg[1])
         return self.localtrace
 
     def localtrace_count(self, frame, why, arg):
@@ -119,6 +120,11 @@ class Trace:
             key = this_func, frame.pc
             self.counts[key] = self.counts.get(key, 0) + 1
         return self.localtrace
+
+    def opcode_trace(self, frame, why, arg):
+        if why == TraceType.OPCODE:
+            print("\t", arg[0], arg[1])
+        return self.opcode_trace
 
 
 def main():
