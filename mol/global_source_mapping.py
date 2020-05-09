@@ -43,7 +43,7 @@ class GlobalSourceMapping:
                 qual_name = "::".join([address, module])
                 source_map = source_map_from_file(mvsm)
                 mapping = SourceMapping(source_map, mv.read_bytes())
-                mapping.with_source_code(move, move.read_text())
+                mapping.with_source_code(move.name, move.read_text())
                 cls.mapping[qual_name] = mapping
             else:
                 bail(f"can't find source or mapping for {mv}")

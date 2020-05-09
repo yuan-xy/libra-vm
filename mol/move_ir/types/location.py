@@ -16,6 +16,12 @@ class Loc(Struct):
         else:
             return self.file.__lt__(other.file)
 
+    def to_json_serializable(self):
+        amap = super().to_json_serializable()
+        if hasattr(self, 'line_no'):
+            amap["line_no"] = self.line_no
+        return amap
+
 
 @dataclass
 class Spanned:

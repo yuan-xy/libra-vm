@@ -28,10 +28,6 @@ Location = Loc
 SourceName = Tuple[str, Location]
 
 
-class CodeLocation(Loc):
-    line_no: Optional[int] = None
-
-
 class StructSourceMap(Struct):
     _fields = [
         ('decl_location', Loc),
@@ -113,7 +109,7 @@ class FunctionSourceMap(Struct):
         ('type_parameters', [(str, Loc)]),
         ('locls', [(str, Loc)]),
         ('nops', {NopLabel: CodeOffset}),
-        ('code_map', {CodeOffset: CodeLocation}),
+        ('code_map', {CodeOffset: Loc}),
     ]
     # The source location for the definition of this entire function. Note that in certain
     # instances this will have no valid source location e.g. the "main" function for modules that
@@ -132,7 +128,7 @@ class FunctionSourceMap(Struct):
     # nops: Dict[NopLabel, CodeOffset] = field(default_factory=dict)
 
     # The source location map for the function body.
-    # code_map: Dict[CodeOffset, CodeLocation] = field(default_factory=dict)
+    # code_map: Dict[CodeOffset, Loc] = field(default_factory=dict)
 
 
     @classmethod
@@ -173,7 +169,7 @@ class FunctionSourceMap(Struct):
     def add_code_mapping(self, start_offset: CodeOffset, location: Location):
         possible_segment = self.get_code_location(start_offset)
         if possible_segment is None or possible_segment != location:
-            self.code_map[start_offset] = CodeLocation(location.file, location.span)
+            self.code_map[start_offset] = Loc(location.file, location.span)
 
     # Record the code offset for an Nop label
     def add_nop_mapping(self, label: NopLabel, offset: CodeOffset):
@@ -188,7 +184,7 @@ class FunctionSourceMap(Struct):
     # Recall that we are using a segment tree. We therefore lookup the location for the code
     # offset by performing a range query for the largest number less than or equal to the code
     # offset passed in.
-    def get_code_location(self, code_offset: CodeOffset) -> Optional[CodeLocation]:
+    def get_code_location(self, code_offset: CodeOffset) -> Optional[Loc]:
         matched = None
         for k, v in sorted(self.code_map.items()):
             if k <= code_offset:
@@ -347,7 +343,7 @@ class SourceMap(Struct):
         self,
         fdef_idx: FunctionDefinitionIndex,
         offset: CodeOffset,
-    ) -> CodeLocation:
+    ) -> Loc:
         if fdef_idx.v0 not in self.function_map:
             bail("Tried to get code location from undefined function index")
         return self.function_map[fdef_idx.v0].get_code_location(offset)
