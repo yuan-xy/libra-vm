@@ -1,15 +1,14 @@
 from __future__ import annotations
-from canoser import Uint32
-from dataclasses import dataclass
-from dataclasses_json import dataclass_json
+from canoser import Struct, Uint32
 
-ByteIndex = int #Uint32
+ByteIndex = Uint32
 
-@dataclass_json
-@dataclass
-class Span:
-    start: ByteIndex = 0
-    end: ByteIndex = 0
+
+class Span(Struct):
+    _fields = [
+        ('start', ByteIndex),
+        ('end', ByteIndex),
+    ]
 
     @classmethod
     def new(cls, start, end):

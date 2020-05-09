@@ -15,38 +15,43 @@ from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from libra.rustlib import list_get, bail, usize
 from copy import deepcopy
-from canoser import Uint64
+from canoser import Uint16, Uint64, Struct
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-CodeOffset = int #Uint16
-TableIndex = int #Uint16
+CodeOffset = Uint16
+TableIndex = Uint16
 
 Location = Loc
 SourceName = Tuple[str, Location]
 
-@dataclass
+
 class CodeLocation(Loc):
     line_no: Optional[int] = None
 
 
-@dataclass_json
-@dataclass
-class StructSourceMap:
+class StructSourceMap(Struct):
+    _fields = [
+        ('decl_location', Loc),
+        ('type_parameters', [(str, Loc)]),
+        ('fields', [Loc]),
+    ]
     # The source declaration location of the struct
-    decl_location: Location
+    # decl_location: Location
 
     # Important: type parameters need to be added in the order of their declaration
-    type_parameters: List[SourceName] = field(default_factory=list)
+    # type_parameters: List[SourceName] = field(default_factory=list)
 
     # Note that fields to a struct source map need to be added in the order of the fields in the
     # struct definition.
-    fields: List[Location] = field(default_factory=list)
+    # fields: List[Location] = field(default_factory=list)
 
-    def __str__(self):
-        return json.dumps(self.to_dict(), indent=2)
+
+    @classmethod
+    def new(cls, decl_location: Loc) -> StructSourceMap:
+        return StructSourceMap(decl_location, [], [])
 
     def add_type_parameter(self, type_name: SourceName):
         self.type_parameters.append(type_name)
@@ -101,30 +106,44 @@ class StructSourceMap:
             fields,
         )
 
-@dataclass_json
-@dataclass
-class FunctionSourceMap:
+
+class FunctionSourceMap(Struct):
+    _fields = [
+        ('decl_location', Loc),
+        ('type_parameters', [(str, Loc)]),
+        ('locls', [(str, Loc)]),
+        ('nops', {NopLabel: CodeOffset}),
+        ('code_map', {CodeOffset: CodeLocation}),
+    ]
     # The source location for the definition of this entire function. Note that in certain
     # instances this will have no valid source location e.g. the "main" function for modules that
     # are treated as programs are synthesized and therefore have no valid source location.
-    decl_location: Location
+    # decl_location: Location
 
     # Note that type parameters need to be added in the order of their declaration
-    type_parameters: List[SourceName] = field(default_factory=list)
+    # type_parameters: List[SourceName] = field(default_factory=list)
 
     # The index into the vector is the locls index. The corresponding `(Identifier, Location)` tuple
     # is the name and location of the local.
-    locls: List[SourceName] = field(default_factory=list)
+    # locls: List[SourceName] = field(default_factory=list)
 
     # A map to the code offset for a corresponding nop. Nop's are used as markers for some
     # high level language information
-    nops: Dict[NopLabel, CodeOffset] = field(default_factory=dict)
+    # nops: Dict[NopLabel, CodeOffset] = field(default_factory=dict)
 
     # The source location map for the function body.
-    code_map: Dict[CodeOffset, CodeLocation] = field(default_factory=dict)
+    # code_map: Dict[CodeOffset, CodeLocation] = field(default_factory=dict)
 
-    def __str__(self):
-        return json.dumps(self.to_dict(), indent=2)
+
+    @classmethod
+    def new(cls, decl_location: Loc) -> FunctionSourceMap:
+        return FunctionSourceMap(
+            decl_location,
+            [],
+            [],
+            {},
+            {},
+        )
 
     def executable_linenos(self) -> Set[int]:
         ret = set()
@@ -228,25 +247,30 @@ class FunctionSourceMap:
             decl_location,
             type_parameters,
             locls,
+            self.nops,
             code_map,
         )
 
-@dataclass_json
-@dataclass
-class SourceMap:
-    # The name <address.module_name> for module that this source map is for
-    module_name: Tuple[Address, Identifier]
 
-    # A mapping of StructDefinitionIndex to source map for each struct/resource
-    struct_map: Dict[TableIndex, StructSourceMap]
+class SourceMap(Struct):
+    _fields = [
+        ('module_name', (Address, Identifier)),
+        ('struct_map', {TableIndex: StructSourceMap}),
+        ('function_map', {TableIndex: FunctionSourceMap}),
+        # ('dummy', bool),
+    ]
 
-    # A mapping of FunctionDefinitionIndex to the soure map for that function.
-    function_map: Dict[TableIndex, FunctionSourceMap]
+    # # The name <address.module_name> for module that this source map is for
+    # module_name: Tuple[Address, Identifier]
 
-    dummy: Optional[bool] = False
+    # # A mapping of StructDefinitionIndex to source map for each struct/resource
+    # struct_map: Dict[TableIndex, StructSourceMap]
 
-    def __str__(self):
-        return json.dumps(self.to_dict(), indent=2)
+    # # A mapping of FunctionDefinitionIndex to the soure map for that function.
+    # function_map: Dict[TableIndex, FunctionSourceMap]
+
+    # dummy: Optional[bool] = False
+
 
     def executable_linenos(self) -> Set[int]:
         """the line_nos of all executable statements in a file"""
@@ -256,9 +280,9 @@ class SourceMap:
         return ret
 
     @classmethod
-    def new(cls, module_name: QualifiedModuleIdent, dummy= False) -> SourceMap:
+    def new(cls, module_name: QualifiedModuleIdent) -> SourceMap:
         ident = module_name.name
-        return cls((module_name.address.hex(), ident), {}, {}, dummy)
+        return cls((module_name.address, ident), {}, {})
 
 
     def add_top_level_function_mapping(
@@ -268,7 +292,7 @@ class SourceMap:
     ) -> None:
         if fdef_idx.v0 in self.function_map:
             bail("Multiple functions at same function definition index encountered when constructing source map")
-        self.function_map[fdef_idx.v0] = FunctionSourceMap(location)
+        self.function_map[fdef_idx.v0] = FunctionSourceMap.new(location)
 
 
     def add_function_type_parameter_mapping(
@@ -359,7 +383,7 @@ class SourceMap:
         if struct_def_idx.v0 in self.struct_map:
             bail("Multiple structs at same struct definition index encountered when constructing source map")
 
-        self.struct_map[struct_def_idx.v0] = StructSourceMap(location)
+        self.struct_map[struct_def_idx.v0] = StructSourceMap.new(location)
 
 
     def add_struct_field_mapping(

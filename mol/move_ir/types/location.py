@@ -1,14 +1,14 @@
 from __future__ import annotations
 from mol.move_ir.types.codespan import Span
 from typing import List, Optional, Any, Union
+from canoser import Struct
 from dataclasses import dataclass
-from dataclasses_json import dataclass_json
 
-@dataclass_json
-@dataclass
-class Loc:
-    file: str
-    span: Span
+class Loc(Struct):
+    _fields = [
+        ('file', str),
+        ('span', Span),
+    ]
 
     def __lt__(self, other):
         if self.file == other.file:

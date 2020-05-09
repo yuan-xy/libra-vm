@@ -289,6 +289,8 @@ class Interpreter:
                 if frame.f_trace is not None:
                     if frame.mapping is not None:
                         func_map = frame.mapping.source_map.get_function_source_map(frame.function.idx)
+                        if frame.pc not in func_map.code_map:
+                            breakpoint()
                         line_no = func_map.code_map[frame.pc].line_no
                         if line_no != frame.line_no:
                             frame.line_no = line_no

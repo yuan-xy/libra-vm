@@ -23,9 +23,9 @@ class IRCompiler(Compiler):
         if self.output_source_maps:
             mapping = SourceMapping(source_map, None)
             mapping.with_source_code(path, source)
-            source_map_bytes = source_map.to_json()
+            source_map_bytes = source_map.serialize()
             path = Path(path).with_suffix(".mvsm")
-            path.write_text(source_map_bytes)
+            path.write_bytes(source_map_bytes)
 
 
     def compile(

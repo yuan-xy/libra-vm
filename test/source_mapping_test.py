@@ -30,7 +30,7 @@ def test_executable_linenos():
 
     sorm = compiler.compile(
         lambda x: print(x),
-        bytes.fromhex(source_map.module_name[0]),
+        source_map.module_name[0],
         source,
         filename,
     )
