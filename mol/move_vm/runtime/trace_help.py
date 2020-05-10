@@ -23,7 +23,7 @@ class TracableFrame(JsonPrintable):
         return self.module().address().hex(), self.module().name(), self.function.name()
 
     def trace_call(self):
-        CURRENT_FRAME = self
+        TracableFrame.CURRENT_FRAME = self
         gtrace = GlobalTracer.gettrace()
         if gtrace is not None:
             self.try_attach_mapping()

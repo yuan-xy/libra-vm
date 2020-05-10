@@ -2,7 +2,7 @@ import fnmatch
 import sys
 import os
 import linecache
-from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
+from mol.move_vm.runtime.trace_help import TraceType, TracableFrame, GlobalTracer
 
 
 class BaseDebuggerQuit(Exception):
@@ -375,7 +375,7 @@ class BaseDebugger:
         list = self.breaks.setdefault(filename, [])
         if lineno not in list:
             list.append(lineno)
-        bp = Breakpoint(filename, lineno, temporary, cond, funcname)
+        Breakpoint(filename, lineno, temporary, cond, funcname)
         return None
 
     def _prune_breaks(self, filename, lineno):
@@ -538,7 +538,7 @@ class BaseDebugger:
         frame, lineno = frame_lineno
         this_func = frame.address_module_function()
         s = '%s(%r)' % (this_func, lineno)
-        line = linecache.getline(filename, lineno)
+        line = linecache.getline(frame.source_filename(), lineno)
         if line:
             s += lprefix + line.strip()
         return s
