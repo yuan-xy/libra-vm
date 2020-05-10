@@ -427,11 +427,12 @@ def eval_transaction(
 
     compiled_script = parsed_script_or_module.script
     if compiled_script:
-        GlobalSourceMapping.add(
-            transaction.config.sender.addr.hex(),
-            self_module_name(),
-            parsed_script_or_module.source_mapping,
-        )
+        if compiler.output_source_maps:
+            GlobalSourceMapping.add(
+                transaction.config.sender.addr.hex(),
+                self_module_name(),
+                parsed_script_or_module.source_mapping,
+            )
         log.append(EvaluationOutput.Output(OutputType.CompiledScript(
             compiled_script),
         ))
@@ -489,11 +490,12 @@ def eval_transaction(
         )))
     else:
         compiled_module = parsed_script_or_module.module
-        GlobalSourceMapping.add(
-            transaction.config.sender.addr.hex(),
-            compiled_module.name(),
-            parsed_script_or_module.source_mapping,
-        )
+        if compiler.output_source_maps:
+            GlobalSourceMapping.add(
+                transaction.config.sender.addr.hex(),
+                compiled_module.name(),
+                parsed_script_or_module.source_mapping,
+            )
 
         log.append(EvaluationOutput.Output(OutputType.CompiledModule(
             compiled_module
