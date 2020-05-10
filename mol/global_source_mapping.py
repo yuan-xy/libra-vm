@@ -27,6 +27,8 @@ def snake_to_camel(word):
 
 class GlobalSourceMapping:
     mapping: Mapping[str, SourceMapping] = {}
+    move2mvsm: Mapping[str, str] = {}
+
 
     @classmethod
     def init_std_mapping(cls) -> None:
@@ -43,8 +45,9 @@ class GlobalSourceMapping:
                 qual_name = "::".join([address, module])
                 source_map = source_map_from_file(mvsm)
                 mapping = SourceMapping(source_map, mv.read_bytes())
-                mapping.with_source_code(move.name, move.read_text())
+                mapping.with_source_code(str(move), move.read_text())
                 cls.mapping[qual_name] = mapping
+                cls.move2mvsm[str(move)] = str(mvsm)
             else:
                 bail(f"can't find source or mapping for {mv}")
 
