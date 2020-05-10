@@ -1097,6 +1097,9 @@ class Frame(TracableFrame, JsonPrintable):
     f_trace_opcodes: TraceCallback = None
     f_back: Frame = None
 
+    @property
+    def f_lineno(self):
+        return self.line_no
 
     # Create a new `Frame` given a `FunctionReference` and the function `Locals`.
     #

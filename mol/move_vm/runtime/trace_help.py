@@ -17,10 +17,13 @@ class TraceType(IntEnum):
 
 
 class TracableFrame(JsonPrintable):
+    CURRENT_FRAME = None
+
     def address_module_function(self) -> Tuple[str, str, str]:
         return self.module().address().hex(), self.module().name(), self.function.name()
 
     def trace_call(self):
+        CURRENT_FRAME = self
         gtrace = GlobalTracer.gettrace()
         if gtrace is not None:
             self.try_attach_mapping()

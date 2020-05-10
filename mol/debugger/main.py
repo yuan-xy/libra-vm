@@ -8,12 +8,9 @@ from mol.debugger.color import support_color, print_color, bcolors
 from mol.debugger.command import get_commands_alias, parse_cmd, report_error, print_commands
 from mol.debugger.query_commands import QueryCommand
 from mol.debugger.transfer_commands import TransferCommand
+import readline
+from mol.debugger.mdb import MoveDebugger
 
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../')))
-
-if os.name == 'posix':
-    import readline
 
 
 version = "0.1.0"
@@ -27,6 +24,9 @@ def get_commands():
 def run_shell(args):
     source_path = args.source_path[0]
     print(source_path)
+    mdb = MoveDebugger()
+    mdb.run_move(source_path)
+    return
     context = {}
     (commands, alias_to_cmd) = get_commands()
     while True:

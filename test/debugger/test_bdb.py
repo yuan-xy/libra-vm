@@ -1,9 +1,9 @@
-from mol.debugger.bdb import Bdb
+from mol.debugger.base_db import BaseDebugger
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 import sys
 
 
-class Tdb(Bdb):
+class Tdb(BaseDebugger):
     def user_call(self, frame, args):
         name = frame.f_code.co_name
         if not name: name = '???'
@@ -36,7 +36,7 @@ def bar(a):
 
 def test_bdb(capsys):
     GlobalTracer.settrace = sys.settrace
-    t = Tdb()
+    t = Tdb(move=False)
     t.run('import bdb; bdb.foo(10)')
     output = capsys.readouterr().out
     assert "bar returned" in output

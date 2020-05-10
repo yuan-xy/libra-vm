@@ -1,16 +1,15 @@
 import fnmatch
 import sys
 import os
+import linecache
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 
-__all__ = ["BdbQuit", "Bdb", "Breakpoint"]
 
-
-class BdbQuit(Exception):
+class BaseDebuggerQuit(Exception):
     """Exception to give up completely."""
 
 
-class Bdb:
+class BaseDebugger:
     """Generic Python debugger base class.
 
     This class takes care of details of the trace facility;
@@ -24,7 +23,8 @@ class Bdb:
     is determined by the __name__ in the frame globals.
     """
 
-    def __init__(self, skip=None):
+    def __init__(self, move=True, skip=None):
+        self.move = move
         self.skip = set(skip) if skip else None
         self.breaks = {}
         self.fncache = {}
@@ -80,34 +80,49 @@ class Bdb:
         """
         if self.quitting:
             return # None
-        if event == 'line' or event == TraceType.LINE:
-            return self.dispatch_line(frame)
-        if event == 'call' or event == TraceType.CALL:
-            return self.dispatch_call(frame, arg)
-        if event == 'return' or event == TraceType.RETURN:
-            return self.dispatch_return(frame, arg)
-        if event == 'exception' or event == TraceType.EXCEPTION:
-            return self.dispatch_exception(frame, arg)
-        if event == 'c_call' or event == TraceType.NATIVE_CALL:
-            return self.trace_dispatch
-        if event == 'c_exception' or event == TraceType.NATIVE_EXCEPTION:
-            return self.trace_dispatch
-        if event == 'c_return' or event == TraceType.NATIVE_RETURN:
-            return self.trace_dispatch
-        print('bdb.Bdb.dispatch: unknown debugging event:', repr(event))
-        print(event==TraceType.CALL, event, TraceType.CALL)
+        if self.move:
+            if event == TraceType.LINE:
+                return self.dispatch_line(frame)
+            if event == TraceType.CALL:
+                return self.dispatch_call(frame, arg)
+            if event == TraceType.RETURN:
+                return self.dispatch_return(frame, arg)
+            if event == TraceType.EXCEPTION:
+                return self.dispatch_exception(frame, arg)
+            if event == TraceType.NATIVE_CALL:
+                return self.trace_dispatch
+            if event == TraceType.NATIVE_EXCEPTION:
+                return self.trace_dispatch
+            if event == TraceType.NATIVE_RETURN:
+                return self.trace_dispatch
+        else:
+            if event == 'line':
+                return self.dispatch_line(frame)
+            if event == 'call':
+                return self.dispatch_call(frame, arg)
+            if event == 'return':
+                return self.dispatch_return(frame, arg)
+            if event == 'exception':
+                return self.dispatch_exception(frame, arg)
+            if event == 'c_call':
+                return self.trace_dispatch
+            if event == 'c_exception':
+                return self.trace_dispatch
+            if event == 'c_return':
+                return self.trace_dispatch
+        print('bdb.BaseDebugger.dispatch: unknown debugging event:', repr(event))
         return self.trace_dispatch
 
     def dispatch_line(self, frame):
         """Invoke user function and return trace function for line event.
 
         If the debugger stops on the current line, invoke
-        self.user_line(). Raise BdbQuit if self.quitting is set.
+        self.user_line(). Raise BaseDebuggerQuit if self.quitting is set.
         Return self.trace_dispatch to continue tracing in this scope.
         """
         if self.stop_here(frame) or self.break_here(frame):
             self.user_line(frame)
-            if self.quitting: raise BdbQuit
+            if self.quitting: raise BaseDebuggerQuit
         return self.trace_dispatch
 
     def dispatch_call(self, frame, arg):
@@ -126,14 +141,14 @@ class Bdb:
             # No need to trace this function
             return # None
         self.user_call(frame, arg)
-        if self.quitting: raise BdbQuit
+        if self.quitting: raise BaseDebuggerQuit
         return self.trace_dispatch
 
     def dispatch_return(self, frame, arg):
         """Invoke user function and return trace function for return event.
 
         If the debugger stops on this function return, invoke
-        self.user_return(). Raise BdbQuit if self.quitting is set.
+        self.user_return(). Raise BaseDebuggerQuit if self.quitting is set.
         Return self.trace_dispatch to continue tracing in this scope.
         """
         if self.stop_here(frame) or frame == self.returnframe:
@@ -142,7 +157,7 @@ class Bdb:
                 self.user_return(frame, arg)
             finally:
                 self.frame_returning = None
-            if self.quitting: raise BdbQuit
+            if self.quitting: raise BaseDebuggerQuit
             # The user issued a 'next' or 'until' command.
             if self.stopframe is frame and self.stoplineno != -1:
                 self._set_stopinfo(None, None)
@@ -152,12 +167,12 @@ class Bdb:
         """Invoke user function and return trace function for exception event.
 
         If the debugger stops on this exception, invoke
-        self.user_exception(). Raise BdbQuit if self.quitting is set.
+        self.user_exception(). Raise BaseDebuggerQuit if self.quitting is set.
         Return self.trace_dispatch to continue tracing in this scope.
         """
         if self.stop_here(frame):
             self.user_exception(frame, arg)
-            if self.quitting: raise BdbQuit
+            if self.quitting: raise BaseDebuggerQuit
 
         return self.trace_dispatch
 
@@ -190,10 +205,10 @@ class Bdb:
         return False
 
     def break_here(self, frame):
-        """Return True if there is an effective breakpoint for this line.
+        """Return True if there is an _effective breakpoint for this line.
 
         Check for line or function breakpoint and if in effect.
-        Delete temporary breakpoints if effective() says to.
+        Delete temporary breakpoints if _effective() says to.
         """
         filename = self.canonic(frame.f_code.co_filename)
         if filename not in self.breaks:
@@ -207,7 +222,7 @@ class Bdb:
                 return False
 
         # flag says ok to delete temp. bp
-        (bp, flag) = effective(filename, lineno, frame)
+        (bp, flag) = _effective(filename, lineno, frame)
         if bp:
             self.currentbp = bp.number
             if (flag and bp.temporary):
@@ -298,7 +313,10 @@ class Bdb:
         If frame is not specified, debugging starts from caller's frame.
         """
         if frame is None:
-            frame = sys._getframe().f_back
+            if self.move:
+                frame = TracableFrame.CURRENT_FRAME.f_back
+            else:
+                frame = sys._getframe().f_back
         self.reset()
         while frame:
             frame.f_trace = self.trace_dispatch
@@ -317,7 +335,10 @@ class Bdb:
         if not self.breaks:
             # no breakpoints; run without debugger overhead
             GlobalTracer.settrace(None)
-            frame = sys._getframe().f_back
+            if self.move:
+                frame = TracableFrame.CURRENT_FRAME.f_back
+            else:
+                frame = sys._getframe().f_back
             while frame and frame is not self.botframe:
                 del frame.f_trace
                 frame = frame.f_back
@@ -325,7 +346,7 @@ class Bdb:
     def set_quit(self):
         """Set quitting attribute to True.
 
-        Raises BdbQuit exception in the next call to a dispatch_*() method.
+        Raises BaseDebuggerQuit exception in the next call to a dispatch_*() method.
         """
         self.stopframe = self.botframe
         self.returnframe = None
@@ -360,10 +381,10 @@ class Bdb:
     def _prune_breaks(self, filename, lineno):
         """Prune breakpoints for filename:lineno.
 
-        A list of breakpoints is maintained in the Bdb instance and in
-        the Breakpoint class.  If a breakpoint in the Bdb instance no
+        A list of breakpoints is maintained in the BaseDebugger instance and in
+        the Breakpoint class.  If a breakpoint in the BaseDebugger instance no
         longer exists in the Breakpoint class, then it's removed from the
-        Bdb instance.
+        BaseDebugger instance.
         """
         if (filename, lineno) not in Breakpoint.bplist:
             self.breaks[filename].remove(lineno)
@@ -514,27 +535,10 @@ class Bdb:
         line of code (if it exists).
 
         """
-        import linecache, reprlib
         frame, lineno = frame_lineno
-        filename = self.canonic(frame.f_code.co_filename)
-        s = '%s(%r)' % (filename, lineno)
-        if frame.f_code.co_name:
-            s += frame.f_code.co_name
-        else:
-            s += "<lambda>"
-        if '__args__' in frame.f_locals:
-            args = frame.f_locals['__args__']
-        else:
-            args = None
-        if args:
-            s += reprlib.repr(args)
-        else:
-            s += '()'
-        if '__return__' in frame.f_locals:
-            rv = frame.f_locals['__return__']
-            s += '->'
-            s += reprlib.repr(rv)
-        line = linecache.getline(filename, lineno, frame.f_globals)
+        this_func = frame.address_module_function()
+        s = '%s(%r)' % (this_func, lineno)
+        line = linecache.getline(filename, lineno)
         if line:
             s += lprefix + line.strip()
         return s
@@ -559,7 +563,7 @@ class Bdb:
         GlobalTracer.settrace(self.trace_dispatch)
         try:
             exec(cmd, globals, locals)
-        except BdbQuit:
+        except BaseDebuggerQuit:
             pass
         finally:
             self.quitting = True
@@ -579,7 +583,7 @@ class Bdb:
         GlobalTracer.settrace(self.trace_dispatch)
         try:
             return eval(expr, globals, locals)
-        except BdbQuit:
+        except BaseDebuggerQuit:
             pass
         finally:
             self.quitting = True
@@ -602,7 +606,7 @@ class Bdb:
         res = None
         try:
             res = func(*args, **kwds)
-        except BdbQuit:
+        except BaseDebuggerQuit:
             pass
         finally:
             self.quitting = True
@@ -611,8 +615,8 @@ class Bdb:
 
 
 def set_trace():
-    """Start debugging with a Bdb instance from the caller's frame."""
-    Bdb().set_trace()
+    """Start debugging with a BaseDebugger instance from the caller's frame."""
+    BaseDebugger().set_trace()
 
 
 class Breakpoint:
@@ -634,13 +638,13 @@ class Breakpoint:
     """
 
     # XXX Keeping state in the class is a mistake -- this means
-    # you cannot have more than one active Bdb instance.
+    # you cannot have more than one active BaseDebugger instance.
 
     next = 1        # Next bp to be assigned
     bplist = {}     # indexed by (file, lineno) tuple
     bpbynumber = [None] # Each entry is None or an instance of Bpt
                 # index 0 is unused, except for marking an
-                # effective break .... see effective()
+                # _effective break .... see _effective()
 
     def __init__(self, file, line, temporary=False, cond=None, funcname=None):
         self.funcname = funcname
@@ -731,7 +735,7 @@ class Breakpoint:
 # -----------end of Breakpoint class----------
 
 
-def checkfuncname(b, frame):
+def _checkfuncname(b, frame):
     """Return True if break should happen here.
 
     Whether a break should happen depends on the way that b (the breakpoint)
@@ -763,9 +767,9 @@ def checkfuncname(b, frame):
     return True
 
 
-# Determines if there is an effective (active) breakpoint at this
+# Determines if there is an _effective (active) breakpoint at this
 # line of code.  Returns breakpoint number or 0 if none
-def effective(file, line, frame):
+def _effective(file, line, frame):
     """Determine which breakpoint for this file:line is to be acted upon.
 
     Called only if we know there is a breakpoint at this location.  Return
@@ -777,7 +781,7 @@ def effective(file, line, frame):
     for b in possibles:
         if not b.enabled:
             continue
-        if not checkfuncname(b, frame):
+        if not _checkfuncname(b, frame):
             continue
         # Count every hit when bp is enabled
         b.hits += 1
