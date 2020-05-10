@@ -1,13 +1,9 @@
-"""Debugger basics"""
-
 import fnmatch
 import sys
 import os
-from inspect import CO_GENERATOR, CO_COROUTINE, CO_ASYNC_GENERATOR
+from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 
 __all__ = ["BdbQuit", "Bdb", "Breakpoint"]
-
-GENERATOR_AND_COROUTINE_FLAGS = CO_GENERATOR | CO_COROUTINE | CO_ASYNC_GENERATOR
 
 
 class BdbQuit(Exception):
@@ -84,21 +80,22 @@ class Bdb:
         """
         if self.quitting:
             return # None
-        if event == 'line':
+        if event == 'line' or event == TraceType.LINE:
             return self.dispatch_line(frame)
-        if event == 'call':
+        if event == 'call' or event == TraceType.CALL:
             return self.dispatch_call(frame, arg)
-        if event == 'return':
+        if event == 'return' or event == TraceType.RETURN:
             return self.dispatch_return(frame, arg)
-        if event == 'exception':
+        if event == 'exception' or event == TraceType.EXCEPTION:
             return self.dispatch_exception(frame, arg)
-        if event == 'c_call':
+        if event == 'c_call' or event == TraceType.NATIVE_CALL:
             return self.trace_dispatch
-        if event == 'c_exception':
+        if event == 'c_exception' or event == TraceType.NATIVE_EXCEPTION:
             return self.trace_dispatch
-        if event == 'c_return':
+        if event == 'c_return' or event == TraceType.NATIVE_RETURN:
             return self.trace_dispatch
         print('bdb.Bdb.dispatch: unknown debugging event:', repr(event))
+        print(event==TraceType.CALL, event, TraceType.CALL)
         return self.trace_dispatch
 
     def dispatch_line(self, frame):
@@ -128,9 +125,6 @@ class Bdb:
         if not (self.stop_here(frame) or self.break_anywhere(frame)):
             # No need to trace this function
             return # None
-        # Ignore call events in generator except when stepping.
-        if self.stopframe and frame.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS:
-            return self.trace_dispatch
         self.user_call(frame, arg)
         if self.quitting: raise BdbQuit
         return self.trace_dispatch
@@ -143,9 +137,6 @@ class Bdb:
         Return self.trace_dispatch to continue tracing in this scope.
         """
         if self.stop_here(frame) or frame == self.returnframe:
-            # Ignore return events in generator except when stepping.
-            if self.stopframe and frame.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS:
-                return self.trace_dispatch
             try:
                 self.frame_returning = frame
                 self.user_return(frame, arg)
@@ -165,20 +156,6 @@ class Bdb:
         Return self.trace_dispatch to continue tracing in this scope.
         """
         if self.stop_here(frame):
-            # When stepping with next/until/return in a generator frame, skip
-            # the internal StopIteration exception (with no traceback)
-            # triggered by a subiterator run with the 'yield from' statement.
-            if not (frame.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS
-                    and arg[0] is StopIteration and arg[2] is None):
-                self.user_exception(frame, arg)
-                if self.quitting: raise BdbQuit
-        # Stop at the StopIteration or GeneratorExit exception when the user
-        # has set stopframe in a generator by issuing a return command, or a
-        # next/until command at the last statement in the generator before the
-        # exception.
-        elif (self.stopframe and frame is not self.stopframe
-                and self.stopframe.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS
-                and arg[0] in (StopIteration, GeneratorExit)):
             self.user_exception(frame, arg)
             if self.quitting: raise BdbQuit
 
@@ -313,10 +290,7 @@ class Bdb:
 
     def set_return(self, frame):
         """Stop when returning from the given frame."""
-        if frame.f_code.co_flags & GENERATOR_AND_COROUTINE_FLAGS:
-            self._set_stopinfo(frame, None, -1)
-        else:
-            self._set_stopinfo(frame.f_back, frame)
+        self._set_stopinfo(frame.f_back, frame)
 
     def set_trace(self, frame=None):
         """Start debugging from frame.
@@ -331,7 +305,7 @@ class Bdb:
             self.botframe = frame
             frame = frame.f_back
         self.set_step()
-        sys.settrace(self.trace_dispatch)
+        GlobalTracer.settrace(self.trace_dispatch)
 
     def set_continue(self):
         """Stop only at breakpoints or when finished.
@@ -342,7 +316,7 @@ class Bdb:
         self._set_stopinfo(self.botframe, None, -1)
         if not self.breaks:
             # no breakpoints; run without debugger overhead
-            sys.settrace(None)
+            GlobalTracer.settrace(None)
             frame = sys._getframe().f_back
             while frame and frame is not self.botframe:
                 del frame.f_trace
@@ -356,7 +330,7 @@ class Bdb:
         self.stopframe = self.botframe
         self.returnframe = None
         self.quitting = True
-        sys.settrace(None)
+        GlobalTracer.settrace(None)
 
     # Derived classes and clients can call the following methods
     # to manipulate breakpoints.  These methods return an
@@ -582,14 +556,14 @@ class Bdb:
         self.reset()
         if isinstance(cmd, str):
             cmd = compile(cmd, "<string>", "exec")
-        sys.settrace(self.trace_dispatch)
+        GlobalTracer.settrace(self.trace_dispatch)
         try:
             exec(cmd, globals, locals)
         except BdbQuit:
             pass
         finally:
             self.quitting = True
-            sys.settrace(None)
+            GlobalTracer.settrace(None)
 
     def runeval(self, expr, globals=None, locals=None):
         """Debug an expression executed via the eval() function.
@@ -602,14 +576,14 @@ class Bdb:
         if locals is None:
             locals = globals
         self.reset()
-        sys.settrace(self.trace_dispatch)
+        GlobalTracer.settrace(self.trace_dispatch)
         try:
             return eval(expr, globals, locals)
         except BdbQuit:
             pass
         finally:
             self.quitting = True
-            sys.settrace(None)
+            GlobalTracer.settrace(None)
 
     def runctx(self, cmd, globals, locals):
         """For backwards-compatibility.  Defers to run()."""
@@ -618,13 +592,13 @@ class Bdb:
 
     # This method is more useful to debug a single function call.
 
-    def runcall(self, func, /, *args, **kwds):
+    def runcall(self, func, *args, **kwds):
         """Debug a single function call.
 
         Return the result of the function call.
         """
         self.reset()
-        sys.settrace(self.trace_dispatch)
+        GlobalTracer.settrace(self.trace_dispatch)
         res = None
         try:
             res = func(*args, **kwds)
@@ -632,7 +606,7 @@ class Bdb:
             pass
         finally:
             self.quitting = True
-            sys.settrace(None)
+            GlobalTracer.settrace(None)
         return res
 
 
@@ -836,36 +810,3 @@ def effective(file, line, frame):
                 return (b, False)
     return (None, None)
 
-
-# -------------------- testing --------------------
-
-class Tdb(Bdb):
-    def user_call(self, frame, args):
-        name = frame.f_code.co_name
-        if not name: name = '???'
-        print('+++ call', name, args)
-    def user_line(self, frame):
-        import linecache
-        name = frame.f_code.co_name
-        if not name: name = '???'
-        fn = self.canonic(frame.f_code.co_filename)
-        line = linecache.getline(fn, frame.f_lineno, frame.f_globals)
-        print('+++', fn, frame.f_lineno, name, ':', line.strip())
-    def user_return(self, frame, retval):
-        print('+++ return', retval)
-    def user_exception(self, frame, exc_stuff):
-        print('+++ exception', exc_stuff)
-        self.set_continue()
-
-def foo(n):
-    print('foo(', n, ')')
-    x = bar(n*10)
-    print('bar returned', x)
-
-def bar(a):
-    print('bar(', a, ')')
-    return a/2
-
-def test():
-    t = Tdb()
-    t.run('import bdb; bdb.foo(10)')
