@@ -8,6 +8,7 @@ from mol.functional_tests import testsuite
 from mol.functional_tests.ir_compiler import IRCompiler
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 from mol.stdlib import stdlib_modules
+from mol.global_source_mapping import GlobalSourceMapping
 
 
 def print_function(amf: Tuple[str, str, str]) -> str:
@@ -191,6 +192,7 @@ def main():
 
     try:
         compiler = IRCompiler()
+        GlobalSourceMapping.init_std_mapping()
         testsuite.functional_tests(compiler, opts.progname)
     finally:
         if not tracer.donothing:

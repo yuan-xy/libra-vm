@@ -3,6 +3,9 @@ from typing import Callable, Union, Any, Tuple, Optional, Set
 from mol.compiler.bytecode_source_map.source_map import FunctionSourceMap
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.move_core import JsonPrintable
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TraceType(IntEnum):
@@ -57,9 +60,22 @@ class TracableFrame(JsonPrintable):
         else:
             return None
 
-    def function_map(self) -> Optional[FunctionSourceMap]:
+    def function_source_map(self) -> Optional[FunctionSourceMap]:
         if self.mapping is not None:
             return self.mapping.source_map.function_map[self.function.idx.v0]
+        else:
+            return None
+
+    def get_lineno(self, pc) -> int:
+        func_map = self.function_source_map()
+        if func_map is not None:
+            if pc in func_map.code_map:
+                return func_map.code_map[pc].line_no
+            else:
+                logger.error((self.module().name(), self.function.name(), pc))
+                # TTODO: why can't find this codeoffset in code_map, inline func or native func?
+                # breakpoint()
+                return None
         else:
             return None
 

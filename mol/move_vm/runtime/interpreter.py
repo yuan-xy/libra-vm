@@ -283,23 +283,18 @@ class Interpreter:
     ) -> ExitCode:
         # TODO: re-enbale this once gas metering is sorted out
         #code = frame.code_definition()
+        func_map = frame.function_source_map()
 
         while True:
             for instruction in code[frame.pc:]:
-                if frame.f_trace is not None:
-                    if frame.mapping is not None:
-                        func_map = frame.mapping.source_map.get_function_source_map(frame.function.idx)
-                        if frame.pc not in func_map.code_map:
-                            logger.error((frame.module().name(), frame.function.name(), frame.pc))
-                            # TTODO: why can't find this codeoffset in code_map, inline func or native func?
-                            # breakpoint()
-                        else:
-                            line_no = func_map.code_map[frame.pc].line_no
-                            if line_no != frame.line_no:
-                                frame.line_no = line_no
-                                src = frame.mapping.source_code.lines[line_no-1]
-                                ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
-                                frame.f_trace = ltrace
+                if func_map is not None:
+                    if frame.f_trace is not None:
+                        line_no = frame.get_lineno(frame.pc)
+                        if line_no is not None and line_no != frame.line_no:
+                            frame.line_no = line_no
+                            src = frame.mapping.source_code.lines[line_no-1]
+                            ltrace = frame.f_trace(frame, TraceType.LINE, (line_no, src))
+                            frame.f_trace = ltrace
 
                 if frame.f_trace_opcodes is not None:
                     ltrace = frame.f_trace_opcodes(frame, TraceType.OPCODE, (frame.pc, instruction))
