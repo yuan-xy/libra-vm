@@ -1,3 +1,51 @@
+"""
+The Move Lang Debugger Mdb
+=======================
+
+The debugger's prompt is '(Mdb) '.  This will stop in main call in user script.
+
+The commands recognized by the debugger are listed in the next
+section.  Most can be abbreviated as indicated; e.g., h(elp) means
+that 'help' can be typed as 'h' or 'help' (but not as 'he' or 'hel',
+nor as 'H' or 'Help' or 'HELP').  Optional arguments are enclosed in
+square brackets.  Alternatives in the command syntax are separated
+by a vertical bar (|).
+
+A blank line repeats the previous command literally, except for
+'list', where it lists the next 11 lines.
+
+Commands that the debugger doesn't recognize are assumed to be Python
+statements and are executed in the context of the program being
+debugged.  Python statements can also be prefixed with an exclamation
+point ('!').  This is a powerful way to inspect the program being
+debugged; it is even possible to change variables or call functions.
+When an exception occurs in such a statement, the exception name is
+printed but the debugger's state is not changed.
+
+The debugger supports aliases, which can save typing.  And aliases can
+have parameters (see the alias help entry) which allows one a certain
+level of adaptability to the context under examination.
+
+Multiple commands may be entered on a single line, separated by the
+pair ';;'.  No intelligence is applied to separating the commands; the
+input is split at the first ';;', even if it is in the middle of a
+quoted string.
+
+If a file ".pdbrc" exists in your home directory or in the current
+directory, it is read in and executed as if it had been typed at the
+debugger prompt.  This is particularly useful for aliases.  If both
+files exist, the one in the home directory is read first and aliases
+defined there can be overridden by the local file.  This behavior can be
+disabled by passing the "readrc=False" argument to the Pdb constructor.
+
+Debugger commands
+=================
+
+"""
+# NOTE: the actual command documentation is collected from docstrings of the
+# commands and is appended to __doc__ after the class has been defined.
+
+
 from mol.debugger.base_db import BaseDebugger, BaseDebuggerQuit, Breakpoint
 from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
 from mol.global_source_mapping import GlobalSourceMapping
@@ -5,6 +53,8 @@ from mol.functional_tests.ir_compiler import IRCompiler
 from mol.functional_tests import testsuite
 from pathlib import Path
 import cmd
+import signal
+import sys
 
 
 # Interaction prompt line will separate file and call info from code
@@ -15,7 +65,7 @@ import cmd
 line_prefix = '\n-> '   # Probably a better default
 
 
-class Mdb(BaseDebugger):
+class Mdb(BaseDebugger, cmd.Cmd):
     def run_move(self, file):
         # When bdb sets tracing, a number of call and line events happens
         # BEFORE debugger even reaches user's code (and the exact sequence of
@@ -122,10 +172,6 @@ class Mdb(BaseDebugger):
             self.tb_lineno[tb.tb_frame] = lineno
             tb = tb.tb_next
         self.curframe = self.stack[self.curindex][0]
-        # The f_locals dictionary is updated from the actual frame
-        # locals whenever the .f_locals accessor is called, so we
-        # cache it here to ensure that modifications are not overwritten.
-        self.curframe_locals = self.curframe.f_locals
         return self.execRcLines()
 
     # Can be executed earlier than 'setup' if desired
@@ -161,7 +207,7 @@ class Mdb(BaseDebugger):
     def user_line(self, frame):
         """This function is called when we stop or break at this line."""
         if self._wait_for_mainpyfile:
-            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
+            if (self.mainpyfile != self.canonic(frame.source_filename())
                 or frame.f_lineno <= 0):
                 return
             self._wait_for_mainpyfile = False
@@ -196,7 +242,7 @@ class Mdb(BaseDebugger):
         """This function is called when a return trap is set here."""
         if self._wait_for_mainpyfile:
             return
-        frame.f_locals['__return__'] = return_value
+        frame.__return__ = return_value
         self.message('--Return--')
         self.interaction(frame, None)
 
@@ -206,7 +252,7 @@ class Mdb(BaseDebugger):
         if self._wait_for_mainpyfile:
             return
         exc_type, exc_value, exc_traceback = exc_info
-        frame.f_locals['__exception__'] = exc_type, exc_value
+        frame.__exception__ = exc_type, exc_value
 
         # An 'Internal StopIteration' exception is an exception debug event
         # issued by the interpreter when handling a subgenerator run with
@@ -270,8 +316,6 @@ class Mdb(BaseDebugger):
 
     def default(self, line):
         if line[:1] == '!': line = line[1:]
-        locals = self.curframe_locals
-        globals = self.curframe.f_globals
         try:
             code = compile(line + '\n', '<stdin>', 'single')
             save_stdout = sys.stdout
@@ -281,7 +325,7 @@ class Mdb(BaseDebugger):
                 sys.stdin = self.stdin
                 sys.stdout = self.stdout
                 sys.displayhook = self.displayhook
-                exec(code, globals, locals)
+                exec(code)
             finally:
                 sys.stdout = save_stdout
                 sys.stdin = save_stdin
@@ -399,7 +443,7 @@ class Mdb(BaseDebugger):
         # Collect globals and locals.  It is usually not really sensible to also
         # complete builtins, and they clutter the namespace quite heavily, so we
         # leave them out.
-        ns = {**self.curframe.f_globals, **self.curframe_locals}
+        ns = {**globals(), **locals()}
         if '.' in text:
             # Walk an attribute chain up to the last part, similar to what
             # rlcompleter does.  This will bail if any of the parts are not
@@ -555,9 +599,7 @@ class Mdb(BaseDebugger):
                 lineno = int(arg)
             except ValueError:
                 try:
-                    func = eval(arg,
-                                self.curframe.f_globals,
-                                self.curframe_locals)
+                    func = eval(arg)
                 except:
                     func = arg
                 try:
@@ -595,7 +637,7 @@ class Mdb(BaseDebugger):
     # To be overridden in derived debuggers
     def defaultFile(self):
         """Produce a reasonable default."""
-        filename = self.curframe.f_code.co_filename
+        filename = self.curframe.source_filename()
         if filename == '<string>' and self.mainpyfile:
             filename = self.mainpyfile
         return filename
@@ -832,7 +874,6 @@ class Mdb(BaseDebugger):
         assert 0 <= number < len(self.stack)
         self.curindex = number
         self.curframe = self.stack[self.curindex][0]
-        self.curframe_locals = self.curframe.f_locals
         self.print_stack_entry(self.stack[self.curindex])
         self.lineno = None
 
@@ -997,20 +1038,7 @@ class Mdb(BaseDebugger):
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
         """
-        sys.settrace(None)
-        globals = self.curframe.f_globals
-        locals = self.curframe_locals
-        p = Mdb(self.completekey, self.stdin, self.stdout)
-        p.prompt = "(%s) " % self.prompt.strip()
-        self.message("ENTERING RECURSIVE DEBUGGER")
-        try:
-            sys.call_tracing(p.run, (arg, globals, locals))
-        except Exception:
-            exc_info = sys.exc_info()[:2]
-            self.error(traceback.format_exception_only(*exc_info)[-1].strip())
-        self.message("LEAVING RECURSIVE DEBUGGER")
-        sys.settrace(self.trace_dispatch)
-        self.lastcmd = p.lastcmd
+        print("do debug")
 
     complete_debug = _complete_expression
 
@@ -1038,32 +1066,22 @@ class Mdb(BaseDebugger):
         """a(rgs)
         Print the argument list of the current function.
         """
-        co = self.curframe.f_code
-        dict = self.curframe_locals
-        n = co.co_argcount + co.co_kwonlyargcount
-        if co.co_flags & inspect.CO_VARARGS: n = n+1
-        if co.co_flags & inspect.CO_VARKEYWORDS: n = n+1
-        for i in range(n):
-            name = co.co_varnames[i]
-            if name in dict:
-                self.message('%s = %r' % (name, dict[name]))
-            else:
-                self.message('%s = *** undefined ***' % (name,))
+        self.message(self.curframe.locls)
     do_a = do_args
 
     def do_retval(self, arg):
         """retval
         Print the return value for the last return of a function.
         """
-        if '__return__' in self.curframe_locals:
-            self.message(repr(self.curframe_locals['__return__']))
+        if hasattr(self.curframe, '__return__'):
+            self.message(self.curframe.__return__)
         else:
             self.error('Not yet returned!')
     do_rv = do_retval
 
     def _getval(self, arg):
         try:
-            return eval(arg, self.curframe.f_globals, self.curframe_locals)
+            return eval(arg)
         except:
             exc_info = sys.exc_info()[:2]
             self.error(traceback.format_exception_only(*exc_info)[-1].strip())
@@ -1072,9 +1090,9 @@ class Mdb(BaseDebugger):
     def _getval_except(self, arg, frame=None):
         try:
             if frame is None:
-                return eval(arg, self.curframe.f_globals, self.curframe_locals)
+                return eval(arg)
             else:
-                return eval(arg, frame.f_globals, frame.f_locals)
+                return eval(arg)
         except:
             exc_info = sys.exc_info()[:2]
             err = traceback.format_exception_only(*exc_info)[-1].strip()
@@ -1140,7 +1158,7 @@ class Mdb(BaseDebugger):
             first = self.lineno + 1
         if last is None:
             last = first + 10
-        filename = self.curframe.f_code.co_filename
+        filename = self.curframe.source_filename()
         breaklist = self.get_file_breaks(filename)
         try:
             lines = linecache.getlines(filename, self.curframe.f_globals)
@@ -1157,7 +1175,7 @@ class Mdb(BaseDebugger):
         """longlist | ll
         List the whole source code for the current function or frame.
         """
-        filename = self.curframe.f_code.co_filename
+        filename = self.curframe.source_filename()
         breaklist = self.get_file_breaks(filename)
         try:
             lines, lineno = getsourcelines(self.curframe)
@@ -1284,7 +1302,7 @@ class Mdb(BaseDebugger):
         Start an interactive interpreter whose global namespace
         contains all the (global and local) names found in the current scope.
         """
-        ns = {**self.curframe.f_globals, **self.curframe_locals}
+        ns = {**globals(), **locals()}
         code.interact("*interactive*", local=ns)
 
     def do_alias(self, arg):
@@ -1430,3 +1448,28 @@ class Mdb(BaseDebugger):
             if os.path.exists(fullname):
                 return fullname
         return None
+
+
+# Collect all command help into docstring, if not run with -OO
+
+if __doc__ is not None:
+    # unfortunately we can't guess this order from the class definition
+    _help_order = [
+        'help', 'where', 'down', 'up', 'break', 'tbreak', 'clear', 'disable',
+        'enable', 'ignore', 'condition', 'commands', 'step', 'next', 'until',
+        'jump', 'return', 'retval', 'run', 'continue', 'list', 'longlist',
+        'args', 'p', 'pp', 'whatis', 'source', 'display', 'undisplay',
+        'interact', 'alias', 'unalias', 'debug', 'quit',
+    ]
+
+    for _command in _help_order:
+        __doc__ += getattr(Mdb, 'do_' + _command).__doc__.strip() + '\n\n'
+    __doc__ += Mdb.help_exec.__doc__
+
+    del _help_order, _command
+
+
+# print help
+def help():
+    import pydoc
+    pydoc.pager(__doc__)

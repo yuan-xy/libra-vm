@@ -210,7 +210,7 @@ class BaseDebugger:
         Check for line or function breakpoint and if in effect.
         Delete temporary breakpoints if _effective() says to.
         """
-        filename = self.canonic(frame.f_code.co_filename)
+        filename = self.canonic(frame.source_filename())
         if filename not in self.breaks:
             return False
         lineno = frame.f_lineno
@@ -241,7 +241,7 @@ class BaseDebugger:
     def break_anywhere(self, frame):
         """Return True if there is any breakpoint for frame's filename.
         """
-        return self.canonic(frame.f_code.co_filename) in self.breaks
+        return self.canonic(frame.source_filename()) in self.breaks
 
     # Derived classes should override the user_* methods
     # to gain control.

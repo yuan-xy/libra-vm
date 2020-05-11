@@ -1092,6 +1092,9 @@ class Frame(TracableFrame, JsonPrintable):
     f_trace_opcodes: TraceCallback = None
     f_back: Frame = None
 
+    def __hash__(self):
+        return id(self)
+
     @property
     def f_lineno(self):
         return self.line_no

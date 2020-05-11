@@ -79,6 +79,12 @@ class TracableFrame(JsonPrintable):
         else:
             return None
 
+    def src_line(self) -> str:
+        if self.mapping is not None:
+            return self.mapping.source_code.lines[self.line_no-1]
+        else:
+            return None
+
     def first_lineno(self) -> int:
         if self.mapping is not None:
             return self.function_map().get_code_location(0).line_no
