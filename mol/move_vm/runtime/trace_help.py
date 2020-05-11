@@ -85,6 +85,29 @@ class TracableFrame(JsonPrintable):
         else:
             return None
 
+    def src_lines(self) -> str:
+        if self.mapping is not None:
+            return self.mapping.source_code.lines
+        else:
+            return None
+
+    def frame_lines(self) -> str:
+        func_map = self.function_source_map()
+        if func_map is not None:
+            start = func_map.code_map[0].line_no - 1
+            end = max(func_map.executable_linenos())
+            return self.mapping.source_code.lines[start:end]
+        else:
+            return None
+
+    def frame_first_lineno(self) -> int:
+        func_map = self.function_source_map()
+        if func_map is not None:
+            return func_map.code_map[0].line_no
+        else:
+            return None
+
+
     def first_lineno(self) -> int:
         if self.mapping is not None:
             return self.function_map().get_code_location(0).line_no

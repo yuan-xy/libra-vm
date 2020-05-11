@@ -538,7 +538,7 @@ class BaseDebugger:
         frame, lineno = frame_lineno
         this_func = frame.address_module_function()
         s = '%s(%r)' % (this_func, lineno)
-        line = linecache.getline(frame.source_filename(), lineno)
+        line = frame.src_line()
         if line:
             s += lprefix + line.strip()
         return s

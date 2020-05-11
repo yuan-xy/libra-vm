@@ -54,8 +54,9 @@ from mol.functional_tests import testsuite
 from pathlib import Path
 import cmd
 import signal
+import os
 import sys
-
+import linecache
 
 # Interaction prompt line will separate file and call info from code
 # text using value of line_prefix string.  A newline and arrow may
@@ -433,7 +434,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         # Complete a breakpoint number.  (This would be more helpful if we could
         # display additional info along with the completions, such as file/line
         # of the breakpoint.)
-        return [str(i) for i, bp in enumerate(bdb.Breakpoint.bpbynumber)
+        return [str(i) for i, bp in enumerate(Breakpoint.bpbynumber)
                 if bp is not None and str(i).startswith(text)]
 
     def _complete_expression(self, text, line, begidx, endidx):
@@ -503,7 +504,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         reached.
         """
         if not arg:
-            bnum = len(bdb.Breakpoint.bpbynumber) - 1
+            bnum = len(Breakpoint.bpbynumber) - 1
         else:
             try:
                 bnum = int(arg)
@@ -562,7 +563,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         if not arg:
             if self.breaks:  # There's at least one
                 self.message("Num Type         Disp Enb   Where")
-                for bp in bdb.Breakpoint.bpbynumber:
+                for bp in Breakpoint.bpbynumber:
                     if bp:
                         self.message(bp.bpformat())
             return
@@ -823,7 +824,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
                 reply = 'no'
             reply = reply.strip().lower()
             if reply in ('y', 'yes'):
-                bplist = [bp for bp in bdb.Breakpoint.bpbynumber if bp]
+                bplist = [bp for bp in Breakpoint.bpbynumber if bp]
                 self.clear_all_breaks()
                 for bp in bplist:
                     self.message('Deleted %s' % bp)
@@ -1161,7 +1162,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         filename = self.curframe.source_filename()
         breaklist = self.get_file_breaks(filename)
         try:
-            lines = linecache.getlines(filename, self.curframe.f_globals)
+            lines = self.curframe.src_lines()
             self._print_lines(lines[first-1:last], first, breaklist,
                               self.curframe)
             self.lineno = min(last, len(lines))
@@ -1178,7 +1179,8 @@ class Mdb(BaseDebugger, cmd.Cmd):
         filename = self.curframe.source_filename()
         breaklist = self.get_file_breaks(filename)
         try:
-            lines, lineno = getsourcelines(self.curframe)
+            lines = self.curframe.frame_lines()
+            lineno = self.curframe.frame_first_lineno()
         except OSError as err:
             self.error(err)
             return
@@ -1190,11 +1192,12 @@ class Mdb(BaseDebugger, cmd.Cmd):
         Try to get source code for the given object and display it.
         """
         try:
-            obj = self._getval(arg)
+            obj = self._getval(arg) # TTODO: find source for func/strcut/module/var
         except:
             return
         try:
-            lines, lineno = getsourcelines(obj)
+            lines = []
+            lineno = 0
         except (OSError, TypeError) as err:
             self.error(err)
             return
