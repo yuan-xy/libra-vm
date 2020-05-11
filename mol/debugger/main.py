@@ -9,7 +9,7 @@ from mol.debugger.command import get_commands_alias, parse_cmd, report_error, pr
 from mol.debugger.query_commands import QueryCommand
 from mol.debugger.transfer_commands import TransferCommand
 import readline
-from mol.debugger.mdb import MoveDebugger
+from mol.debugger.mdb import Mdb
 
 
 
@@ -24,7 +24,7 @@ def get_commands():
 def run_shell(args):
     source_path = args.source_path[0]
     print(source_path)
-    mdb = MoveDebugger()
+    mdb = Mdb()
     mdb.run_move(source_path)
     return
     context = {}
