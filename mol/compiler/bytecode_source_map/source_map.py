@@ -12,7 +12,6 @@ from mol.vm.file_format import (
 from mol.vm import ModuleIndex, ModuleAccess, ScriptAccess, VMException
 from typing import List, Optional, Any, Union, Tuple, Dict, Callable, Set
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
 from libra.rustlib import list_get, bail, usize
 from copy import deepcopy
 from canoser import Uint16, Uint64, Struct
