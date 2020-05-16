@@ -24,7 +24,6 @@ class BaseDebugger:
     """
 
     def __init__(self, move=True, skip=None):
-        self.move = move
         self.skip = set(skip) if skip else None
         self.breaks = {}
         self.fncache = {}
@@ -80,36 +79,20 @@ class BaseDebugger:
         """
         if self.quitting:
             return # None
-        if self.move:
-            if event == TraceType.LINE:
-                return self.dispatch_line(frame)
-            if event == TraceType.CALL:
-                return self.dispatch_call(frame, arg)
-            if event == TraceType.RETURN:
-                return self.dispatch_return(frame, arg)
-            if event == TraceType.EXCEPTION:
-                return self.dispatch_exception(frame, arg)
-            if event == TraceType.NATIVE_CALL:
-                return self.trace_dispatch
-            if event == TraceType.NATIVE_EXCEPTION:
-                return self.trace_dispatch
-            if event == TraceType.NATIVE_RETURN:
-                return self.trace_dispatch
-        else:
-            if event == 'line':
-                return self.dispatch_line(frame)
-            if event == 'call':
-                return self.dispatch_call(frame, arg)
-            if event == 'return':
-                return self.dispatch_return(frame, arg)
-            if event == 'exception':
-                return self.dispatch_exception(frame, arg)
-            if event == 'c_call':
-                return self.trace_dispatch
-            if event == 'c_exception':
-                return self.trace_dispatch
-            if event == 'c_return':
-                return self.trace_dispatch
+        if event == TraceType.LINE:
+            return self.dispatch_line(frame)
+        if event == TraceType.CALL:
+            return self.dispatch_call(frame, arg)
+        if event == TraceType.RETURN:
+            return self.dispatch_return(frame, arg)
+        if event == TraceType.EXCEPTION:
+            return self.dispatch_exception(frame, arg)
+        if event == TraceType.NATIVE_CALL:
+            return self.trace_dispatch
+        if event == TraceType.NATIVE_EXCEPTION:
+            return self.trace_dispatch
+        if event == TraceType.NATIVE_RETURN:
+            return self.trace_dispatch
         print('bdb.BaseDebugger.dispatch: unknown debugging event:', repr(event))
         return self.trace_dispatch
 
@@ -313,10 +296,7 @@ class BaseDebugger:
         If frame is not specified, debugging starts from caller's frame.
         """
         if frame is None:
-            if self.move:
-                frame = TracableFrame.CURRENT_FRAME.f_back
-            else:
-                frame = sys._getframe().f_back
+            frame = TracableFrame.CURRENT_FRAME.f_back
         self.reset()
         while frame:
             frame.f_trace = self.trace_dispatch
@@ -335,10 +315,7 @@ class BaseDebugger:
         if not self.breaks:
             # no breakpoints; run without debugger overhead
             GlobalTracer.settrace(None)
-            if self.move:
-                frame = TracableFrame.CURRENT_FRAME.f_back
-            else:
-                frame = sys._getframe().f_back
+            frame = TracableFrame.CURRENT_FRAME.f_back
             while frame and frame is not self.botframe:
                 del frame.f_trace
                 frame = frame.f_back
@@ -542,76 +519,6 @@ class BaseDebugger:
         if line:
             s += lprefix + line.strip()
         return s
-
-    # The following methods can be called by clients to use
-    # a debugger to debug a statement or an expression.
-    # Both can be given as a string, or a code object.
-
-    def run(self, cmd, globals=None, locals=None):
-        """Debug a statement executed via the exec() function.
-
-        globals defaults to __main__.dict; locals defaults to globals.
-        """
-        if globals is None:
-            import __main__
-            globals = __main__.__dict__
-        if locals is None:
-            locals = globals
-        self.reset()
-        if isinstance(cmd, str):
-            cmd = compile(cmd, "<string>", "exec")
-        GlobalTracer.settrace(self.trace_dispatch)
-        try:
-            exec(cmd, globals, locals)
-        except BaseDebuggerQuit:
-            pass
-        finally:
-            self.quitting = True
-            GlobalTracer.settrace(None)
-
-    def runeval(self, expr, globals=None, locals=None):
-        """Debug an expression executed via the eval() function.
-
-        globals defaults to __main__.dict; locals defaults to globals.
-        """
-        if globals is None:
-            import __main__
-            globals = __main__.__dict__
-        if locals is None:
-            locals = globals
-        self.reset()
-        GlobalTracer.settrace(self.trace_dispatch)
-        try:
-            return eval(expr, globals, locals)
-        except BaseDebuggerQuit:
-            pass
-        finally:
-            self.quitting = True
-            GlobalTracer.settrace(None)
-
-    def runctx(self, cmd, globals, locals):
-        """For backwards-compatibility.  Defers to run()."""
-        # B/W compatibility
-        self.run(cmd, globals, locals)
-
-    # This method is more useful to debug a single function call.
-
-    def runcall(self, func, *args, **kwds):
-        """Debug a single function call.
-
-        Return the result of the function call.
-        """
-        self.reset()
-        GlobalTracer.settrace(self.trace_dispatch)
-        res = None
-        try:
-            res = func(*args, **kwds)
-        except BaseDebuggerQuit:
-            pass
-        finally:
-            self.quitting = True
-            GlobalTracer.settrace(None)
-        return res
 
 
 def set_trace():

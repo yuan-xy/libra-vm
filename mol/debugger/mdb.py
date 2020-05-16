@@ -57,6 +57,9 @@ import signal
 import os
 import sys
 import linecache
+import traceback
+import glob
+import code
 
 # Interaction prompt line will separate file and call info from code
 # text using value of line_prefix string.  A newline and arrow may
@@ -64,6 +67,16 @@ import linecache
 # command "mdb.line_prefix = '\n% '".
 # line_prefix = ': '    # Use this to get the old situation back
 line_prefix = '\n-> '   # Probably a better default
+
+class Restart(Exception):
+    """Causes a debugger to be restarted for the debugged python program."""
+    pass
+
+
+class _rstr(str):
+    """String that doesn't quote its repr."""
+    def __repr__(self):
+        return self
 
 
 class Mdb(BaseDebugger, cmd.Cmd):
@@ -1108,15 +1121,6 @@ class Mdb(BaseDebugger, cmd.Cmd):
         except:
             pass
 
-    def do_pp(self, arg):
-        """pp expression
-        Pretty-print the value of the expression.
-        """
-        try:
-            self.message(pprint.pformat(self._getval(arg)))
-        except:
-            pass
-
     complete_print = _complete_expression
     complete_p = _complete_expression
     complete_pp = _complete_expression
@@ -1441,7 +1445,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
             return f
         root, ext = os.path.splitext(filename)
         if ext == '':
-            filename = filename + '.py'
+            filename = filename + '.move'
         if os.path.isabs(filename):
             return filename
         for dirname in sys.path:
@@ -1461,7 +1465,7 @@ if __doc__ is not None:
         'help', 'where', 'down', 'up', 'break', 'tbreak', 'clear', 'disable',
         'enable', 'ignore', 'condition', 'commands', 'step', 'next', 'until',
         'jump', 'return', 'retval', 'run', 'continue', 'list', 'longlist',
-        'args', 'p', 'pp', 'whatis', 'source', 'display', 'undisplay',
+        'args', 'p', 'whatis', 'source', 'display', 'undisplay',
         'interact', 'alias', 'unalias', 'debug', 'quit',
     ]
 

@@ -30,7 +30,7 @@ from mol.vm.transaction_metadata import TransactionMetadata
 from mol.move_vm.types.values import Value
 from dataclasses import dataclass
 from typing import List, Optional, Mapping, Union
-from libra.rustlib import usize
+from libra.rustlib import usize, bail
 from canoser import RustEnum, Uint64, MapT, BytesT
 import traceback
 import logging
@@ -500,6 +500,7 @@ class LibraVM(VMVerifier, VMExecutor):
             elif block.BlockPrologue:
                 result.append(self.process_block_prologue(data_cache, block.value))
             elif block.WriteSet:
+                change_set = block.value
                 self.check_change_set(change_set, state_view)
                 out = self.process_change_set(data_cache, change_set)
                 # .unwrap_or_else(discard_error_output)
