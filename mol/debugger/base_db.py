@@ -135,8 +135,8 @@ class BaseDebugger:
         # XXX 'arg' is no longer used
         if self.botframe is None:
             # First call of dispatch since reset()
-            self.botframe = frame.f_back # (CT) Note that this may also be None!
-            return self.trace_dispatch
+            self.botframe = frame.f_back or frame # (CT) Note that this may also be None!
+            # return self.trace_dispatch
         if not (self.stop_here(frame) or self.break_anywhere(frame)):
             # No need to trace this function
             return # None

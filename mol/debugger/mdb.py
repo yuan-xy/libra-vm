@@ -31,7 +31,7 @@ pair ';;'.  No intelligence is applied to separating the commands; the
 input is split at the first ';;', even if it is in the middle of a
 quoted string.
 
-If a file ".pdbrc" exists in your home directory or in the current
+If a file ".mdbrc" exists in your home directory or in the current
 directory, it is read in and executed as if it had been typed at the
 debugger prompt.  This is particularly useful for aliases.  If both
 files exist, the one in the home directory is read first and aliases
@@ -94,7 +94,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
             GlobalTracer.settrace(None)
         return res
 
-# -------------------- copy from pdb --------------------
+# -------------------- copy from mdb --------------------
 
     _previous_sigint_handler = None
 
@@ -1476,3 +1476,10 @@ if __doc__ is not None:
 def help():
     import pydoc
     pydoc.pager(__doc__)
+
+
+def set_trace(*, header=None):
+    mdb = Mdb()
+    if header is not None:
+        mdb.message(header)
+    mdb.set_trace()

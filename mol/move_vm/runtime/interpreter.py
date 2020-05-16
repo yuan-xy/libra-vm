@@ -123,7 +123,8 @@ class Interpreter:
     # `execute_function` and `entrypoint` should exist. It's a bit messy at
     # the moment given tooling and testing. Once we remove Program transactions and we
     # clean up the loader we will have a better time cleaning this up.
-    def execute_function(
+    @classmethod
+    def execute_function(cls,
         context: InterpreterContext,
         runtime: VMRuntime,
         txn_data: TransactionMetadata,
@@ -145,7 +146,8 @@ class Interpreter:
 
     # Entrypoint into the interpreter. All external calls need to be routed through this
     # function.
-    def entrypoint(
+    @classmethod
+    def entrypoint(cls,
         context: InterpreterContext,
         runtime: VMRuntime,
         txn_data: TransactionMetadata,
@@ -906,7 +908,8 @@ class Interpreter:
 
 
     # Helper to create a resource storage key (`AccessPath`) for global storage operations.
-    def make_access_path(
+    @classmethod
+    def make_access_path(cls,
         module: ModuleAccess,
         idx: StructDefinitionIndex,
         type_actual_tags: List[TypeTag],
