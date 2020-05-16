@@ -182,8 +182,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
             # when setting up post-mortem debugging with a traceback, save all
             # the original line numbers to be displayed along the current line
             # numbers (which can be different, e.g. due to finally clauses)
-            lineno = lasti2lineno(tb.tb_frame.f_code, tb.tb_lasti)
-            self.tb_lineno[tb.tb_frame] = lineno
+            self.tb_lineno[tb.tb_frame] = tb.tb_frame.f_lineno
             tb = tb.tb_next
         self.curframe = self.stack[self.curindex][0]
         return self.execRcLines()
@@ -439,7 +438,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         for fn in globs:
             if os.path.isdir(fn):
                 ret.append(fn + '/')
-            elif os.path.isfile(fn) and fn.lower().endswith(('.py', '.pyw')):
+            elif os.path.isfile(fn) and fn.lower().endswith(('.move', '.mvir')):
                 ret.append(fn + ':')
         return ret
 
@@ -571,7 +570,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         The line number may be prefixed with a filename and a colon,
         to specify a breakpoint in another file (probably one that
         hasn't been loaded yet).  The file is searched for on
-        sys.path; the .py suffix may be omitted.
+        sys.path; the .move suffix may be omitted.
         """
         if not arg:
             if self.breaks:  # There's at least one
@@ -597,7 +596,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
             filename = arg[:colon].rstrip()
             f = self.lookupmodule(filename)
             if not f:
-                self.error('%r not found from sys.path' % filename)
+                self.error('%r not found from move search path' % filename)
                 return
             else:
                 filename = f
@@ -612,13 +611,9 @@ class Mdb(BaseDebugger, cmd.Cmd):
             try:
                 lineno = int(arg)
             except ValueError:
+                func = arg
+                # TTODO: find move function by name
                 try:
-                    func = eval(arg)
-                except:
-                    func = arg
-                try:
-                    if hasattr(func, '__func__'):
-                        func = func.__func__
                     code = func.__code__
                     #use co_name to identify the bkpt (function names
                     #could be aliased, but co_name is invariant)
@@ -626,14 +621,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
                     lineno = code.co_firstlineno
                     filename = code.co_filename
                 except:
-                    # last thing to try
-                    (ok, filename, ln) = self.lineinfo(arg)
-                    if not ok:
-                        self.error('The specified object %r is not a function '
-                                   'or was not found along sys.path.' % arg)
-                        return
-                    funcname = ok # ok contains a function name
-                    lineno = int(ln)
+                    pass
         if not filename:
             filename = self.defaultFile()
         # Check for reasonable breakpoint
@@ -670,39 +658,6 @@ class Mdb(BaseDebugger, cmd.Cmd):
 
     complete_tbreak = _complete_location
 
-    def lineinfo(self, identifier):
-        failed = (None, None, None)
-        # Input is identifier, may be in single quotes
-        idstring = identifier.split("'")
-        if len(idstring) == 1:
-            # not in single quotes
-            id = idstring[0].strip()
-        elif len(idstring) == 3:
-            # quoted
-            id = idstring[1].strip()
-        else:
-            return failed
-        if id == '': return failed
-        parts = id.split('.')
-        # Protection for derived debuggers
-        if parts[0] == 'self':
-            del parts[0]
-            if len(parts) == 0:
-                return failed
-        # Best first guess at file to look at
-        fname = self.defaultFile()
-        if len(parts) == 1:
-            item = parts[0]
-        else:
-            # More than one part.
-            # First is module, second is method/class
-            f = self.lookupmodule(parts[0])
-            if f:
-                fname = f
-            item = parts[1]
-        answer = find_function(item, fname)
-        return answer or failed
-
     def checkline(self, filename, lineno):
         """Check whether specified line seems to be executable.
 
@@ -711,18 +666,12 @@ class Mdb(BaseDebugger, cmd.Cmd):
         """
         # this method should be callable before starting debugging, so default
         # to "no globals" if there is no current frame
-        globs = self.curframe.f_globals if hasattr(self, 'curframe') else None
-        line = linecache.getline(filename, lineno, globs)
-        if not line:
-            self.message('End of file')
-            return 0
-        line = line.strip()
-        # Don't allow setting breakpoint at a blank line
-        if (not line or (line[0] == '#') or
-             (line[:3] == '"""') or line[:3] == "'''"):
-            self.error('Blank or comment')
-            return 0
-        return lineno
+        if hasattr(self, 'curframe'):
+            # print(self.curframe.executable_linenos())
+            if lineno in self.curframe.executable_linenos():
+                return lineno
+        self.error('Not an executable lineno')
+        return 0
 
     def do_enable(self, arg):
         """enable bpnumber [bpnumber ...]
@@ -843,7 +792,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
                     self.message('Deleted %s' % bp)
             return
         if ':' in arg:
-            # Make sure it works for "clear C:\foo\bar.py:12"
+            # Make sure it works for "clear C:\foo\bar.move:12"
             i = arg.rfind(':')
             filename = arg[:i]
             arg = arg[i+1:]

@@ -110,13 +110,13 @@ class TracableFrame(JsonPrintable):
 
     def first_lineno(self) -> int:
         if self.mapping is not None:
-            return self.function_map().get_code_location(0).line_no
+            return self.function_source_map().get_code_location(0).line_no
         else:
             return None
 
     def executable_linenos(self) -> Set[int]:
         if self.mapping is not None:
-            return self.function_map().executable_linenos()
+            return self.function_source_map().executable_linenos()
         else:
             return None
 
