@@ -28,6 +28,15 @@ class TracableFrame(JsonPrintable):
     def address_module_function(self) -> Tuple[str, str, str]:
         return self.module().address().hex(), self.module().name(), self.function.name()
 
+    @classmethod
+    def trace_reset(cls):
+        """Reset debugger every time after run prologue/main/epilogue
+        """
+        TracableFrame.CURRENT_FRAME = None
+        gtrace = GlobalTracer.gettrace()
+        if gtrace is not None:
+            gtrace.__self__.reset()
+
     def trace_call(self):
         TracableFrame.CURRENT_FRAME = self
         gtrace = GlobalTracer.gettrace()

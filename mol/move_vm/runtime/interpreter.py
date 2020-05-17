@@ -191,6 +191,7 @@ class Interpreter:
         # No unwinding of the call stack and value stack need to be done here -- the context will
         # take care of that.
         self.execute_main(runtime, context, function, args, 0)
+        TracableFrame.trace_reset()
 
 
     # Main loop for the execution of a function.
