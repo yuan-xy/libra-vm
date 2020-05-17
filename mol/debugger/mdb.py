@@ -425,6 +425,24 @@ class Mdb(BaseDebugger, cmd.Cmd):
     # Generic completion functions.  Individual complete_foo methods can be
     # assigned below to one of these functions.
 
+
+    def completedefault(self, text, line, begidx, endidx):
+        """Method called to complete an input line when no command-specific
+        complete_*() method is available.
+        """
+        return self._complete_expression(text, line, begidx, endidx)
+
+    def completenames(self, text, line, begidx, endidx):
+        name = cmd.Cmd.completenames(self, text, line, begidx, endidx)
+        if name:
+            return name
+        else:
+            return self._complete_expression(text, line, begidx, endidx)
+
+    def _complete_move_locals(self, text, line, begidx, endidx):
+        return [a for a in self.curframe.locals_names() if a.startswith(text)]
+
+
     def _complete_location(self, text, line, begidx, endidx):
         # Complete a file/module/function location for break/tbreak/clear.
         if line.strip().endswith((':', ',')):
@@ -455,6 +473,9 @@ class Mdb(BaseDebugger, cmd.Cmd):
         # Complete an arbitrary expression.
         if not self.curframe:
             return []
+        local = self._complete_move_locals(text, line, begidx, endidx)
+        if local:
+            return local
         # Collect globals and locals.  It is usually not really sensible to also
         # complete builtins, and they clutter the namespace quite heavily, so we
         # leave them out.

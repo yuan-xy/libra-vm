@@ -132,6 +132,12 @@ class TracableFrame(JsonPrintable):
         else:
             return self.locls.to_json_serializable()
 
+    def locals_names(self) -> List[str]:
+        if self.mapping is not None:
+            return [m[0] for m in self.function_source_map().locls]
+        else:
+            return []
+
     def local(self, name):
         if self.mapping is not None:
             values = self.locls.into_inner().value
