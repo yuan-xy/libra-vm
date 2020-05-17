@@ -37,6 +37,8 @@ class BaseDebugger:
         angle brackets, such as "<stdin>", generated in interactive
         mode, are returned unchanged.
         """
+        if filename is None:
+            breakpoint()
         if filename == "<" + filename[1:-1] + ">":
             return filename
         canonic = self.fncache.get(filename)
@@ -200,7 +202,7 @@ class BaseDebugger:
         if lineno not in self.breaks[filename]:
             # The line itself has no breakpoint, but maybe the line is the
             # first line of a function with breakpoint set by function name.
-            lineno = frame.f_code.co_firstlineno
+            lineno = frame.frame_first_lineno()
             if lineno not in self.breaks[filename]:
                 return False
 
@@ -659,7 +661,8 @@ def _checkfuncname(b, frame):
         return True
 
     # Breakpoint set via function name.
-    if frame.f_code.co_name != b.funcname:
+    if frame.function.name() != b.funcname:
+        # It's impossible in move lang.
         # It's not a function call, but rather execution of def statement.
         return False
 
@@ -705,7 +708,7 @@ def _effective(file, line, frame):
             # Ignore count applies only to those bpt hits where the
             # condition evaluates to true.
             try:
-                val = eval(b.cond, frame.f_globals, frame.f_locals)
+                val = eval(b.cond, frame.f_globals, frame.f_locals) # TTODO: how to eval move?
                 if val:
                     if b.ignore > 0:
                         b.ignore -= 1

@@ -47,7 +47,9 @@ Debugger commands
 
 
 from mol.debugger.base_db import BaseDebugger, BaseDebuggerQuit, Breakpoint
-from mol.move_vm.runtime.trace_help import TraceType, TraceCallback, GlobalTracer
+from mol.move_vm.runtime.trace_help import (
+    TraceType, TraceCallback, GlobalTracer, TracableFrame, find_function_map_by_name
+)
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.functional_tests.ir_compiler import IRCompiler
 from mol.functional_tests import testsuite
@@ -112,7 +114,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
     _previous_sigint_handler = None
 
     def __init__(self, completekey='tab', stdin=None, stdout=None, skip=None,
-                 nosigint=False, readrc=False):
+                 nosigint=False, readrc=True):
         BaseDebugger.__init__(self, skip=skip)
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
         if stdout:
@@ -558,7 +560,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
     complete_commands = _complete_bpnumber
 
     def do_break(self, arg, temporary = 0):
-        """b(reak) [ ([filename:]lineno | function) [, condition] ]
+        """b(reak) [ ([filename:]lineno | [module::]function) [, condition] ]
         Without argument, list all breaks.
 
         With a line number argument, set a break at this line in the
@@ -591,8 +593,9 @@ class Mdb(BaseDebugger, cmd.Cmd):
             arg = arg[:comma].rstrip()
         # parse stuff before comma: [filename:]lineno | function
         colon = arg.rfind(':')
+        dcolon = arg.rfind('::')
         funcname = None
-        if colon >= 0:
+        if colon >= 0 and dcolon == -1:
             filename = arg[:colon].rstrip()
             f = self.lookupmodule(filename)
             if not f:
@@ -611,21 +614,18 @@ class Mdb(BaseDebugger, cmd.Cmd):
             try:
                 lineno = int(arg)
             except ValueError:
-                func = arg
-                # TTODO: find move function by name
                 try:
-                    code = func.__code__
-                    #use co_name to identify the bkpt (function names
-                    #could be aliased, but co_name is invariant)
-                    funcname = code.co_name
-                    lineno = code.co_firstlineno
-                    filename = code.co_filename
-                except:
-                    pass
+                    func_map, filename = find_function_map_by_name(arg)
+                    funcname = arg.split("::")[-1]
+                    lineno = func_map.code_map[0].line_no
+                except Exception as err:
+                    self.error(err)
+                    self.error(f"Can't break at unknown function: {arg}")
+                    return
         if not filename:
             filename = self.defaultFile()
         # Check for reasonable breakpoint
-        line = self.checkline(filename, lineno)
+        line = self.checkline(filename, lineno, funcname)
         if line:
             # now set the break point
             err = self.set_break(filename, line, temporary, cond, funcname)
@@ -650,7 +650,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
     complete_b = _complete_location
 
     def do_tbreak(self, arg):
-        """tbreak [ ([filename:]lineno | function) [, condition] ]
+        """tbreak [ ([filename:]lineno | [module::]function) [, condition] ]
         Same arguments as break, but sets a temporary breakpoint: it
         is automatically deleted when first hit.
         """
@@ -658,7 +658,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
 
     complete_tbreak = _complete_location
 
-    def checkline(self, filename, lineno):
+    def checkline(self, filename, lineno, funcname):
         """Check whether specified line seems to be executable.
 
         Return `lineno` if it is, 0 if not (e.g. a docstring, comment, blank
@@ -666,12 +666,17 @@ class Mdb(BaseDebugger, cmd.Cmd):
         """
         # this method should be callable before starting debugging, so default
         # to "no globals" if there is no current frame
-        if hasattr(self, 'curframe'):
-            # print(self.curframe.executable_linenos())
+        if funcname is not None:
+            return lineno
+        if hasattr(self, 'curframe') and self.curframe.source_filename() == filename:
             if lineno in self.curframe.executable_linenos():
                 return lineno
-        self.error('Not an executable lineno')
-        return 0
+            else:
+                self.error(self.curframe.executable_linenos())
+                self.error('Not an executable lineno')
+                return 0
+        else:
+            return lineno
 
     def do_enable(self, arg):
         """enable bpnumber [bpnumber ...]

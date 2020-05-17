@@ -3,7 +3,7 @@ from mol.bytecode_verifier import VerifiedModule
 import os, json
 from os import listdir
 from os.path import isfile, join, abspath, dirname
-from typing import List, Mapping
+from typing import List, Mapping, Optional
 from canoser import Struct
 
 class VecVecU8(Struct):
@@ -26,6 +26,12 @@ STAGED_MOVELANG_STDLIB = build_stdlib()
 
 def stdlib_modules()  -> List[VerifiedModule]:
     return STAGED_MOVELANG_STDLIB
+
+def find_stdlib_module_by_name(name: str)  -> Optional[VerifiedModule]:
+    for module in STAGED_MOVELANG_STDLIB:
+        if module.name() == name:
+            return module
+    return None
 
 
 def build_stdlib_map() -> Mapping[str, CompiledModule]:

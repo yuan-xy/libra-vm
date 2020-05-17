@@ -2,8 +2,11 @@ from enum import IntEnum
 from typing import Callable, Union, Any, Tuple, Optional, Set
 from mol.compiler.bytecode_source_map.source_map import FunctionSourceMap
 from mol.global_source_mapping import GlobalSourceMapping
+from mol.stdlib import find_stdlib_module_by_name
 from mol.move_core import JsonPrintable
 import logging
+from mol.move_vm.runtime.loaded_data.function import LoadedModule
+from libra.account_address import Address
 
 logger = logging.getLogger(__name__)
 
@@ -135,3 +138,24 @@ class GlobalTracer:
     @classmethod
     def gettrace(cls) -> TraceCallback:
         return GlobalTracer.tracer
+
+def find_function_map_by_name(name: str) -> Optional[Tuple[FunctionSourceMap, str]]:
+    if "::" not in name:
+        frame = TracableFrame.CURRENT_FRAME
+        func_idx = frame.module().function_defs_table.get(name)
+        if func_idx is not None:
+            # func = FunctionRef.new(frame.module(), func_idx)
+            return frame.mapping.source_map.function_map[func_idx.v0], frame.source_filename()
+        else:
+            return None
+    else:
+        mname, fname = name.split("::")
+        address = Address.default().hex()
+        mapping = GlobalSourceMapping.find_mapping(f"{address}::{mname}")
+        module = find_stdlib_module_by_name(mname)
+        module = LoadedModule.new(module)
+        func_idx = module.function_defs_table.get(fname)
+        if func_idx is not None:
+            return mapping.source_map.function_map[func_idx.v0], mapping.source_code.path
+        else:
+            return None
