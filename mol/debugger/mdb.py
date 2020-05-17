@@ -1000,16 +1000,6 @@ class Mdb(BaseDebugger, cmd.Cmd):
                 self.error('Jump failed: %s' % e)
     do_j = do_jump
 
-    def do_debug(self, arg):
-        """debug code
-        Enter a recursive debugger that steps through the code
-        argument (which is an arbitrary expression or statement to be
-        executed in the current environment).
-        """
-        print("do debug")
-
-    complete_debug = _complete_expression
-
     def do_quit(self, arg):
         """q(uit)\nexit
         Quit from the debugger. The program being executed is aborted.
@@ -1034,7 +1024,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         """a(rgs)
         Print the argument list of the current function.
         """
-        self.message(self.curframe.locls)
+        self.message(self.curframe.locals_name_value())
     do_a = do_args
 
     def do_retval(self, arg):
@@ -1048,12 +1038,8 @@ class Mdb(BaseDebugger, cmd.Cmd):
     do_rv = do_retval
 
     def _getval(self, arg):
-        try:
-            return eval(arg)
-        except:
-            exc_info = sys.exc_info()[:2]
-            self.error(traceback.format_exception_only(*exc_info)[-1].strip())
-            raise
+        return self.curframe.local(arg)
+
 
     def _getval_except(self, arg, frame=None):
         try:
@@ -1071,7 +1057,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
         Print the value of the expression.
         """
         try:
-            self.message(repr(self._getval(arg)))
+            self.message(self._getval(arg))
         except:
             pass
 
@@ -1189,33 +1175,9 @@ class Mdb(BaseDebugger, cmd.Cmd):
         Print the type of the argument.
         """
         try:
-            value = self._getval(arg)
+            self.message(repr(self._getval(arg)))
         except:
-            # _getval() already printed the error
-            return
-        code = None
-        # Is it a function?
-        try:
-            code = value.__code__
-        except Exception:
             pass
-        if code:
-            self.message('Function %s' % code.co_name)
-            return
-        # Is it an instance method?
-        try:
-            code = value.__func__.__code__
-        except Exception:
-            pass
-        if code:
-            self.message('Method %s' % code.co_name)
-            return
-        # Is it a class?
-        if value.__class__ is type:
-            self.message('Class %s.%s' % (value.__module__, value.__qualname__))
-            return
-        # None of the above...
-        self.message(type(value))
 
     complete_whatis = _complete_expression
 
@@ -1420,7 +1382,7 @@ if __doc__ is not None:
         'enable', 'ignore', 'condition', 'commands', 'step', 'next', 'until',
         'jump', 'return', 'retval', 'run', 'continue', 'list', 'longlist',
         'args', 'p', 'whatis', 'source', 'display', 'undisplay',
-        'interact', 'alias', 'unalias', 'debug', 'quit',
+        'interact', 'alias', 'unalias', 'quit',
     ]
 
     for _command in _help_order:
