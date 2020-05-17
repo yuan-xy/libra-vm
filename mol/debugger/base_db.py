@@ -165,12 +165,11 @@ class BaseDebugger:
     # methods, but they may if they want to redefine the
     # definition of stopping and breakpoints.
 
-    def is_skipped_module(self, module_name):
+    def is_skipped_module(self, frame):
         "Return True if module_name matches any skip pattern."
-        if module_name is None:  # some modules do not have names
-            return False
+        address, mname, fname = frame.address_module_function()
         for pattern in self.skip:
-            if fnmatch.fnmatch(module_name, pattern):
+            if address == pattern or mname == pattern or fname == pattern:
                 return True
         return False
 
@@ -178,8 +177,7 @@ class BaseDebugger:
         "Return True if frame is below the starting frame in the stack."
         # (CT) stopframe may now also be None, see dispatch_call.
         # (CT) the former test for None is therefore removed from here.
-        if self.skip and \
-               self.is_skipped_module(frame.f_globals.get('__name__')):
+        if self.skip and self.is_skipped_module(frame):
             return False
         if frame is self.stopframe:
             if self.stoplineno == -1:

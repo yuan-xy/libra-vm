@@ -4,6 +4,7 @@ import os
 import signal
 import sys
 from mol.debugger.mdb import Mdb
+from libra.account_address import Address
 
 
 version = "0.1.0"
@@ -11,15 +12,15 @@ version = "0.1.0"
 def run_shell(args):
     source_path = args.source_path[0]
     print(source_path)
-    mdb = Mdb()
+    mdb = Mdb(skip=args.skip)
     mdb.run_move(source_path)
 
 def get_parser():
     parser = argparse.ArgumentParser(prog='debugger')
     parser.add_argument('source_path', nargs=1,
                         help='Path to the Move IR source file to debug')
-    parser.add_argument('-v', "--verbose", action='store_true',
-                        default=False, help='Verbose output.')
+    parser.add_argument('-k', "--skip", nargs="*",
+                        default=[Address.default().hex()], help='Skip debug for Address / Module / Function.')
     parser.add_argument('-V', '--version', action='version',
                         version=f'Libra VM Debugger {version}')
     return parser
