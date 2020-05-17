@@ -42,10 +42,12 @@ class TracableFrame(JsonPrintable):
                 else:
                     self.f_trace = ltrace
 
-    def trace_return(self):
+    def trace_return(self, operand_stack):
         gtrace = GlobalTracer.gettrace()
         if gtrace is not None:
-            gtrace(self, TraceType.RETURN, None)
+            size = self.function.return_count()
+            return_value = operand_stack.v0[0-size:]
+            gtrace(self, TraceType.RETURN, return_value)
 
     def try_attach_mapping(self) -> None:
         if self.mapping is not None:

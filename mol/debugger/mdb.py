@@ -1152,23 +1152,6 @@ class Mdb(BaseDebugger, cmd.Cmd):
         self._print_lines(lines, lineno, breaklist, self.curframe)
     do_ll = do_longlist
 
-    def do_source(self, arg):
-        """source expression
-        Try to get source code for the given object and display it.
-        """
-        try:
-            obj = self._getval(arg) # TTODO: find source for func/strcut/module/var
-        except:
-            return
-        try:
-            lines = []
-            lineno = 0
-        except (OSError, TypeError) as err:
-            self.error(err)
-            return
-        self._print_lines(lines, lineno)
-
-    complete_source = _complete_expression
 
     def _print_lines(self, lines, start, breaks=(), frame=None):
         """Print a range of lines."""
@@ -1402,7 +1385,7 @@ if __doc__ is not None:
         'help', 'where', 'down', 'up', 'break', 'tbreak', 'clear', 'disable',
         'enable', 'ignore', 'condition', 'commands', 'step', 'next', 'until',
         'jump', 'return', 'retval', 'run', 'continue', 'list', 'longlist',
-        'args', 'p', 'whatis', 'source', 'display', 'undisplay',
+        'args', 'p', 'whatis', 'display', 'undisplay',
         'interact', 'alias', 'unalias', 'quit',
     ]
 

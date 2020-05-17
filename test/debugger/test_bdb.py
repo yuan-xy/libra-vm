@@ -28,5 +28,5 @@ def test_mdb(capsys):
     output = capsys.readouterr().out
     assert output.startswith("call ('00000000000000000000000000000000', 'LibraAccount', 'prologue')")
     assert "'<SELF>', 'main'" in output
-    assert output.endswith("return ('00000000000000000000000000000000', 'LibraAccount', 'epilogue') None\n")
+    assert output.endswith("return ('00000000000000000000000000000000', 'LibraAccount', 'epilogue') []\n")
 

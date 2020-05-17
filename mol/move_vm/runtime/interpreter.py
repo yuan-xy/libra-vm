@@ -224,7 +224,7 @@ class Interpreter:
                 #.or_else(|err| Err(self.maybe_core_dump(err, &current_frame)))
 
             if exit_code.tag == ExitCodeTag.Return:
-                current_frame.trace_return()
+                current_frame.trace_return(self.operand_stack)
                 # TODO: assert consistency of current frame: stack height correct
                 if create_account_marker == self.call_stack.v0.__len__():
                     return
