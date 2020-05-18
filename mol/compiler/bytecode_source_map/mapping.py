@@ -84,6 +84,9 @@ class SourceMapping(JsonPrintable):
         # if self.source_map.dummy:
         #     return
         for k, v in self.source_map.function_map.items():
+            start_pos = v.decl_location.span.start
+            start_span = Span(start_pos, start_pos + 1)
+            v.decl_location.line_no = source_code.find_line_no(start_span)
             for kk, vv in v.code_map.items():
                 line_no = source_code.find_line_no(vv.span)
                 vv.line_no = line_no

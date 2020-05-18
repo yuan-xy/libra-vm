@@ -179,7 +179,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
 
     def setup(self, f, tb):
         self.forget()
-        self.stack, self.curindex = self.get_stack(f, tb)
+        self.stack, self.curindex = self.get_stack(f, tb) # 也许命名为gen_stack更合适
         while tb:
             # when setting up post-mortem debugging with a traceback, save all
             # the original line numbers to be displayed along the current line

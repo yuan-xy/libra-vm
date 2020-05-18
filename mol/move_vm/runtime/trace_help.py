@@ -55,6 +55,8 @@ class TracableFrame(JsonPrintable):
         gtrace = GlobalTracer.gettrace()
         if gtrace is not None:
             self.try_attach_mapping()
+            if self.mapping is not None:
+                self.line_no = self.function_source_map().decl_location.line_no
             ltrace = gtrace(self, TraceType.CALL, None)
             if ltrace is not None:
                 if isinstance(ltrace, tuple):
