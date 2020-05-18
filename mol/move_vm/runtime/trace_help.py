@@ -29,6 +29,19 @@ class TracableFrame(JsonPrintable):
         return self.module().address().hex(), self.module().name(), self.function.name()
 
     @classmethod
+    def break_main(cls, parsed_script):
+        """set default breakpoint for script on main function
+        """
+        gtrace = GlobalTracer.gettrace()
+        if gtrace is not None:
+            mdb = gtrace.__self__
+            func_map = parsed_script.source_map.function_map[0]
+            line = func_map.code_map[0].line_no
+            file = parsed_script.source_mapping.source_code.path
+            mdb.set_break(mdb.canonic(file), line)
+
+
+    @classmethod
     def trace_reset(cls):
         """Reset debugger every time after run prologue/main/epilogue
         """

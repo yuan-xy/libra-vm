@@ -99,7 +99,6 @@ class Mdb(BaseDebugger, cmd.Cmd):
             compiler.output_source_maps = True
             path = Path(file)
             if path.exists():
-                self.set_break(self.canonic(file), 1)
                 res = testsuite.functional_tests(compiler, file)
             else:
                 print(f"File not exsits: {file}")

@@ -30,6 +30,7 @@ from enum import IntEnum
 from canoser import Uint64
 from mol.move_core import JsonPrintable
 import traceback
+from mol.move_vm.runtime.trace_help import TracableFrame
 
 # A transaction to be evaluated by the testing infra.
 # Contains code and a transaction config.
@@ -433,6 +434,7 @@ def eval_transaction(
                 self_module_name(),
                 parsed_script_or_module.source_mapping,
             )
+            # TracableFrame.break_main(parsed_script_or_module)
         log.append(EvaluationOutput.Output(OutputType.CompiledScript(
             compiled_script),
         ))
