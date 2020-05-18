@@ -1064,10 +1064,7 @@ class Mdb(BaseDebugger, cmd.Cmd):
 
     def _getval_except(self, arg, frame=None):
         try:
-            if frame is None:
-                return eval(arg)
-            else:
-                return eval(arg)
+            return self.curframe.local(arg).value
         except:
             exc_info = sys.exc_info()[:2]
             err = traceback.format_exception_only(*exc_info)[-1].strip()

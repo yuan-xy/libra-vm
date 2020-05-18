@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Callable, Union, Any, Tuple, Optional, Set, List
+from typing import Callable, Union, Any, Tuple, Optional, Set, List, Dict
 from mol.compiler.bytecode_source_map.source_map import FunctionSourceMap
 from mol.global_source_mapping import GlobalSourceMapping
 from mol.stdlib import find_stdlib_module_by_name
@@ -149,12 +149,12 @@ class TracableFrame(JsonPrintable):
         else:
             return None
 
-    def locals_name_value(self) -> List[str]:
+    def locals_name_value(self) -> Dict:
         if self.mapping is not None:
             values = self.locls.into_inner().value
             maps = self.function_source_map().locls
             zipped = zip(maps, values)
-            return [(m[0], v.value) for m,v in zipped]
+            return {m[0]: v.value for m,v in zipped}
         else:
             return self.locls.to_json_serializable()
 

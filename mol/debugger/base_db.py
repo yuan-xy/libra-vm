@@ -706,7 +706,7 @@ def _effective(file, line, frame):
             # Ignore count applies only to those bpt hits where the
             # condition evaluates to true.
             try:
-                val = eval(b.cond, frame.f_globals, frame.f_locals) # TTODO: how to eval move?
+                val = eval(b.cond, {}, frame.locals_name_value()) # TTODO: how to handle struct value in move?
                 if val:
                     if b.ignore > 0:
                         b.ignore -= 1
