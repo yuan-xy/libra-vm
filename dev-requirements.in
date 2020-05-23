@@ -5,4 +5,3 @@ wheel
 flake8
 autopep8
 coverage
-ipdb
