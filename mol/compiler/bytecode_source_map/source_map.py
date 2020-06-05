@@ -273,9 +273,18 @@ class SourceMap(Struct):
         return ret
 
     @classmethod
-    def new(cls, module_name: QualifiedModuleIdent) -> SourceMap:
+    def new(cls, module_name: QualifiedModuleIdent, dummy= False) -> SourceMap:
         ident = module_name.name
-        return cls((module_name.address, ident), {}, {})
+        ret = cls((module_name.address, ident), {}, {})
+        ret.dummy = dummy
+        return ret
+
+    def is_dummy(self):
+        try:
+            dummy = getattr(self, 'dummy')
+            return bool(dummy)
+        except AttributeError:
+            return False
 
 
     def add_top_level_function_mapping(
@@ -448,7 +457,7 @@ class SourceMap(Struct):
         module_ident =\
             QualifiedModuleIdent(module_name, module.address_at(AddressPoolIndex.new(0)))
 
-        empty_source_map = cls.new(module_ident)
+        empty_source_map = cls.new(module_ident, dummy= True)
 
         for (function_idx, function_def) in enumerate(module.function_defs()):
             empty_source_map.add_top_level_function_mapping(

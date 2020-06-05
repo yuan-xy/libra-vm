@@ -64,7 +64,7 @@ class SourceMapping(JsonPrintable):
     marks: Optional[MarkedSourceMapping] = None
 
     def has_source_code_and_map(self):
-        return self.source_code is not None and self.source_map
+        return self.source_code is not None and self.source_map and not self.source_map.is_dummy()
 
     @classmethod
     def new_from_script(cls,
@@ -81,8 +81,8 @@ class SourceMapping(JsonPrintable):
     def with_source_code(self, source_path: str, source: str):
         source_code = SourceCode.new(source_path, source)
         self.source_code = source_code
-        # if self.source_map.dummy:
-        #     return
+        if self.source_map.is_dummy():
+            return
         for k, v in self.source_map.function_map.items():
             start_pos = v.decl_location.span.start
             start_span = Span(start_pos, start_pos + 1)
