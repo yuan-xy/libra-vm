@@ -53,7 +53,6 @@ def main():
         argv.extend(sys.stdin.read().strip().split())
     args = parser.parse_args(argv)
 
-
     address = args.address
     if not address:
         address = Address.default()
