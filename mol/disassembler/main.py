@@ -22,11 +22,12 @@ def get_parser():
     return parser
 
 
-def main():
+def main(argv=None):
     parser = get_parser()
-    argv = sys.argv[1:]
-    if not sys.stdin.isatty():
-        argv.extend(sys.stdin.read().strip().split())
+    if argv is None:
+        argv = sys.argv[1:]
+        if not sys.stdin.isatty():
+            argv.extend(sys.stdin.read().strip().split())
     args = parser.parse_args(argv)
 
     move_extension = ".mvir"

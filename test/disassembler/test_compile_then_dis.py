@@ -23,17 +23,15 @@ def test_compile_then_disassemble(capsys, compile_args):
     if mvsmfile.exists():
         os.remove(mvsmfile)
 
-    sys.argv = sys.argv[:1]
-    sys.argv.append(filename)
-    sys.argv.extend(compile_args)
-    compiler_main()
+    c_argv = [filename]
+    c_argv.extend(compile_args)
+    compiler_main(c_argv)
     assert mvfile.exists()
     if compile_args == ["--src-map"]:
         assert mvsmfile.exists()
 
-    sys.argv = sys.argv[:1]
-    sys.argv.extend(["-b", mvfile.as_posix()])
-    dis_main()
+    d_argv = ["-b", mvfile.as_posix()]
+    dis_main(d_argv)
     out = capsys.readouterr().out
     assert "v: vector" in out
     os.remove(mvfile)
