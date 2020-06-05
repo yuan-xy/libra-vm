@@ -101,9 +101,9 @@ def main():
             compiled_sorm = verified_module.into_inner()
 
     if args.output_source_maps:
-        source_map_bytes = source_map.to_json()
+        source_map_bytes = source_map.serialize()
         path = Path(source_path).with_suffix(source_map_extension)
-        path.write_text(source_map_bytes)
+        path.write_bytes(source_map_bytes)
 
     bytes = compiled_sorm.serialize()
     Path(source_path).with_suffix(mv_extension).write_bytes(bytes)
