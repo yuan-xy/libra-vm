@@ -252,7 +252,6 @@ class SourceMap(Struct):
         ('module_name', (Address, Identifier)),
         ('struct_map', {TableIndex: StructSourceMap}),
         ('function_map', {TableIndex: FunctionSourceMap}),
-        # ('dummy', bool),
     ]
 
     # # The name <address.module_name> for module that this source map is for
@@ -264,7 +263,6 @@ class SourceMap(Struct):
     # # A mapping of FunctionDefinitionIndex to the soure map for that function.
     # function_map: Dict[TableIndex, FunctionSourceMap]
 
-    # dummy: Optional[bool] = False
 
 
     def executable_linenos(self) -> Set[int]:
@@ -450,7 +448,7 @@ class SourceMap(Struct):
         module_ident =\
             QualifiedModuleIdent(module_name, module.address_at(AddressPoolIndex.new(0)))
 
-        empty_source_map = cls.new(module_ident, dummy= True)
+        empty_source_map = cls.new(module_ident)
 
         for (function_idx, function_def) in enumerate(module.function_defs()):
             empty_source_map.add_top_level_function_mapping(
